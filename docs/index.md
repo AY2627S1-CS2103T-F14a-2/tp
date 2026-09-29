@@ -3,19 +3,20 @@
   title: ""
 ---
 
-# AddressBook Level-3
+# Spotter
 
-[![CI Status](https://github.com/se-edu/addressbook-level3/workflows/Java%20CI/badge.svg)](https://github.com/se-edu/addressbook-level3/actions)
-[![codecov](https://codecov.io/gh/se-edu/addressbook-level3/branch/master/graph/badge.svg)](https://codecov.io/gh/se-edu/addressbook-level3)
+[![CI Status](https://github.com/AY2627S1-CS2103T-F14a-2/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-F14a-2/tp/actions/workflows/gradle.yml)
+[![codecov](https://codecov.io/gh/AY2627S1-CS2103T-F14a-2/tp/branch/master/graph/badge.svg)](https://codecov.io/gh/AY2627S1-CS2103T-F14a-2/tp)
 
-![Ui](images/Ui.png)
+![Spotter interface](images/Ui.png)
 
-**AddressBook is a desktop application for managing your contact details.** While it has a GUI, most of the user interactions happen using a CLI (Command Line Interface).
+**Spotter is a desktop client-management application for freelance personal trainers who independently manage their own clients.** It keeps each client's contact details, training sessions, and progress records in one place, helping trainers find information quickly, prepare for sessions, and track each client's development.
 
-* If you are interested in using AddressBook, head over to the [_Quick Start_ section of the **User Guide**](UserGuide.html#quick-start).
-* If you are interested in developing AddressBook, the [**Developer Guide**](DeveloperGuide.html) is a good place to start.
+* To learn how to use Spotter, see the [_Quick Start_ section of the **User Guide**](UserGuide.html#quick-start).
+* To learn how Spotter is designed and developed, see the [**Developer Guide**](DeveloperGuide.html).
 
 
 **Acknowledgements**
 
+* This project is based on the AddressBook-Level3 project created by the [SE-EDU initiative](https://se-education.org).
 * Libraries used: [JavaFX](https://openjfx.io/), [Jackson](https://github.com/FasterXML/jackson), [JUnit5](https://github.com/junit-team/junit5)
