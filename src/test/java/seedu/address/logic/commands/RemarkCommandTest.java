@@ -13,14 +13,15 @@ import org.junit.jupiter.api.Test;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Remark;
 
 /**
  * Contains integration tests (interaction with the Model) and unit tests for {@code RemarkCommand}.
  */
 public class RemarkCommandTest {
 
-    private static final String REMARK_AMY = "Likes to swim.";
-    private static final String REMARK_BOB = "Prefers morning sessions.";
+    private static final Remark REMARK_AMY = new Remark("Likes to swim.");
+    private static final Remark REMARK_BOB = new Remark("Prefers morning sessions.");
 
     private final Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
