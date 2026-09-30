@@ -33,7 +33,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ### Luke Chin
 
-<img src="images/EkulNich.png" width="200px">
+<img src="images/ekulnich.png" width="200px">
 
 [[github](https://github.com/EkulNich)] [[portfolio](team/johndoe.md)]
 
