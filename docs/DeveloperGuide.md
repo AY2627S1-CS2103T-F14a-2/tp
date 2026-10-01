@@ -321,7 +321,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 1.
 
-* 1c. A client with the same name already exists.
+* 1c. A client with the same name already exists. Names are compared ignoring case and leading/trailing spaces, with repeated spaces treated as one.
 
     * 1c1. Spotter informs the trainer that the client already exists.
 
@@ -391,7 +391,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 3.
 
-* 3d. The new name is the same as that of another existing client.
+* 3d. The new name is the same as that of another existing client, compared as in UC01 extension 1c.
 
     * 3d1. Spotter informs the trainer that the client already exists.
 
