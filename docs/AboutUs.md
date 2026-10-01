@@ -47,12 +47,11 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 * Role: Developer
 * Responsibilities: Implement functions, improve the code framework
 
-### James Doe
+### He Jingqi
 
-<img src="images/johndoe.png" width="200px">
+<img src="herohelennn1010.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](https://github.com/herohelennn1010)]
 
-* Role: Developer
-* Responsibilities: UI
+* Role: UI Developer
+* Responsibilities: Develop and maintain Spotter’s UI components, improve the layout and presentation of client information, and ensure core workflows support keyboard interaction.
