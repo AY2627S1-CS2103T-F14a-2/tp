@@ -592,6 +592,100 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case ends.
 
+**Use case: UC08 - Schedule a client's next session**
+
+**MSS**
+
+1.  Trainer requests to list all clients.
+2.  Spotter shows the list of clients.
+3.  Trainer requests to schedule the next session for a specific client in the list, with the session's date and time.
+4.  Spotter records the next session and shows the client's next session.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. Trainer wants to narrow down the list.
+
+    * 1a1. Trainer finds the client (UC02).
+
+      If matching clients are found, use case resumes at step 3; otherwise, the trainer retries the search or the use case ends.
+
+* 2a. The list is empty.
+
+  Use case ends.
+
+* 3a. The specified client is not in the list.
+
+    * 3a1. Spotter shows an error message.
+
+      Use case resumes at step 3.
+
+* 3b. The date or time is missing.
+
+    * 3b1. Spotter shows an error message stating what is missing.
+
+      Use case resumes at step 3.
+
+* 3c. The given date or time is invalid.
+
+    * 3c1. Spotter shows an error message stating what is invalid and the expected format.
+
+      Use case resumes at step 3.
+
+* 3d. The given date and time are in the past.
+
+    * 3d1. Spotter shows an error message stating that the next session must be in the future.
+
+      Use case resumes at step 3.
+
+* 3e. The client already has a next session.
+
+    * 3e1. Spotter informs the trainer that the existing next session will be replaced.
+
+      Use case resumes at step 4.
+
+* 4a. Another client's next session is at the same date and time.
+
+    * 4a1. Spotter keeps the recorded session and warns the trainer about the clashing session.
+
+      Use case ends.
+
+**Use case: UC09 - Cancel a client's next session**
+
+**MSS**
+
+1.  Trainer requests to list all clients.
+2.  Spotter shows the list of clients.
+3.  Trainer requests to cancel the next session of a specific client in the list.
+4.  Spotter removes the client's next session and shows the cancelled session.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. Trainer wants to narrow down the list.
+
+    * 1a1. Trainer finds the client (UC02).
+
+      If matching clients are found, use case resumes at step 3; otherwise, the trainer retries the search or the use case ends.
+
+* 2a. The list is empty.
+
+  Use case ends.
+
+* 3a. The specified client is not in the list.
+
+    * 3a1. Spotter shows an error message.
+
+      Use case resumes at step 3.
+
+* 3b. The client has no next session.
+
+    * 3b1. Spotter informs the trainer that the client has no next session to cancel.
+
+      Use case ends.
+
 
 ### Non-Functional Requirements
 
