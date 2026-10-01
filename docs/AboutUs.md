@@ -40,7 +40,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 * Role: Developer
 * Responsibilities: Data
 
-### Yangjie Dai
+### Dai Yangjie
 
 <img src="images/dai-yangjie.png" width="200px">
 
