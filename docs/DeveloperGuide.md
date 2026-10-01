@@ -331,7 +331,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 **MSS**
 
-1.  Trainer requests to find clients matching some keywords.
+1.  Trainer requests to find clients using keywords from their names, which may be full or partial names.
 2.  Spotter shows the list of matching clients.
 
     Use case ends.
@@ -354,39 +354,46 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 **MSS**
 
-1.  Trainer finds the client (UC02).
-2.  Trainer requests to edit specific details of a client in the list.
-3.  Spotter updates the client and shows the updated details.
+1.  Trainer requests to list all clients.
+2.  Spotter shows the list of clients.
+3.  Trainer requests to edit specific details of a client in the list.
+4.  Spotter updates the client and shows the updated details.
 
     Use case ends.
 
 **Extensions**
 
-* 1a. No client matches the keywords.
+* 1a. Trainer wants to narrow down the list.
+
+    * 1a1. Trainer finds the client (UC02).
+
+      Use case resumes at step 3.
+
+* 2a. The list is empty.
 
   Use case ends.
 
-* 2a. The specified client is not in the list.
+* 3a. The specified client is not in the list.
 
-    * 2a1. Spotter shows an error message.
+    * 3a1. Spotter shows an error message.
 
-      Use case resumes at step 2.
+      Use case resumes at step 3.
 
-* 2b. No details to edit are given.
+* 3b. No details to edit are given.
 
-    * 2b1. Spotter shows an error message stating that at least one detail must be given.
+    * 3b1. Spotter shows an error message stating that at least one detail must be given.
 
-      Use case resumes at step 2.
+      Use case resumes at step 3.
 
-* 2c. A given detail is invalid.
+* 3c. A given detail is invalid.
 
-    * 2c1. Spotter shows an error message stating which detail is wrong and the expected format.
+    * 3c1. Spotter shows an error message stating which detail is wrong and the expected format.
 
-      Use case resumes at step 2.
+      Use case resumes at step 3.
 
-* 2d. The new name is the same as that of another existing client.
+* 3d. The new name is the same as that of another existing client.
 
-    * 2d1. Spotter informs the trainer that the client already exists.
+    * 3d1. Spotter informs the trainer that the client already exists.
 
       Use case ends.
 
@@ -394,23 +401,30 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 **MSS**
 
-1.  Trainer finds the client (UC02).
-2.  Trainer requests to delete a specific client in the list.
-3.  Spotter deletes the client, together with the client's sessions and progress records, and shows the deleted client.
+1.  Trainer requests to list all clients.
+2.  Spotter shows the list of clients.
+3.  Trainer requests to delete a specific client in the list.
+4.  Spotter deletes the client, together with all records attached to the client, and shows the deleted client.
 
     Use case ends.
 
 **Extensions**
 
-* 1a. No client matches the keywords.
+* 1a. Trainer wants to narrow down the list.
+
+    * 1a1. Trainer finds the client (UC02).
+
+      Use case resumes at step 3.
+
+* 2a. The list is empty.
 
   Use case ends.
 
-* 2a. The specified client is not in the list.
+* 3a. The specified client is not in the list.
 
-    * 2a1. Spotter shows an error message.
+    * 3a1. Spotter shows an error message.
 
-      Use case resumes at step 2.
+      Use case resumes at step 3.
 
 ### Non-Functional Requirements
 
