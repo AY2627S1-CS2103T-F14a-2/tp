@@ -52,7 +52,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ### He Jingqi
 
-<img src="herohelennn1010.png" width="200px">
+<img src="images/herohelennn1010.png" width="200px">
 
 [[github](https://github.com/herohelennn1010)]
 
