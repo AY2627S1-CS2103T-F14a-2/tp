@@ -341,7 +341,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
     * 1a1. Trainer finds the client (UC02).
 
-      Use case resumes at step 3.
+      If matching clients are found, use case resumes at step 3; otherwise, the trainer retries the search or the use case ends.
 
 * 2a. The list is empty.
 
@@ -359,9 +359,15 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 3.
 
-* 3c. A given detail is invalid.
+* 3c. The given date is invalid.
 
-    * 3c1. Spotter shows an error message stating which detail is wrong and the expected format.
+    * 3c1. Spotter shows an error message stating that the date is invalid and the expected date format.
+
+      Use case resumes at step 3.
+
+* 3d. Another given detail is invalid.
+
+    * 3d1. Spotter shows an error message stating which detail is wrong and the expected format.
 
       Use case resumes at step 3.
 
@@ -382,7 +388,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
     * 1a1. Trainer finds the client (UC02).
 
-      Use case resumes at step 3.
+      If matching clients are found, use case resumes at step 3; otherwise, the trainer retries the search or the use case ends.
 
 * 2a. The list is empty.
 
@@ -400,15 +406,21 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 3.
 
-* 3c. No measurement is given.
+* 3c. The given date is invalid.
 
-    * 3c1. Spotter shows an error message stating that at least one measurement must be given.
+    * 3c1. Spotter shows an error message stating that the date is invalid and the expected date format.
 
       Use case resumes at step 3.
 
-* 3d. A given measurement is invalid.
+* 3d. No measurement is given.
 
-    * 3d1. Spotter shows an error message stating which measurement is wrong and the expected format.
+    * 3d1. Spotter shows an error message stating that at least one measurement must be given.
+
+      Use case resumes at step 3.
+
+* 3e. A given measurement is invalid.
+
+    * 3e1. Spotter shows an error message stating which measurement is wrong and the expected format.
 
       Use case resumes at step 3.
 
@@ -429,7 +441,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
     * 1a1. Trainer finds the client (UC02).
 
-      Use case resumes at step 3.
+      If matching clients are found, use case resumes at step 3; otherwise, the trainer retries the search or the use case ends.
 
 * 2a. The list is empty.
 
