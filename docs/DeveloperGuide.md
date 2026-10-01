@@ -455,6 +455,143 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 3.
 
+
+**Use case: UC05 - Record a client's gym performance**
+
+**MSS**
+
+1.  Trainer requests to list all clients.
+2.  Spotter shows the list of clients.
+3.  Trainer requests to record a gym performance for a specific client in the list, with the performance details.
+4.  Spotter records the performance and shows the recorded performance.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. Trainer wants to narrow down the list.
+
+    * 1a1. Trainer finds the client (UC02).
+
+      If matching clients are found, use case resumes at step 3; otherwise, the trainer retries the search or the use case ends.
+
+* 2a. The list is empty.
+
+  Use case ends.
+
+* 3a. The specified client is not in the list.
+
+    * 3a1. Spotter shows an error message.
+
+      Use case resumes at step 3.
+
+* 3b. A required detail is missing.
+
+    * 3b1. Spotter shows an error message stating which detail is missing.
+
+      Use case resumes at step 3.
+
+* 3c. The given date is invalid.
+
+    * 3c1. Spotter shows an error message stating that the date is invalid and the expected date format.
+
+      Use case resumes at step 3.
+
+* 3d. Another given detail is invalid.
+
+    * 3d1. Spotter shows an error message stating which detail is wrong and the expected format.
+
+      Use case resumes at step 3.
+
+**Use case: UC06 - Record a client's body measurements**
+
+**MSS**
+
+1.  Trainer requests to list all clients.
+2.  Spotter shows the list of clients.
+3.  Trainer requests to record body measurements for a specific client in the list, with the date and one or more measurements.
+4.  Spotter records the measurements and shows the recorded measurements.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. Trainer wants to narrow down the list.
+
+    * 1a1. Trainer finds the client (UC02).
+
+      If matching clients are found, use case resumes at step 3; otherwise, the trainer retries the search or the use case ends.
+
+* 2a. The list is empty.
+
+  Use case ends.
+
+* 3a. The specified client is not in the list.
+
+    * 3a1. Spotter shows an error message.
+
+      Use case resumes at step 3.
+
+* 3b. The date is missing.
+
+    * 3b1. Spotter shows an error message stating that the date is missing.
+
+      Use case resumes at step 3.
+
+* 3c. The given date is invalid.
+
+    * 3c1. Spotter shows an error message stating that the date is invalid and the expected date format.
+
+      Use case resumes at step 3.
+
+* 3d. No measurement is given.
+
+    * 3d1. Spotter shows an error message stating that at least one measurement must be given.
+
+      Use case resumes at step 3.
+
+* 3e. A given measurement is invalid.
+
+    * 3e1. Spotter shows an error message stating which measurement is wrong and the expected format.
+
+      Use case resumes at step 3.
+
+**Use case: UC07 - View a client's progress history**
+
+**MSS**
+
+1.  Trainer requests to list all clients.
+2.  Spotter shows the list of clients.
+3.  Trainer requests to view the progress history of a specific client in the list.
+4.  Spotter shows the client's gym performance and body measurement records, sorted by date.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. Trainer wants to narrow down the list.
+
+    * 1a1. Trainer finds the client (UC02).
+
+      If matching clients are found, use case resumes at step 3; otherwise, the trainer retries the search or the use case ends.
+
+* 2a. The list is empty.
+
+  Use case ends.
+
+* 3a. The specified client is not in the list.
+
+    * 3a1. Spotter shows an error message.
+
+      Use case resumes at step 3.
+
+* 4a. The client has no progress records yet.
+
+    * 4a1. Spotter informs the trainer that the client has no progress records.
+
+      Use case ends.
+
+
 ### Non-Functional Requirements
 
 1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
