@@ -325,11 +325,41 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
+1. **Keyboard operation:** After launching Spotter, the trainer must
+   be able to complete all core client-management, next-session and
+   progress-recording workflows using the keyboard without requiring
+   mouse interaction.
 
-*{More to be added}*
+2. **Capacity and responsiveness:** Spotter must support 50 clients,
+   each with up to 1,000 body-measurement entries and 1,000
+   gym-performance entries. With this dataset, at least 95% of
+   client-listing, client-search and record-update commands must
+   display their results within 1 second on the documented reference
+   computer.
+
+3. **Startup performance:** With the dataset specified above, Spotter
+   must load the saved records and become ready to accept commands
+   within 5 seconds on the documented reference computer.
+
+4. **Data integrity:** Commands rejected because of invalid input
+   must leave existing client details, next-session information and
+   progress records unchanged.
+
+5. **Storage failure handling:** If Spotter cannot save a change, it
+   must display an error indicating that the change has not been saved.
+   If an existing data file is malformed, Spotter must not overwrite
+   that file automatically.
+
+6. **Offline operation:** After installation, all core workflows must
+   operate without an internet connection. Spotter must not transmit
+   client records to external services.
+
+7. **Human-editable storage:** Spotter must store client records in a
+   documented, plain-text format that can be inspected and edited
+   using a standard text editor while Spotter is closed.
+
+
+
 
 ### Glossary
 
