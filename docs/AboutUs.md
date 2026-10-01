@@ -20,15 +20,14 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 * Role: DevOps and Integration
 * Responsibilities: Maintains CI and the project website, coordinates safe PR integration, and helps keep the main branch buildable.
 
-### Jane Doe
+### Vincent Ong
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/v1-nce.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](https://github.com/v1-nce)]
 
-* Role: Team Lead
-* Responsibilities: UI
+* Role: Testing and Code Quality
+* Responsibilities: In charge of the Logic component; oversees test coverage and reviews PRs for coding standards.
 
 ### Johnny Doe
 
