@@ -458,126 +458,75 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Non-Functional Requirements
 
-1. **Keyboard operation:** After launching Spotter, the trainer must
-   be able to complete all core client-management, next-session and
-   progress-recording workflows using the keyboard without requiring
-   mouse interaction.
+1. **Keyboard operation:** After launching Spotter, the trainer must be able to complete all core client-management, next-session and progress-recording workflows using the keyboard without requiring mouse interaction.
 
-2. **Capacity and responsiveness:** Spotter must support 50 clients,
-   each with up to 1,000 body-measurement entries and 1,000
-   gym-performance entries. With this dataset, at least 95% of
-   client-listing, client-search and record-update commands must
-   display their results within 1 second on the documented reference
-   computer.
+2. **Capacity and responsiveness:** Spotter must support 50 clients, each with up to 1,000 body-measurement entries and 1,000 gym-performance entries. With this dataset, at least 95% of client-listing, client-search and record-update commands must display their results within 1 second on the documented reference computer.
 
-3. **Startup performance:** With the dataset specified above, Spotter
-   must load the saved records and become ready to accept commands
-   within 5 seconds on the documented reference computer.
+3. **Startup performance:** With the dataset specified above, Spotter must load the saved records and become ready to accept commands within 5 seconds on the documented reference computer.
 
-4. **Data integrity:** Commands rejected because of invalid input
-   must leave existing client details, next-session information and
-   progress records unchanged.
+4. **Data integrity:** Commands rejected because of invalid input must leave existing client details, next-session information and progress records unchanged.
 
-5. **Storage failure handling:** If Spotter cannot save a change, it
-   must display an error indicating that the change has not been saved.
-   If an existing data file is malformed, Spotter must not overwrite
-   that file automatically.
+5. **Storage failure handling:** If Spotter cannot save a change, it must display an error indicating that the change has not been saved. If an existing data file is malformed, Spotter must not overwrite that file automatically.
 
-6. **Offline operation:** After installation, all core workflows must
-   operate without an internet connection. Spotter must not transmit
-   client records to external services.
+6. **Offline operation:** After downloading the release JAR, all core workflows must operate without an internet connection. Spotter must not transmit client records to external services.
 
-7. **Human-editable storage:** Spotter must store client records in a
-   documented, plain-text format that can be inspected and edited
-   using a standard text editor while Spotter is closed.
+7. **Human-editable storage:** Spotter must store client records in a documented, plain-text format that can be inspected and edited using a standard text editor while Spotter is closed.
 
-8. **Platform compatibility:** Spotter must launch and support all core
-   workflows on mainstream operating systems with Java 25 installed,
-   without requiring another Java version.
+8. **Platform compatibility:** Spotter must launch and support all core workflows on mainstream operating systems with Java 25 installed, without requiring another Java version.
 
-9. **Portability:** Spotter must run without requiring an installer.
+9. **Portability:** Spotter must be distributed as an executable JAR that runs on a computer with Java 25 installed, without requiring an installer for Spotter.
 
 
 
 ### Glossary
 
-* **Trainer**: A freelance personal trainer who independently manages
-  their own clients. The trainer is the user of Spotter.
+* **Trainer**: A freelance personal trainer who independently manages their own clients. The trainer is the user of Spotter.
 
-* **Client**: A person whose contact details and training-related
-  information are managed by the trainer in Spotter.
+* **Client**: A person whose contact details and training-related information are managed by the trainer in Spotter.
 
-* **Client record**: The information stored for a client, including
-  their contact details and any associated session information,
-  progress records, goals, notes and tags.
+* **Client record**: The information stored for a client, including their contact details and any associated session information, progress records, goals, notes and tags.
 
 * **Session**: A training appointment between the trainer and a client.
 
-* **Next session**: The upcoming training appointment recorded for
-  a client, identified by its date and time. The MVP records at most
-  one next session per client.
+* **Next session**: The upcoming training appointment recorded for a client, identified by its date and time. Spotter records at most one next session per client.
 
-* **Body measurement**: A numerical measurement of a client's physical
-  characteristics, such as body weight or body-fat percentage.
+* **Body measurement**: A numerical measurement of a client's physical characteristics, such as body weight or body-fat percentage.
 
-* **Body-measurement record**: A dated entry containing one or more
-  body measurements for a client. Multiple measurement fields within
-  the same entry count as one record.
+* **Body-measurement record**: A dated entry containing one or more body measurements for a client. Multiple measurement fields within the same entry count as one record.
 
-* **Gym-performance record**: A dated entry describing a client's
-  performance in an exercise, such as the weight lifted or the number
-  of repetitions completed.
+* **Gym-performance record**: A dated entry describing a client's performance in an exercise, such as the weight lifted or the number of repetitions completed.
 
-* **Progress record / Progress entry**: A body-measurement record or
-  gym-performance record associated with a client. These terms refer
-  to the same concept.
+* **Progress record / Progress entry**: A body-measurement record or gym-performance record associated with a client. These terms refer to the same concept.
 
-* **Progress history**: A client's body-measurement and gym-performance
-  records presented together in date order.
+* **Progress history**: A client's body-measurement and gym-performance records presented together in date order.
 
-* **Goal**: A training outcome that a client wants to achieve, such
-  as improving strength or reducing body weight.
+* **Goal**: A training outcome that a client wants to achieve, such as improving strength or reducing body weight.
 
-* **Session note**: A textual description recorded by the trainer
-  after a session to help them prepare for subsequent sessions.
+* **Session note**: A textual description recorded by the trainer after a session to help them prepare for subsequent sessions.
 
-* **Tag**: A label attached to a client record to support grouping
-  and filtering, such as `rehab` or `weight-loss`.
+* **Tag**: A label attached to a client record to support grouping and filtering, such as `rehab` or `weight-loss`.
 
-* **Archived client**: A client whose record is retained but excluded
-  from the normal active-client view and can subsequently be restored.
+* **Archived client**: A client whose record is retained but excluded from the normal active-client view and can subsequently be restored.
 
 * **Command alias**: An alternative name or shortcut for a command.
 
-* **Automatic data persistence**: Saving changes without requiring
-  an explicit save command and loading saved data when Spotter starts.
+* **Automatic data persistence**: Saving changes without requiring an explicit save command and loading saved data when Spotter starts.
 
-* **Local data file**: A file on the trainer's computer containing
-  Spotter's saved records.
+* **Local data file**: A file on the trainer's computer containing Spotter's saved records.
 
-* **Human-editable storage**: Storage in a documented plain-text format
-  that can be inspected and edited using a standard text editor while
-  Spotter is closed.
+* **Human-editable storage**: Storage in a documented plain-text format that can be inspected and edited using a standard text editor while Spotter is closed.
 
-* **Sample data**: Fictional client records supplied to demonstrate
-  Spotter's behaviour without using real client information.
+* **Sample data**: Fictional client records supplied to demonstrate Spotter's behaviour without using real client information.
 
-* **Core workflows**: Adding, listing and deleting clients; recording
-  a client's next session; and recording body measurements and gym
-  performance, as identified in the MVP feature list.
+* **Core workflows**: Adding, listing, finding, editing and deleting clients; managing next sessions; recording, viewing, editing and deleting progress entries; managing goals, notes and tags; filtering and sorting clients; archiving and restoring clients; and managing local data, including saving, loading, importing and exporting.
 
-* **Response time**: The elapsed time between submitting a command
-  and Spotter displaying its result.
+* **Response time**: The elapsed time between submitting a command and Spotter displaying its result.
 
-* **Startup time**: The elapsed time between starting Spotter and it
-  becoming ready to accept commands after loading saved records.
+* **Startup time**: The elapsed time between starting Spotter and it becoming ready to accept commands after loading saved records.
 
-* **Reference computer**: The computer used to verify performance
-  requirements, with its operating system, CPU, RAM, storage type
-  and Java version documented alongside the test results.
+* **Reference computer**: The baseline computer for verifying NFRs 2 and 3: a CPU with four physical cores and a 2.0 GHz base clock, 8 GB RAM, SSD storage, Windows 11 (64-bit) and JDK 25. Performance tests use this configuration with no other user applications running. The exact CPU and SSD models, JDK distribution and version, and operating-system version must be recorded alongside the test results.
 
-* **Offline operation**: Operation without an internet connection
-  after installation.
+* **Offline operation**: Operation without an internet connection after downloading the release JAR, on a computer with Java 25 installed.
 
 * **Mainstream OS**: For Spotter, Windows, Linux or macOS.
 
