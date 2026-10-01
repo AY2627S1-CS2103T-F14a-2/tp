@@ -10,7 +10,6 @@ import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
-import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import org.junit.jupiter.api.Test;
 
@@ -28,9 +27,7 @@ public class RemarkCommandTest {
 
     private static final String REMARK_STUB = "Some remark";
 
-    private final Model model = new ModelManager(
-            getTypicalAddressBook(),
-            new UserPrefs());
+    private final Model model = new ModelManager();
 
     @Test
     public void execute_addRemarkUnfilteredList_success() {
@@ -164,6 +161,7 @@ public class RemarkCommandTest {
 
         Index outOfBoundIndex = INDEX_SECOND_PERSON;
 
+        // ensures that outOfBoundIndex is still in bounds of address book list
         assertTrue(
                 outOfBoundIndex.getZeroBased()
                         < model.getAddressBook().getPersonList().size());
@@ -186,6 +184,7 @@ public class RemarkCommandTest {
                         INDEX_FIRST_PERSON,
                         new Remark(VALID_REMARK_AMY));
 
+        // same values -> returns true
         RemarkCommand commandWithSameValues =
                 new RemarkCommand(
                         INDEX_FIRST_PERSON,
@@ -193,17 +192,22 @@ public class RemarkCommandTest {
 
         assertTrue(standardCommand.equals(commandWithSameValues));
 
+        // same object -> returns true
         assertTrue(standardCommand.equals(standardCommand));
 
+        // null -> returns false
         assertFalse(standardCommand.equals(null));
 
+        // different types -> returns false
         assertFalse(standardCommand.equals(new ClearCommand()));
 
+        // different index -> returns false
         assertFalse(standardCommand.equals(
                 new RemarkCommand(
                         INDEX_SECOND_PERSON,
                         new Remark(VALID_REMARK_AMY))));
 
+        // different remark -> returns false
         assertFalse(standardCommand.equals(
                 new RemarkCommand(
                         INDEX_FIRST_PERSON,
