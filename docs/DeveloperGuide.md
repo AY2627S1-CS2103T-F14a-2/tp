@@ -270,29 +270,58 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
+* is a freelance personal trainer who independently manages their own clients, including when attached to a gym
+* manages a client base of tens of clients and handles their own administrative work
+* needs to keep track of client contact details, upcoming session times, body measurements, and gym performance
+* currently keeps client information across contacts, messages, notes, and calendars, making relevant information difficult to retrieve quickly
+* uses a personal computer and is comfortable typing short commands
+* prefers typing to navigating menus for frequent data-entry tasks
+* manages client records individually without requiring shared access with other trainers
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+
+**Value proposition**: Freelance personal trainers manage client information across scattered contacts, notes, and calendars. Spotter brings contact details, session times, and progress records together around each client, helping trainers quickly retrieve information, prepare for sessions, and review progress while spending less time searching across separate tools.
 
 
 ### User stories
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …                                    | I want to …                 | So that I can…                                                        |
-|----------|--------------------------------------------|------------------------------|------------------------------------------------------------------------|
-| `* * *`  | new user                                   | see usage instructions       | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person             |                                                                        |
-| `* * *`  | user                                       | delete a person              | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name        | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name         | locate a person easily                                                 |
+| Priority | As a … | I can … | So that … |
+|----------|--------|---------|-----------|
+| `* *` | potential user exploring the app | see the app pre-loaded with sample data | I can understand how it looks in use before entering real data |
+| `* *` | new user | purge all sample data | I can start entering my real clients on a clean slate |
+| `* *` | new user | view a user guide or help information | I can learn what the app can do |
+| `* * *` | user | add a client with their contact details | I can store everyone I train in one place |
+| `* * *` | user | list all my clients | I can see everyone I train at a glance |
+| `* * *` | user | delete a client | I can remove records of people I no longer train |
+| `* *` | user | edit a client's details | I can keep their information up to date |
+| `* *` | user | find a client by name | I can quickly retrieve their details |
+| `* *` | user who cannot remember a client's full name | find a client using part of their name | I can locate them without remembering the exact name |
+| `* * *` | user | record the date and time of a client's next session | I know when I am next meeting them |
+| `* *` | user | see all sessions scheduled for today | I know who I am training today |
+| `* *` | user | see a client's next upcoming session | I can prepare for it in advance |
+| `* *` | user | update a client's next session date and time | my schedule stays accurate when plans change |
+| `* *` | user | remove a recorded session | cancelled sessions do not clutter my schedule |
+| `* *` | busy user | receive a warning when I schedule two sessions at the same time | I can avoid double-booking myself |
+| `* * *` | user | record a client's body measurements | I can track changes in their measurements over time |
+| `* * *` | user | record a client's gym performance | I can track changes in their performance over time |
+| `* *` | user | add a note after a session | I can remember what we did when preparing for the next session |
+| `* *` | user | view a client's progress history | I can assess how their measurements and performance have changed over time |
+| `* *` | user | record a client's goal | I can plan their training with that goal in mind |
+| `* *` | user | edit or delete a progress entry | I can correct mistakes in recorded data |
+| `* *` | user | tag clients with labels such as rehab or weight-loss | I can group similar clients together |
+| `* *` | user | filter clients by tag | I can focus on one group at a time |
+| `* *` | user | sort clients by name or next session | I can find the client I need more quickly |
+| `* *` | user | find clients I have not seen in a while | I can follow up with them about booking another session |
+| `* *` | expert user | create shortcuts or aliases for frequent commands | I can save time on actions I repeat often |
+| `* *` | long-time user | archive or hide inactive clients | I can focus on active clients without deleting older records |
+| `* *` | user | restore an archived client | I can resume training someone who returns without re-entering their details |
+| `* * *` | user | have my data saved automatically and loaded when the app starts | I can resume my work without manually saving or re-entering records |
+| `* * *` | user | have my data stored in a human-editable local file | I can inspect its contents and copy it for backup or transfer between computers |
+| `* *` | user | export my client data | I can keep a separate backup in case my laptop fails |
+| `* *` | user | import client data from a file | I can move my data to a new computer |
+| `* *` | expert user | edit the data file directly | I can make bulk changes quickly |                           |
 
-*{More to be added}*
 
 ### Use cases
 
