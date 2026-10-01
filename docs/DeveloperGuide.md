@@ -325,32 +325,135 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+(For all use cases below, the **System** is `Spotter` and the **Actor** is the `trainer`, unless specified otherwise)
 
-**Use case: Delete a person**
+**Use case: UC01 - Add a client**
 
 **MSS**
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+1.  Trainer requests to add a client with the client's details.
+2.  Spotter adds the client and shows the added client.
 
     Use case ends.
 
 **Extensions**
 
+* 1a. A required detail is missing.
+
+    * 1a1. Spotter shows an error message stating which detail is missing.
+
+      Use case resumes at step 1.
+
+* 1b. A given detail is invalid.
+
+    * 1b1. Spotter shows an error message stating which detail is wrong and the expected format.
+
+      Use case resumes at step 1.
+
+* 1c. A client with the same name already exists. Names are compared ignoring case and leading/trailing spaces, with repeated spaces treated as one.
+
+    * 1c1. Spotter informs the trainer that the client already exists.
+
+      Use case ends.
+
+**Use case: UC02 - Find a client**
+
+**MSS**
+
+1.  Trainer requests to find clients using keywords from their names, which may be full or partial names.
+2.  Spotter shows the list of matching clients.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. No keywords are given.
+
+    * 1a1. Spotter shows an error message.
+
+      Use case resumes at step 1.
+
+* 2a. No client matches the keywords.
+
+    * 2a1. Spotter shows an empty list and informs the trainer that no clients were found.
+
+      Use case ends.
+
+**Use case: UC03 - Edit a client's details**
+
+**MSS**
+
+1.  Trainer requests to list all clients.
+2.  Spotter shows the list of clients.
+3.  Trainer requests to edit specific details of a client in the list.
+4.  Spotter updates the client and shows the updated details.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. Trainer wants to narrow down the list.
+
+    * 1a1. Trainer finds the client (UC02).
+
+      Use case resumes at step 3.
+
 * 2a. The list is empty.
 
   Use case ends.
 
-* 3a. The given index is invalid.
+* 3a. The specified client is not in the list.
 
-    * 3a1. AddressBook shows an error message.
+    * 3a1. Spotter shows an error message.
 
-      Use case resumes at step 2.
+      Use case resumes at step 3.
 
-*{More to be added}*
+* 3b. No details to edit are given.
+
+    * 3b1. Spotter shows an error message stating that at least one detail must be given.
+
+      Use case resumes at step 3.
+
+* 3c. A given detail is invalid.
+
+    * 3c1. Spotter shows an error message stating which detail is wrong and the expected format.
+
+      Use case resumes at step 3.
+
+* 3d. The new name is the same as that of another existing client, compared as in UC01 extension 1c.
+
+    * 3d1. Spotter informs the trainer that the client already exists.
+
+      Use case ends.
+
+**Use case: UC04 - Delete a client**
+
+**MSS**
+
+1.  Trainer requests to list all clients.
+2.  Spotter shows the list of clients.
+3.  Trainer requests to delete a specific client in the list.
+4.  Spotter deletes the client, together with all records attached to the client, and shows the deleted client.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. Trainer wants to narrow down the list.
+
+    * 1a1. Trainer finds the client (UC02).
+
+      Use case resumes at step 3.
+
+* 2a. The list is empty.
+
+  Use case ends.
+
+* 3a. The specified client is not in the list.
+
+    * 3a1. Spotter shows an error message.
+
+      Use case resumes at step 3.
 
 ### Non-Functional Requirements
 
