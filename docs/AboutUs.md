@@ -29,14 +29,14 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 * Role: Testing and Code Quality
 * Responsibilities: In charge of the Logic component; oversees test coverage and reviews PRs for coding standards.
 
-### Johnny Doe
+### Luke Chin
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/ekulnich.png" width="200px">
 
-[[github](http://github.com/johndoe)] [[portfolio](team/johndoe.md)]
+[[github](https://github.com/EkulNich)] [[portfolio](team/johndoe.md)]
 
 * Role: Developer
-* Responsibilities: Data
+* Responsibilities: Target-user profile, value proposition, and user stories
 
 ### Jean Doe
 
