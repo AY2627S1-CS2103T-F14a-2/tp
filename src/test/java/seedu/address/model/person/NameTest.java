@@ -39,6 +39,29 @@ public class NameTest {
     }
 
     @Test
+    public void isSameName() {
+        Name name = new Name("John Doe");
+
+        // same value -> returns true
+        assertTrue(name.isSameName(new Name("John Doe")));
+
+        // different case -> returns true
+        assertTrue(name.isSameName(new Name("john DOE")));
+
+        // repeated internal spaces -> returns true
+        assertTrue(name.isSameName(new Name("John   Doe")));
+
+        // trailing spaces -> returns true
+        assertTrue(name.isSameName(new Name("John Doe  ")));
+
+        // similar but different name -> returns false
+        assertFalse(name.isSameName(new Name("John Doey")));
+
+        // null -> returns false
+        assertFalse(name.isSameName(null));
+    }
+
+    @Test
     public void equals() {
         Name name = new Name("Valid Name");
 
