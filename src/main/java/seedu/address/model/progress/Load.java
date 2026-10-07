@@ -20,12 +20,12 @@ public class Load {
 
     public static final int MAX_DECIMAL_PLACES = 2;
 
-    private static final BigDecimal MIN_LOAD = BigDecimal.ZERO;
     private static final BigDecimal MAX_LOAD = new BigDecimal("1000");
 
     /*
      * Accepts only plain non-negative decimal numbers, so that inputs such as "-5", "+5", "1e2" and ".5"
      * are rejected before they reach BigDecimal, which would otherwise accept some of them.
+     * As negative numbers never match, only the upper bound of the range needs to be checked.
      */
     private static final String NUMBER_REGEX = "\\d+(\\.\\d+)?";
 
@@ -58,8 +58,7 @@ public class Load {
         if (!test.matches(NUMBER_REGEX)) {
             return false;
         }
-        BigDecimal load = new BigDecimal(test);
-        return load.compareTo(MIN_LOAD) >= 0 && load.compareTo(MAX_LOAD) <= 0;
+        return new BigDecimal(test).compareTo(MAX_LOAD) <= 0;
     }
 
     /**

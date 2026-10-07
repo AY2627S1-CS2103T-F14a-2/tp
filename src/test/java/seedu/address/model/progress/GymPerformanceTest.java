@@ -37,6 +37,15 @@ public class GymPerformanceTest {
     }
 
     @Test
+    public void getters_returnConstructorValues() {
+        assertEquals(DATE, benchPress.getDate());
+        assertEquals(BENCH_PRESS, benchPress.getExerciseName());
+        assertEquals(3, benchPress.getSets());
+        assertEquals(8, benchPress.getReps());
+        assertEquals(LOAD, benchPress.getLoad());
+    }
+
+    @Test
     public void isValidDate() {
         // null date
         assertThrows(NullPointerException.class, () -> GymPerformance.isValidDate(null));
