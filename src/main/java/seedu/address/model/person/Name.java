@@ -38,6 +38,18 @@ public class Name {
         return test.matches(VALIDATION_REGEX);
     }
 
+    /**
+     * Returns true if both names refer to the same client, ignoring case,
+     * leading and trailing spaces, and repeated internal spaces.
+     */
+    public boolean isSameName(Name otherName) {
+        return otherName != null
+                && normalizeSpaces(fullName).equalsIgnoreCase(normalizeSpaces(otherName.fullName));
+    }
+
+    private static String normalizeSpaces(String name) {
+        return name.trim().replaceAll("\\s+", " ");
+    }
 
     @Override
     public String toString() {
