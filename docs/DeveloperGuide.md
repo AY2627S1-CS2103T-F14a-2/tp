@@ -486,15 +486,15 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 3.
 
-* 3b. A required detail is missing.
+* 3b. A required detail is missing or given more than once.
 
-    * 3b1. Spotter shows an error message stating which detail is missing.
+    * 3b1. Spotter shows an error message with the expected input format.
 
       Use case resumes at step 3.
 
-* 3c. The given date is invalid.
+* 3c. The given date is invalid or in the future.
 
-    * 3c1. Spotter shows an error message stating that the date is invalid and the expected date format.
+    * 3c1. Spotter shows an error message stating that the date is invalid or in the future, and the expected date format.
 
       Use case resumes at step 3.
 
@@ -504,14 +504,20 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 3.
 
+* 3e. A record for the same exercise on the same date already exists for the client.
+
+    * 3e1. Spotter replaces the existing record with the new sets, repetitions and load, and shows the updated record.
+
+      Use case ends.
+
 **Use case: UC06 - Record a client's body measurements**
 
 **MSS**
 
 1.  Trainer requests to list all clients.
 2.  Spotter shows the list of clients.
-3.  Trainer requests to record body measurements for a specific client in the list, with the date and one or more measurements.
-4.  Spotter records the measurements and shows the recorded measurements.
+3.  Trainer requests to record a body measurement for a specific client in the list, with the date, measurement type and value.
+4.  Spotter records the measurement and shows the recorded measurement.
 
     Use case ends.
 
@@ -533,29 +539,35 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 3.
 
-* 3b. The date is missing.
+* 3b. A required detail is missing or given more than once.
 
-    * 3b1. Spotter shows an error message stating that the date is missing.
-
-      Use case resumes at step 3.
-
-* 3c. The given date is invalid.
-
-    * 3c1. Spotter shows an error message stating that the date is invalid and the expected date format.
+    * 3b1. Spotter shows an error message with the expected input format.
 
       Use case resumes at step 3.
 
-* 3d. No measurement is given.
+* 3c. The given date is invalid or in the future.
 
-    * 3d1. Spotter shows an error message stating that at least one measurement must be given.
+    * 3c1. Spotter shows an error message stating that the date is invalid or in the future, and the expected date format.
+
+      Use case resumes at step 3.
+
+* 3d. The given measurement type is not supported.
+
+    * 3d1. Spotter shows an error message listing the supported measurement types.
 
       Use case resumes at step 3.
 
-* 3e. A given measurement is invalid.
+* 3e. The given value is not a number, is outside the permitted range for the measurement type, or has more than two decimal places.
 
-    * 3e1. Spotter shows an error message stating which measurement is wrong and the expected format.
+    * 3e1. Spotter shows an error message stating why the value is invalid.
 
       Use case resumes at step 3.
+
+* 3f. A measurement of the same type on the same date already exists for the client.
+
+    * 3f1. Spotter replaces the existing value with the new value, and shows the updated measurement.
+
+      Use case ends.
 
 **Use case: UC07 - View a client's progress history**
 
@@ -723,7 +735,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * **Body measurement**: A numerical measurement of a client's physical characteristics, such as body weight or body-fat percentage.
 
-* **Body-measurement record**: A dated entry containing one or more body measurements for a client. Multiple measurement fields within the same entry count as one record.
+* **Body-measurement record**: A dated entry containing one body measurement for a client, such as body weight, body-fat percentage or waist circumference. A client has at most one record of each measurement type on each date.
 
 * **Gym-performance record**: A dated entry describing a client's performance in an exercise, such as the weight lifted or the number of repetitions completed.
 
