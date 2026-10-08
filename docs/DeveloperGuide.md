@@ -159,59 +159,6 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
-### Body-measurement model
-
-The v1.2 increment provides the model and validation for **UC06 - Record a client's body measurements**.
-`BodyMeasurement` in `seedu.address.model.measurement` is immutable and stores one `LocalDate`,
-one `MeasurementType` and one `BigDecimal` value. Its constructor accepts date, type and value strings,
-ignores surrounding whitespace, and validates them before creating a record.
-
-`MeasurementType` defines the supported types, fixed units and permitted ranges:
-
-| Type | Unit | Permitted value |
-|------|------|-----------------|
-| `weight` | Kilograms (`kg`) | 1 to 500, inclusive |
-| `bodyfat` | Percentage (`%`) | Greater than 0 and at most 100 |
-| `waist` | Centimetres (`cm`) | 1 to 300, inclusive |
-
-Type names are case-insensitive. Dates must be real calendar dates in `yyyy-MM-dd` format and must not
-be later than the current date on the trainer's computer. Values use ordinary decimal notation, with an
-optional sign and at most two decimal places; scientific notation and unit suffixes are rejected.
-`MeasurementType#isValidValue` checks only the type-specific range; `BodyMeasurement` checks numeric
-syntax and decimal precision before applying that range check.
-
-Validation failures throw `IllegalArgumentException` with these messages:
-
-| Invalid input | Message |
-|---------------|---------|
-| Incorrect date format or impossible calendar date | The date must use the format yyyy-MM-dd. |
-| Future date | The measurement date cannot be in the future. |
-| Unsupported or empty type | Measurement type must be weight, bodyfat, or waist. |
-| Empty value or invalid numeric syntax | Measurement value must be a number. |
-| More than two decimal places | Measurement values may have at most two decimal places. |
-| Weight outside its range | Weight must be between 1 and 500 kg. |
-| Body fat outside its range | Body-fat percentage must be greater than 0 and no more than 100. |
-| Waist outside its range | Waist measurement must be between 1 and 300 cm. |
-
-Null arguments throw `NullPointerException`. Validation proceeds in the order: null arguments, date
-format and calendar validity, future date, measurement type, numeric syntax, decimal precision, then
-value range.
-
-Precision is checked before trailing zeros are removed, so `72.500` is rejected. Accepted values are
-normalized so records with the same date and type and values such as `72.5` and `72.50` compare equal
-and have the same hash code. Full record equality includes the value; it does not represent the
-same-client/date/type duplicate rule in UC06.
-
-`MeasurementTypeTest` and `BodyMeasurementTest` cover normalization, invalid inputs, range boundaries,
-decimal precision, leap-year dates and record equality. They can be run independently of commands:
-
-```powershell
-.\gradlew.bat test --tests "seedu.address.model.measurement.*"
-```
-
-Client association, the `measure` command and parser, same-client/date/type replacement, JSON storage
-and progress-history display are deferred. This increment does not change the application's UI.
-
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
