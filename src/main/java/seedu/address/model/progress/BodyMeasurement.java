@@ -1,22 +1,20 @@
-package seedu.address.model.measurement;
+package seedu.address.model.progress;
 
 import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.Objects;
 
 import seedu.address.commons.util.ToStringBuilder;
 
 /**
  * An immutable, dated body measurement. Client ownership is managed separately.
+ * Input parsing and future-date validation belong to the command parser. Stored records must
+ * remain valid regardless of the current date or system clock.
  */
 public final class BodyMeasurement {
-    public static final String MESSAGE_DATE_FORMAT = "The date must use the format yyyy-MM-dd.";
-    public static final String MESSAGE_FUTURE_DATE = "The measurement date cannot be in the future.";
-    public static final String MESSAGE_NUMERIC_VALUE = "Measurement value must be a number.";
     public static final String MESSAGE_PRECISION = "Measurement values may have at most two decimal places.";
 
     private final LocalDate date;
@@ -25,37 +23,19 @@ public final class BodyMeasurement {
 
     /**
      * Constructs a measurement from a calendar date, supported type and decimal value.
-     * Surrounding whitespace is ignored. Values use ordinary decimal notation, without exponents.
+     * Trailing zeros are removed before validating decimal precision.
      *
      * @throws NullPointerException if any argument is null.
      * @throws IllegalArgumentException if an argument violates the measurement constraints.
      */
-    public BodyMeasurement(String date, String type, String value) {
+    public BodyMeasurement(LocalDate date, MeasurementType type, BigDecimal value) {
         requireAllNonNull(date, type, value);
-        this.date = parseDate(date.strip());
-        this.type = MeasurementType.fromString(type);
-        this.value = parseValue(value.strip(), this.type);
-    }
-
-    private static LocalDate parseDate(String date) {
-        checkArgument(date.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}"), MESSAGE_DATE_FORMAT);
-        LocalDate parsedDate;
-        try {
-            parsedDate = LocalDate.parse(date);
-        } catch (DateTimeParseException e) {
-            throw new IllegalArgumentException(MESSAGE_DATE_FORMAT, e);
-        }
-        checkArgument(!parsedDate.isAfter(LocalDate.now()), MESSAGE_FUTURE_DATE);
-        return parsedDate;
-    }
-
-    private static BigDecimal parseValue(String value, MeasurementType type) {
-        checkArgument(value.matches("[+-]?[0-9]+(?:\\.[0-9]+)?"), MESSAGE_NUMERIC_VALUE);
-        BigDecimal parsedValue = new BigDecimal(value);
-        // Check input precision before normalizing so that 72.500 is rejected.
-        checkArgument(parsedValue.scale() <= 2, MESSAGE_PRECISION);
-        checkArgument(type.isValidValue(parsedValue), type.getValueConstraints());
-        return parsedValue.stripTrailingZeros();
+        BigDecimal normalizedValue = value.stripTrailingZeros();
+        checkArgument(normalizedValue.scale() <= 2, MESSAGE_PRECISION);
+        checkArgument(type.isValidValue(normalizedValue), type.getValueConstraints());
+        this.date = date;
+        this.type = type;
+        this.value = normalizedValue;
     }
 
     public LocalDate getDate() {

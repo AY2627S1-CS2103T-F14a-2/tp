@@ -1,4 +1,4 @@
-package seedu.address.model.measurement;
+package seedu.address.model.progress;
 
 import static java.util.Objects.requireNonNull;
 
