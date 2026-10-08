@@ -15,10 +15,13 @@ import java.time.format.ResolverStyle;
 public class NextSession {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Next session should be a valid date and time in the format yyyy-MM-dd HH:mm";
+            "Next session should be a valid date and time in the format yyyy-MM-dd HH:mm, "
+                    + "e.g. 2026-10-08 18:00";
 
     /** Format used when entering, displaying, and storing a next session. */
     public static final String FORMAT_PATTERN = "uuuu-MM-dd HH:mm";
+
+    private static final String INPUT_REGEX = "[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}";
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(FORMAT_PATTERN)
             .withResolverStyle(ResolverStyle.STRICT);
@@ -41,9 +44,12 @@ public class NextSession {
      */
     public static boolean isValidNextSession(String test) {
         requireNonNull(test);
+        // The formatter alone accepts signed years and year zero, which do not match the advertised format.
+        if (!test.matches(INPUT_REGEX)) {
+            return false;
+        }
         try {
-            LocalDateTime.parse(test, FORMATTER);
-            return true;
+            return LocalDateTime.parse(test, FORMATTER).getYear() > 0;
         } catch (DateTimeParseException exception) {
             return false;
         }

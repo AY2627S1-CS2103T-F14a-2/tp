@@ -17,6 +17,9 @@ public class NextSessionTest {
     @Test
     public void constructor_invalidNextSession_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () -> new NextSession("2026-02-30 18:00"));
+        assertThrows(IllegalArgumentException.class, () -> new NextSession("-2026-10-08 18:00"));
+        assertThrows(IllegalArgumentException.class, () -> new NextSession("+12026-10-08 18:00"));
+        assertThrows(IllegalArgumentException.class, () -> new NextSession("0000-01-01 00:00"));
     }
 
     @Test
@@ -30,12 +33,17 @@ public class NextSessionTest {
         assertFalse(NextSession.isValidNextSession("08-10-2026 18:00"));
         assertFalse(NextSession.isValidNextSession("2026-10-08"));
         assertFalse(NextSession.isValidNextSession(" 2026-10-08 18:00"));
+        assertFalse(NextSession.isValidNextSession("-2026-10-08 18:00"));
+        assertFalse(NextSession.isValidNextSession("+12026-10-08 18:00"));
+        assertFalse(NextSession.isValidNextSession("0000-01-01 00:00"));
 
         // valid dates and times
         assertTrue(NextSession.isValidNextSession("2026-10-08 18:00"));
         assertTrue(NextSession.isValidNextSession("2028-02-29 09:05"));
         assertTrue(NextSession.isValidNextSession("2026-01-01 00:00"));
         assertTrue(NextSession.isValidNextSession("2026-12-31 23:59"));
+        assertTrue(NextSession.isValidNextSession("0001-01-01 00:00"));
+        assertTrue(NextSession.isValidNextSession("9999-12-31 23:59"));
     }
 
     @Test
