@@ -5,9 +5,11 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.session.NextSession;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -23,18 +25,39 @@ public class Person {
 
     // Data fields
     private final Address address;
+    /** Null when no session has ever been booked; past sessions are retained for display. */
+    private final NextSession nextSession;
     private final Set<Tag> tags = new HashSet<>();
 
     /**
      * Every field must be present and not null.
      */
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
+        this(name, phone, email, address, tags, null);
+    }
+
+    /**
+     * Creates a client with an optional next session. Contact details and tags must be present.
+     */
+    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, NextSession nextSession) {
         requireAllNonNull(name, phone, email, address, tags);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
+        this.nextSession = nextSession;
         this.tags.addAll(tags);
+    }
+
+    public Optional<NextSession> getNextSession() {
+        return Optional.ofNullable(nextSession);
+    }
+
+    /**
+     * Returns a copy with the supplied session, preserving all other client information.
+     */
+    public Person withNextSession(NextSession session) {
+        return new Person(name, phone, email, address, tags, session);
     }
 
     public Name getName() {
@@ -93,13 +116,14 @@ public class Person {
                 && phone.equals(otherPerson.phone)
                 && email.equals(otherPerson.email)
                 && address.equals(otherPerson.address)
-                && tags.equals(otherPerson.tags);
+                && tags.equals(otherPerson.tags)
+                && Objects.equals(nextSession, otherPerson.nextSession);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, tags);
+        return Objects.hash(name, phone, email, address, tags, nextSession);
     }
 
     @Override
@@ -110,6 +134,7 @@ public class Person {
                 .add("email", email)
                 .add("address", address)
                 .add("tags", tags)
+                .add("nextSession", nextSession)
                 .toString();
     }
 
