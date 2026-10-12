@@ -2,6 +2,11 @@ package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,8 +24,74 @@ import seedu.address.model.tag.Tag;
  * Contains utility methods used for parsing strings in the various *Parser classes.
  */
 public class ParserUtil {
-
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+
+    public static final String MESSAGE_INVALID_SESSION_DATE =
+            "Date must be a valid date in YYYY-MM-DD format, and cannot be in the past.";
+    public static final String MESSAGE_INVALID_SESSION_TIME = "Time must be a valid time in HHMM or HH:MM format.";
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("uuuu-MM-dd")
+            .withResolverStyle(ResolverStyle.STRICT);
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm")
+            .withResolverStyle(ResolverStyle.STRICT);
+
+    /**
+     * Parses a session date, allowing today but rejecting past dates.
+     */
+    public static LocalDate parseSessionDate(String date) throws ParseException {
+        LocalDate parsed = parseDate(date, MESSAGE_INVALID_SESSION_DATE);
+        if (parsed.isBefore(LocalDate.now())) {
+            throw new ParseException(MESSAGE_INVALID_SESSION_DATE);
+        }
+        return parsed;
+    }
+
+    /**
+     * Parses a measurement/performance date and rejects future dates with the caller's message.
+     * Shared with the record commands to keep strict calendar validation consistent.
+     */
+    public static LocalDate parseRecordDate(String date, String futureDateMessage) throws ParseException {
+        requireNonNull(futureDateMessage);
+        LocalDate parsed = parseDate(date, "The date must use the format yyyy-MM-dd.");
+        if (parsed.isAfter(LocalDate.now())) {
+            throw new ParseException(futureDateMessage);
+        }
+        return parsed;
+    }
+
+    private static LocalDate parseDate(String date, String message) throws ParseException {
+        requireNonNull(date);
+        String trimmed = date.trim();
+        if (!trimmed.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}")) {
+            throw new ParseException(message);
+        }
+        try {
+            LocalDate parsed = LocalDate.parse(trimmed, DATE_FORMATTER);
+            if (parsed.getYear() == 0) {
+                throw new ParseException(message);
+            }
+            return parsed;
+        } catch (DateTimeParseException exception) {
+            throw new ParseException(message);
+        }
+    }
+
+    /**
+     * Parses a strict 24-hour time in HHMM or HH:MM format.
+     */
+    public static LocalTime parseSessionTime(String time) throws ParseException {
+        requireNonNull(time);
+        String trimmed = time.trim();
+        if (!trimmed.matches("[0-9]{2}:?[0-9]{2}")) {
+            throw new ParseException(MESSAGE_INVALID_SESSION_TIME);
+        }
+        String normalized = trimmed.length() == 4 ? trimmed.substring(0, 2) + ":" + trimmed.substring(2) : trimmed;
+        try {
+            return LocalTime.parse(normalized, TIME_FORMATTER);
+        } catch (DateTimeParseException exception) {
+            throw new ParseException(MESSAGE_INVALID_SESSION_TIME);
+        }
+    }
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
