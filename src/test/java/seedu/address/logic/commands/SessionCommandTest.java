@@ -37,8 +37,8 @@ public class SessionCommandTest {
     }
 
     @Test
-    public void execute_displayedIndex_recordsSession() throws Exception {
-        CommandResult result = new SessionCommand(Index.fromOneBased(1), session).execute(model);
+    public void execute_displayedIndex_recordsAndSorts() throws Exception {
+        CommandResult result = new SessionCommand(Index.fromOneBased(2), session).execute(model);
         Person booked = sarah.withNextSession(session);
         assertEquals("Recorded next session for Sarah Lim on " + session.value.toLocalDate() + " at 17:00",
                 result.getFeedbackToUser());

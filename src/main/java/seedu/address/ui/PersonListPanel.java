@@ -3,6 +3,7 @@ package seedu.address.ui;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -27,6 +28,11 @@ public class PersonListPanel extends UiPart<Region> {
         super(FXML);
         personListView.setItems(personList);
         personListView.setCellFactory(listView -> new PersonListViewCell());
+        if (personList instanceof SortedList<?> sortedList) {
+            // A booking may expire without changing positions; refresh its row when list is recomputed.
+            sortedList.comparatorProperty().addListener((observable, oldComparator, newComparator) ->
+                    personListView.refresh());
+        }
     }
 
     /**
