@@ -156,6 +156,53 @@ Exits the program.
 
 Format: `exit`
 
+### Recording a client's next session: `session`
+
+Records one next session for an existing client. A new booking replaces that client's previous booking.
+
+Format: `session INDEX d/DATE t/TIME` or `session n/NAME d/DATE t/TIME`
+
+* `INDEX` is the positive number shown on the **current displayed list**, including a filtered list.
+* `NAME` must match a client's full name. Matching ignores case, leading/trailing whitespace, and repeated
+  internal spaces. Names cannot be empty or contain `/`.
+* `DATE` must be a real date in `YYYY-MM-DD` format, such as `2026-12-15`, and cannot be before the current
+  system date. Today is accepted even if the specified time has passed.
+* `TIME` must use 24-hour `HHMM` or `HH:MM`, such as `1900` or `19:00`. Midnight is `0000`; `2400` is invalid.
+* Supply exactly one identifier and one of each required prefix. Unknown or repeated prefixes are rejected.
+
+Examples (use today's date or a later date):
+
+* `session 1 d/2026-12-15 t/1900`
+* `session n/Sarah Lim d/2026-12-15 t/19:00`
+* `session n/sarah lim d/2026-12-15 t/1900`
+
+Success: `Recorded next session for Sarah Lim on 2026-12-15 at 19:00`.
+The stored client's name is used in the message; both time formats are stored and reported as `HH:mm`.
+The booking is saved automatically and survives restarting Spotter. Editing contact details preserves it,
+and deleting the client removes it together with the client.
+
+After a successful booking, all clients are shown. Upcoming sessions appear first, soonest first, with
+case-insensitive alphabetical names breaking ties. Expired recorded sessions follow upcoming ones, followed
+by clients with no recorded session; unbooked clients are alphabetical. This order also applies to `list`,
+filtered lists, and startup. Sorting the displayed list does not reorder the JSON file.
+**Index numbers can change after a booking or a client change. Check the displayed list before any index-based command.**
+
+The card shows `Next session: Tue 15 Dec, 7:00pm` for an upcoming booking, `Next session: - (none booked)`
+when no session has been recorded, and `Next session: - (none upcoming)` when the recorded booking has passed.
+Expired bookings are retained in the data file until replaced.
+
+Invalid commands leave client data and list order unchanged. The relevant messages are:
+
+Error | Message
+------|--------
+Missing/repeated/unknown prefix or both identifiers | `Invalid command format! Use: session INDEX d/DATE t/TIME or session n/NAME d/DATE t/TIME`
+Invalid index | `The client index provided is invalid.`
+Unknown name | `No client with that name exists in Spotter.`
+Empty name | `Name cannot be empty.`
+Name containing a slash | `Name must not contain '/'.`
+Invalid or past date | `Date must be a valid date in YYYY-MM-DD format, and cannot be in the past.`
+Invalid time | `Time must be a valid time in HHMM or HH:MM format.`
+
 ### Saving the data
 
 AddressBook automatically saves data after every command. You do not need to save manually.
@@ -201,4 +248,5 @@ Action     | Format, Examples
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
+**Session** | `session INDEX d/DATE t/TIME` or `session n/NAME d/DATE t/TIME`<br> e.g., `session 1 d/2026-12-15 t/1900`
 **Help**   | `help`
