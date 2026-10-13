@@ -1,4 +1,4 @@
-# Spotter team repository guidance
+    # Spotter team repository guidance
 
 ## Project context
 
@@ -25,6 +25,8 @@ Keep Spotter focused on managing a trainer's own client relationships.
 
 ## Development approach
 
+- Before implementing, fixing, or reviewing Spotter code, tests, build behaviour, or documentation, read and apply [spotter-quality](.agents/skills/spotter-quality/SKILL.md). Load only its references relevant to the task. Use review mode for read-only reviews.
+- Use the same skill for requested iteration, submission, release, or PE readiness checks; refresh the specified week's official instructions and distinguish individual tasks from team completion.
 - Treat this as a brownfield extension of the supplied AddressBook-Level3 codebase; preserve its architecture and conventions unless a requested change justifies otherwise.
 - Implement only the requested issue, milestone, or iteration. Do not implement later course work or speculative features in advance.
 - Choose the simplest design that satisfies the current requirements and fits the existing codebase.
@@ -44,6 +46,8 @@ Keep Spotter focused on managing a trainer's own client relationships.
 - Do not rewrite `README.md` or reorganize documentation unless the current course requirement or assigned issue calls for it.
 
 ## Verification
+
+Preserve the course runtime constraints: local human-editable storage without a DBMS; application file access only inside the folder containing the JAR and its subfolders; no OS configuration changes; portability across Windows, Linux, and macOS with Java 25 and no installer. Verify applicable course approval before adding third-party libraries or services. For packaging and GUI resolution/scaling requirements, consult the skill's course and release references.
 
 Use JDK 25 and the repository's Gradle wrapper. For code changes, run the checks relevant to the change before declaring it complete.
 
