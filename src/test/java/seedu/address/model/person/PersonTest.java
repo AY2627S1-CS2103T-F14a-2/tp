@@ -83,6 +83,11 @@ public class PersonTest {
         editedAlice = new PersonBuilder(ALICE).withEmail(VALID_EMAIL_BOB).build();
         assertFalse(ALICE.equals(editedAlice));
 
+        // missing email -> returns false
+        editedAlice = new PersonBuilder(ALICE).withoutEmail().build();
+        assertFalse(ALICE.equals(editedAlice));
+        assertFalse(editedAlice.equals(ALICE));
+
         // different tags -> returns false
         editedAlice = new PersonBuilder(ALICE).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(ALICE.equals(editedAlice));

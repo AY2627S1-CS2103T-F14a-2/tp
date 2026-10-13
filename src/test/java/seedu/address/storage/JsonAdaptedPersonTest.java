@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.testutil.PersonBuilder;
 
@@ -34,6 +35,12 @@ public class JsonAdaptedPersonTest {
     public void toModelType_validPersonDetails_returnsPerson() throws Exception {
         JsonAdaptedPerson person = new JsonAdaptedPerson(BENSON);
         assertEquals(BENSON, person.toModelType());
+    }
+
+    @Test
+    public void toModelType_personWithoutEmail_returnsPersonWithoutEmail() throws Exception {
+        Person bensonWithoutEmail = new PersonBuilder(BENSON).withoutEmail().build();
+        assertEquals(bensonWithoutEmail, new JsonAdaptedPerson(bensonWithoutEmail).toModelType());
     }
 
     @Test
