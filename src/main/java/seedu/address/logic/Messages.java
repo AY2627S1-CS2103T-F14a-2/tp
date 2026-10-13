@@ -32,18 +32,11 @@ public class Messages {
     }
 
     /**
-     * Formats the {@code person} for display to the user.
+     * Formats the {@code person} for display to the user, omitting the email if there is none.
      */
     public static String format(Person person) {
-        final StringBuilder builder = new StringBuilder();
-        builder.append(person.getName())
-                .append("; Phone: ")
-                .append(person.getPhone())
-                .append("; Email: ")
-                .append(person.getEmail())
-                .append("; Tags: ");
-        person.getTags().forEach(builder::append);
-        return builder.toString();
+        String email = person.getEmail().map(e -> "; Email: " + e).orElse("");
+        return person.getName() + "; Phone: " + person.getPhone() + email;
     }
 
 }
