@@ -158,6 +158,10 @@ Format: `measure INDEX d/DATE t/TYPE v/VALUE`
 * Each prefix must appear exactly once. Prefixes may appear in any order.
 * The same date and type replaces the previous value without increasing the record count.
 * Records are saved automatically and restored when the application restarts.
+* The client card shows the measurement with the latest date and the total record count, for example:
+  `Latest measurement: 12 Sep - weight 72.4 kg (4 records)`.
+* When multiple types share the latest date, the card prefers weight, then body fat, then waist.
+* Clients without measurements show `Latest measurement: -`.
 
 Examples:
 
