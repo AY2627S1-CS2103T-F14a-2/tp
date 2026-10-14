@@ -198,7 +198,10 @@ Common errors:
 | Too many decimal places | `Measurement values may have at most two decimal places.` |
 
 Out-of-range values produce a message stating the permitted range for that type.
-Parsing errors also show the expected command format.
+Parsing errors and invalid client indexes also show the expected command format.
+
+If saving fails, Spotter displays `Unable to save Spotter data` and restores the previous client records
+and displayed list. The failed measurement is not retained in memory.
 
 <!-- AI assistance: OpenAI Codex helped draft the measurement command documentation. -->
 

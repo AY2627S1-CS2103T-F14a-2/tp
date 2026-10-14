@@ -40,7 +40,7 @@ public class MeasureCommand extends Command {
         requireAllNonNull(model);
         List<Person> displayedClients = model.getFilteredPersonList();
         if (index.getZeroBased() >= displayedClients.size()) {
-            throw new CommandException(MESSAGE_INVALID_INDEX);
+            throw new CommandException(MESSAGE_INVALID_INDEX + "\nUse: " + MESSAGE_USAGE);
         }
         Person client = displayedClients.get(index.getZeroBased());
         boolean replacing = client.hasMeasurement(measurement);

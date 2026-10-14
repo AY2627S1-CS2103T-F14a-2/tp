@@ -57,7 +57,7 @@ public class MeasureCommandTest {
     public void execute_invalidDisplayedIndex_doesNotChangeData() {
         List<Person> before = List.copyOf(model.getAddressBook().getPersonList());
         MeasureCommand command = new MeasureCommand(Index.fromOneBased(before.size() + 1), measurement);
-        assertEquals(MeasureCommand.MESSAGE_INVALID_INDEX,
+        assertEquals(MeasureCommand.MESSAGE_INVALID_INDEX + "\nUse: " + MeasureCommand.MESSAGE_USAGE,
                 assertThrows(CommandException.class, () -> command.execute(model)).getMessage());
         assertEquals(before, model.getAddressBook().getPersonList());
     }
