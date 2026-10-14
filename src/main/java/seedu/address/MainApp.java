@@ -34,6 +34,9 @@ public class MainApp extends Application {
 
     public static final String VERSION = "V1.3.0";
 
+    public static final String MESSAGE_DATA_LOAD_FAILURE =
+            "Unable to load saved Spotter data. The existing data file has not been modified.";
+
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
     private static final Path USER_PREFS_FILE_PATH = Paths.get("preferences.json");
     private static final Path ADDRESS_BOOK_FILE_PATH = Paths.get("data", "spotter.json");
@@ -42,6 +45,9 @@ public class MainApp extends Application {
     protected Logic logic;
     protected Storage storage;
     protected Model model;
+
+    /** Warning to show once the UI starts, or empty if the data file was loaded without problems. */
+    private Optional<String> startupWarning = Optional.empty();
 
     @Override
     public void init() throws Exception {
@@ -64,8 +70,10 @@ public class MainApp extends Application {
      * Returns a {@code ModelManager} with the data from {@code storage}'s address book and {@code userPrefs}. <br>
      * The data from the sample address book will be used instead if {@code storage}'s address book is not found,
      * or an empty address book will be used instead if errors occur when reading {@code storage}'s address book.
+     * In the latter case, a startup warning is recorded and the data file is left untouched; it is only
+     * overwritten by the next successful data-changing command.
      */
-    private Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
+    Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
         logger.info("Using data file : " + storage.getAddressBookFilePath());
 
         Optional<ReadOnlyAddressBook> addressBookOptional;
@@ -73,14 +81,15 @@ public class MainApp extends Application {
         try {
             addressBookOptional = storage.readAddressBook();
             if (addressBookOptional.isEmpty()) {
-                logger.info("Creating a new data file " + storage.getAddressBookFilePath()
-                        + " populated with sample Spotter data.");
+                logger.info("Data file " + storage.getAddressBookFilePath()
+                        + " not found. Starting with sample Spotter data.");
             }
             initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
         } catch (DataLoadingException e) {
             logger.warning("Data file at " + storage.getAddressBookFilePath() + " could not be loaded."
                     + " Will be starting with empty Spotter data.");
             initialData = new AddressBook();
+            startupWarning = Optional.of(MESSAGE_DATA_LOAD_FAILURE);
         }
 
         return new ModelManager(initialData, userPrefs);
@@ -122,6 +131,14 @@ public class MainApp extends Application {
     public void start(Stage primaryStage) {
         logger.info("Starting Spotter " + MainApp.VERSION);
         ui.start(primaryStage);
+        startupWarning.ifPresent(ui::showMessage);
+    }
+
+    /**
+     * Returns the warning to show once the UI starts, if any.
+     */
+    Optional<String> getStartupWarning() {
+        return startupWarning;
     }
 
     @Override
