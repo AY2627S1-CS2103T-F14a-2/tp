@@ -1,7 +1,6 @@
 package seedu.address.logic;
 
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
@@ -12,6 +11,7 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 import seedu.address.storage.Storage;
@@ -20,10 +20,7 @@ import seedu.address.storage.Storage;
  * The main LogicManager of the app.
  */
 public class LogicManager implements Logic {
-    public static final String FILE_OPS_ERROR_FORMAT = "Could not save data due to the following error: %s";
-
-    public static final String FILE_OPS_PERMISSION_ERROR_FORMAT =
-            "Could not save data to file %s due to insufficient permissions to write to the file or the folder.";
+    public static final String MESSAGE_SAVE_FAILURE = "Unable to save Spotter data.";
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 
@@ -44,19 +41,30 @@ public class LogicManager implements Logic {
     public CommandResult execute(String commandText) throws CommandException, ParseException {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
-        CommandResult commandResult;
         Command command = addressBookParser.parseCommand(commandText);
-        commandResult = command.execute(model);
+        AddressBook addressBookBeforeCommand = new AddressBook(model.getAddressBook());
+        CommandResult commandResult = command.execute(model);
 
-        try {
-            storage.saveAddressBook(model.getAddressBook());
-        } catch (AccessDeniedException e) {
-            throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
-        } catch (IOException ioe) {
-            throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
+        // Read-only commands leave the data unchanged, so they never write (or fail to write) the data file.
+        if (!model.getAddressBook().equals(addressBookBeforeCommand)) {
+            saveOrRollBack(addressBookBeforeCommand);
         }
 
         return commandResult;
+    }
+
+    /**
+     * Saves the model's address book to storage. If saving fails (including {@code AccessDeniedException}),
+     * restores {@code addressBookBeforeCommand} so that the app keeps showing the last saved state.
+     */
+    private void saveOrRollBack(AddressBook addressBookBeforeCommand) throws CommandException {
+        try {
+            storage.saveAddressBook(model.getAddressBook());
+        } catch (IOException ioe) {
+            logger.warning("Unable to save data file, undoing the change: " + ioe);
+            model.setAddressBook(addressBookBeforeCommand);
+            throw new CommandException(MESSAGE_SAVE_FAILURE, ioe);
+        }
     }
 
     @Override
