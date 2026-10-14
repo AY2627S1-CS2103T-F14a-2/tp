@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
+import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
@@ -75,5 +76,10 @@ public class ListCommandTest {
         assertEquals("Listed 1 client.", ListCommand.getResultMessage(1));
         assertEquals("Listed 2 clients.", ListCommand.getResultMessage(2));
         assertEquals("Listed 7 clients.", ListCommand.getResultMessage(7));
+    }
+
+    @Test
+    public void getResultMessage_negativeCount_throwsAssertionError() {
+        assertThrows(AssertionError.class, () -> ListCommand.getResultMessage(-1));
     }
 }
