@@ -22,6 +22,19 @@ public class MeasureCommandParserTest {
     private final MeasureCommandParser parser = new MeasureCommandParser();
 
     @Test
+    public void parse_validBoundaryValues_acceptsAllTypes() throws Exception {
+        String[][] boundaries = {{"weight", "1"}, {"weight", "500"}, {"bodyfat", "0.01"},
+            {"bodyfat", "100"}, {"waist", "1"}, {"waist", "300"}};
+        for (String[] boundary : boundaries) {
+            Measurement expected = new Measurement(LocalDate.of(2026, 9, 12),
+                    MeasurementType.valueOf(boundary[0].toUpperCase(java.util.Locale.ROOT)),
+                    new BigDecimal(boundary[1]));
+            assertEquals(new MeasureCommand(Index.fromOneBased(1), expected),
+                    parser.parse("1 d/2026-09-12 t/" + boundary[0] + " v/" + boundary[1]));
+        }
+    }
+
+    @Test
     public void parse_validInput_acceptsWhitespaceCaseAndPrefixOrder() throws Exception {
         MeasureCommand expected = new MeasureCommand(Index.fromOneBased(2),
                 new Measurement(LocalDate.of(2026, 9, 12), MeasurementType.WEIGHT, new BigDecimal("72.4")));
@@ -71,6 +84,9 @@ public class MeasureCommandParserTest {
         assertError("1 d/" + LocalDate.now().plusDays(1) + " t/weight v/72", Measurement.MESSAGE_FUTURE_DATE);
         assertError("1 d/2026-09-12 t/height v/72", MeasurementType.MESSAGE_CONSTRAINTS);
         assertError("1 d/2026-09-12 t/weight v/501", MeasurementType.WEIGHT.getValueConstraints());
+        assertError("1 d/2026-09-12 t/bodyfat v/0", MeasurementType.BODYFAT.getValueConstraints());
+        assertError("1 d/2026-09-12 t/waist v/301", MeasurementType.WAIST.getValueConstraints());
+        assertError("1 d/2026-09-12 t/weight v/abc", MeasureCommandParser.MESSAGE_NON_NUMERIC);
         assertError("1 d/2026-09-12 t/weight v/72.123", Measurement.MESSAGE_PRECISION);
         assertError("0 d/2026-09-12 t/weight v/72", MeasureCommand.MESSAGE_INVALID_INDEX);
     }
