@@ -2,6 +2,7 @@ package seedu.address.model.person;
 
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -50,6 +51,32 @@ public class Person {
 
     public List<Measurement> getMeasurements() {
         return measurements;
+    }
+
+    /**
+     * Checks for a record with the same date and type, so callers can distinguish an update from an addition.
+     */
+    public boolean hasMeasurement(Measurement measurement) {
+        requireAllNonNull(measurement);
+        return measurements.stream().anyMatch(record -> record.isSameMeasurement(measurement));
+    }
+
+    /**
+     * Returns a new client with the measurement added, or replaced at its existing position.
+     * Other records and client details are preserved; this client remains unchanged.
+     * AI assistance: OpenAI Codex helped implement record replacement and its tests.
+     */
+    public Person withMeasurement(Measurement measurement) {
+        requireAllNonNull(measurement);
+        List<Measurement> updatedMeasurements = new ArrayList<>(measurements);
+        for (int i = 0; i < updatedMeasurements.size(); i++) {
+            if (updatedMeasurements.get(i).isSameMeasurement(measurement)) {
+                updatedMeasurements.set(i, measurement);
+                return new Person(name, phone, email, address, tags, updatedMeasurements);
+            }
+        }
+        updatedMeasurements.add(measurement);
+        return new Person(name, phone, email, address, tags, updatedMeasurements);
     }
 
     public Name getName() {

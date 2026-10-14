@@ -44,6 +44,13 @@ public final class Measurement {
         return value;
     }
 
+    /**
+     * Returns whether both records have the same date and type, regardless of value.
+     */
+    public boolean isSameMeasurement(Measurement other) {
+        return other != null && date.equals(other.date) && type == other.type;
+    }
+
     @Override
     public boolean equals(Object other) {
         return other instanceof Measurement measurement
