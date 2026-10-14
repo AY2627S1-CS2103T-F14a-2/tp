@@ -144,6 +144,32 @@ Examples:
 * `list` followed by `delete 2` deletes the 2nd person in the address book.
 * `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
 
+### Recording body measurements: `measure`
+
+Records a client's weight, body fat percentage or waist measurement.
+
+Format: `measure INDEX d/DATE t/TYPE v/VALUE`
+
+* `INDEX` is the positive index in the currently displayed client list.
+* `DATE` is a real date in `yyyy-MM-dd` format, today or earlier.
+* `TYPE` is case-insensitive: `weight` (kg), `bodyfat` (%) or `waist` (cm).
+* Weight accepts 1–500 kg; body fat accepts values greater than 0 and up to 100%; waist accepts 1–300 cm.
+* Values accept up to two decimal places. Surrounding whitespace is ignored.
+* Each prefix must appear exactly once. Prefixes may appear in any order.
+* The same date and type replaces the previous value without increasing the record count.
+* Records are saved automatically and restored when the application restarts.
+
+Examples:
+
+* `measure 1 d/2026-09-12 t/weight v/72.4` records a weight measurement.
+* `measure 1 d/2026-09-12 t/weight v/71.8` updates that record.
+* `measure 1 d/2026-09-12 t/waist v/81` adds a separate waist record.
+
+Success messages begin with `Recorded measurement for` or `Updated measurement for`,
+followed by the client's name, measurement and date. Invalid input is rejected without changing records.
+
+<!-- AI assistance: OpenAI Codex helped draft the measurement command documentation. -->
+
 ### Clearing all entries: `clear`
 
 Clears all entries from the address book.
@@ -201,4 +227,5 @@ Action     | Format, Examples
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
+**Measure** | `measure INDEX d/DATE t/TYPE v/VALUE`<br> e.g., `measure 1 d/2026-09-12 t/weight v/72.4`
 **Help**   | `help`
