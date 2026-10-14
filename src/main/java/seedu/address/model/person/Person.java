@@ -4,6 +4,7 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -24,17 +25,31 @@ public class Person {
     // Data fields
     private final Address address;
     private final Set<Tag> tags = new HashSet<>();
+    private final List<Measurement> measurements;
 
     /**
      * Every field must be present and not null.
      */
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
+        this(name, phone, email, address, tags, List.of());
+    }
+
+    /**
+     * Creates a client with an immutable, defensive copy of their measurement records.
+     */
+    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
+            List<Measurement> measurements) {
         requireAllNonNull(name, phone, email, address, tags);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
         this.tags.addAll(tags);
+        this.measurements = List.copyOf(measurements);
+    }
+
+    public List<Measurement> getMeasurements() {
+        return measurements;
     }
 
     public Name getName() {
@@ -93,13 +108,14 @@ public class Person {
                 && phone.equals(otherPerson.phone)
                 && email.equals(otherPerson.email)
                 && address.equals(otherPerson.address)
-                && tags.equals(otherPerson.tags);
+                && tags.equals(otherPerson.tags)
+                && measurements.equals(otherPerson.measurements);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, tags);
+        return Objects.hash(name, phone, email, address, tags, measurements);
     }
 
     @Override

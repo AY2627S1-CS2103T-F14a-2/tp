@@ -15,6 +15,10 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
@@ -24,6 +28,8 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Measurement;
+import seedu.address.model.person.MeasurementType;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
@@ -34,6 +40,22 @@ import seedu.address.testutil.PersonBuilder;
 public class EditCommandTest {
 
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+
+    @Test
+    public void execute_contactEdit_preservesMeasurements() throws Exception {
+        Person original = model.getFilteredPersonList().get(0);
+        Measurement measurement = new Measurement(LocalDate.of(2026, 9, 12),
+                MeasurementType.WEIGHT, new BigDecimal("72.4"));
+        Person client = new PersonBuilder(original).withMeasurements(measurement).build();
+        model.setPerson(original, client);
+        EditCommand command = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build());
+
+        command.execute(model);
+
+        assertEquals(List.of(measurement), model.getFilteredPersonList().get(0).getMeasurements());
+        assertEquals(VALID_PHONE_BOB, model.getFilteredPersonList().get(0).getPhone().value);
+    }
 
     @Test
     public void execute_allFieldsSpecifiedUnfilteredList_success() {
