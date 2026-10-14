@@ -94,6 +94,15 @@ public class PersonTest {
     }
 
     @Test
+    public void hashCode_equalPersons_sameHashCode() {
+        assertEquals(ALICE.hashCode(), new PersonBuilder(ALICE).build().hashCode());
+
+        // missing email -> no exception, equal persons still share a hash code
+        Person aliceWithoutEmail = new PersonBuilder(ALICE).withoutEmail().build();
+        assertEquals(aliceWithoutEmail.hashCode(), new PersonBuilder(ALICE).withoutEmail().build().hashCode());
+    }
+
+    @Test
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail().orElse(null) + ", tags=" + ALICE.getTags() + "}";
