@@ -59,6 +59,9 @@ public class GymPerformanceTest {
         assertFalse(GymPerformance.isValidDate("2026-02-29")); // not a leap year
         assertFalse(GymPerformance.isValidDate("2026-13-01")); // invalid month
         assertFalse(GymPerformance.isValidDate(" 2026-09-18")); // untrimmed
+        assertFalse(GymPerformance.isValidDate("0000-01-01")); // year 0
+        assertFalse(GymPerformance.isValidDate("12026-09-18")); // five-digit year
+        assertFalse(GymPerformance.isValidDate("+2026-09-18")); // signed year
 
         // valid dates
         assertTrue(GymPerformance.isValidDate("2026-09-18"));
@@ -84,6 +87,67 @@ public class GymPerformanceTest {
 
         assertTrue(GymPerformance.isValidReps(1)); // minimum
         assertTrue(GymPerformance.isValidReps(1000)); // maximum
+    }
+
+    @Test
+    public void isValidSets_string() {
+        // null sets
+        assertThrows(NullPointerException.class, () -> GymPerformance.isValidSets(null));
+
+        // not a whole number
+        assertFalse(GymPerformance.isValidSets("")); // empty string
+        assertFalse(GymPerformance.isValidSets("abc")); // letters
+        assertFalse(GymPerformance.isValidSets("3.5")); // fraction
+        assertFalse(GymPerformance.isValidSets("-1")); // negative sign
+        assertFalse(GymPerformance.isValidSets("+3")); // positive sign
+        assertFalse(GymPerformance.isValidSets(" 3")); // untrimmed
+        assertFalse(GymPerformance.isValidSets("99999999999")); // too long for an int
+
+        // out of range
+        assertFalse(GymPerformance.isValidSets("0"));
+        assertFalse(GymPerformance.isValidSets("101"));
+
+        // valid
+        assertTrue(GymPerformance.isValidSets("1"));
+        assertTrue(GymPerformance.isValidSets("100"));
+        assertTrue(GymPerformance.isValidSets("03")); // leading zero
+    }
+
+    @Test
+    public void isValidReps_string() {
+        // null reps
+        assertThrows(NullPointerException.class, () -> GymPerformance.isValidReps(null));
+
+        // not a whole number
+        assertFalse(GymPerformance.isValidReps("")); // empty string
+        assertFalse(GymPerformance.isValidReps("eight")); // letters
+        assertFalse(GymPerformance.isValidReps("8.0")); // fraction
+        assertFalse(GymPerformance.isValidReps("-8")); // negative sign
+        assertFalse(GymPerformance.isValidReps("99999999999")); // too long for an int
+
+        // out of range
+        assertFalse(GymPerformance.isValidReps("0"));
+        assertFalse(GymPerformance.isValidReps("1001"));
+
+        // valid
+        assertTrue(GymPerformance.isValidReps("1"));
+        assertTrue(GymPerformance.isValidReps("1000"));
+    }
+
+    @Test
+    public void getSummary() {
+        // plural sets and reps
+        assertEquals("Bench Press, 3 sets of 8 reps at 60 kg", benchPress.getSummary());
+
+        // singular set and rep
+        assertEquals("Bench Press, 1 set of 1 rep at 60 kg",
+                new GymPerformance(DATE, BENCH_PRESS, 1, 1, LOAD).getSummary());
+
+        // bodyweight exercise and decimal load
+        assertEquals("Pull-up, 3 sets of 10 reps at 0 kg",
+                new GymPerformance(DATE, new ExerciseName("Pull-up"), 3, 10, new Load("0")).getSummary());
+        assertEquals("Squat, 5 sets of 5 reps at 62.5 kg",
+                new GymPerformance(DATE, new ExerciseName("Squat"), 5, 5, new Load("62.50")).getSummary());
     }
 
     @Test
