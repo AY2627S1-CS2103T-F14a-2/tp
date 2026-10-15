@@ -855,8 +855,50 @@ run `list` and substitute that client's displayed index for `1` below.
 
 ### Saving data
 
-1. Dealing with missing/corrupted data files
+Use a copy of the release JAR in a disposable test folder with default configuration and fictional data.
+The data file below is `data/spotter.json` inside that folder. Close Spotter before moving, replacing or
+editing the file. Keep the backup until all tests are complete.
 
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
+1. Saving changes across restarts
 
-1. _{ more test cases … }_
+   1. Launch Spotter and enter `add n/Storage Test Client p/91234567`.<br>
+      Expected: The client appears in the list and the data file is created or updated without a save command.
+   1. Enter `exit`, relaunch Spotter and enter `find Storage Test Client`.<br>
+      Expected: The client is present with phone number `91234567`.
+   1. Enter `exit` and copy the data file to `data/spotter-backup.json`.
+      Use this backup for the recovery test below.
+
+1. Starting with a missing data file
+
+   1. With Spotter closed, remove `data/spotter.json`, keeping the backup. Relaunch Spotter.<br>
+      Expected: Spotter shows its sample clients rather than the previously saved test client.
+   1. Enter `exit`.
+
+1. Starting with a corrupted data file
+
+   1. With Spotter closed, create `data/spotter.json` containing only `not valid JSON`. Relaunch Spotter.<br>
+      Expected: No clients are shown. Spotter displays
+      `Unable to load saved Spotter data. The existing data file has not been modified.`
+   1. Enter `list`, then `exit`. Open the data file in a text editor.<br>
+      Expected: The file still contains exactly `not valid JSON`; startup, listing and shutdown have not
+      overwritten it.
+   1. Relaunch Spotter and enter `add n/Recovery Test Client p/92345678`, then `exit`.<br>
+      Expected: The successful data-changing command replaces the corrupted file with valid JSON.
+   1. Relaunch Spotter.<br>
+      Expected: The recovery test client is present with phone number `92345678`, and no load warning appears.
+      Enter `exit`.
+
+1. Restoring a valid backup
+
+   1. With Spotter closed, replace `data/spotter.json` with a copy of `data/spotter-backup.json`.
+      Relaunch Spotter and enter `list`.<br>
+      Expected: The original saved clients, including Storage Test Client with phone number `91234567`,
+      are restored. Recovery Test Client is absent, and no load warning appears.
+
+<box type="warning" seamless>
+
+Preserve a backup before testing corrupted data. The damaged file is retained only until a successful
+command changes client data; that command overwrites it with the current records.
+</box>
+
+<!-- AI assistance: OpenAI Codex helped draft storage persistence and recovery acceptance tests. -->
