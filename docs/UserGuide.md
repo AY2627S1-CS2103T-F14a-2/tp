@@ -82,7 +82,7 @@ Adds a client to Spotter.
 
 Format: `add n/NAME p/PHONE [e/EMAIL] [t/TAG]...`
 
-* `NAME` may contain only letters, digits and spaces, and must be 1 to 100 characters long. Repeated spaces between words are merged into one, and leading or trailing spaces are removed.
+* `NAME` may contain only English letters (A–Z), digits and spaces, and must be 1 to 100 characters long. Repeated spaces between words are merged into one, and leading or trailing spaces are removed.
 * `PHONE` must contain only digits and be 3 to 15 digits long.
 * `EMAIL` is optional. A client without an email shows `-` in place of it.
 * A client whose name matches an existing client's, ignoring case and extra spaces, is rejected as a duplicate. For example, `john tan` is a duplicate of `John Tan`.
@@ -113,6 +113,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [t/TAG]... `
 * Existing values will be updated to the input values.
 * When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
 * To remove all of a person's tags, enter `t/` without a tag after it.
+* A client's email can be changed but not removed yet; `e/` must be followed by a valid email.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
