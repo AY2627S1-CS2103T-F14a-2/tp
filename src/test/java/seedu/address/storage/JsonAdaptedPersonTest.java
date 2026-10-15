@@ -8,6 +8,7 @@ import static seedu.address.testutil.TypicalGymPerformances.SQUAT;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -67,6 +68,13 @@ public class JsonAdaptedPersonTest {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
                 VALID_TAGS, List.of(benchPress, sameEntry));
         assertThrows(IllegalValueException.class, PerformanceHistory.MESSAGE_DUPLICATE_RECORDS, person::toModelType);
+    }
+
+    @Test
+    public void toModelType_nullPerformanceEntry_throwsIllegalValueException() {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
+                VALID_TAGS, Arrays.asList(new JsonAdaptedGymPerformance(BENCH_PRESS), null));
+        assertThrows(IllegalValueException.class, JsonAdaptedPerson.MESSAGE_NULL_PERFORMANCE, person::toModelType);
     }
 
     @Test

@@ -25,6 +25,7 @@ import seedu.address.model.tag.Tag;
 class JsonAdaptedPerson {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Person's %s field is missing!";
+    public static final String MESSAGE_NULL_PERFORMANCE = "Person's performances field contains an empty entry!";
 
     private final String name;
     private final String phone;
@@ -125,6 +126,10 @@ class JsonAdaptedPerson {
 
         final List<GymPerformance> modelPerformances = new ArrayList<>();
         for (JsonAdaptedGymPerformance performance : performances) {
+            // A null entry, e.g. "performances": [null], is damaged data rather than a programming error
+            if (performance == null) {
+                throw new IllegalValueException(MESSAGE_NULL_PERFORMANCE);
+            }
             modelPerformances.add(performance.toModelType());
         }
         if (!PerformanceHistory.hasNoDuplicates(modelPerformances)) {
