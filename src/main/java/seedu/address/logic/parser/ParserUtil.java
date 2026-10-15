@@ -46,19 +46,6 @@ public class ParserUtil {
         return parsed;
     }
 
-    /**
-     * Parses a measurement/performance date and rejects future dates with the caller's message.
-     * Shared with the record commands to keep strict calendar validation consistent.
-     */
-    public static LocalDate parseRecordDate(String date, String futureDateMessage) throws ParseException {
-        requireNonNull(futureDateMessage);
-        LocalDate parsed = parseDate(date, "The date must use the format yyyy-MM-dd.");
-        if (parsed.isAfter(LocalDate.now())) {
-            throw new ParseException(futureDateMessage);
-        }
-        return parsed;
-    }
-
     private static LocalDate parseDate(String date, String message) throws ParseException {
         requireNonNull(date);
         String trimmed = date.trim();

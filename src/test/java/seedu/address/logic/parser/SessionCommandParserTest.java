@@ -3,7 +3,6 @@ package seedu.address.logic.parser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
-import static seedu.address.testutil.Assert.assertThrows;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -13,7 +12,6 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.SessionCommand;
-import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.session.NextSession;
 
 /**
@@ -89,17 +87,6 @@ public class SessionCommandParserTest {
         assertEquals(LocalTime.of(9, 5), ParserUtil.parseSessionTime(" 0905 "));
         assertParseSuccess(parser, " 1 d/" + LocalDate.now() + " t/0000",
                 new SessionCommand(Index.fromOneBased(1), new NextSession(LocalDate.now() + " 00:00")));
-    }
-
-    @Test
-    public void parseRecordDate_strictCalendarAndFutureValidation() throws Exception {
-        String futureMessage = "Record date cannot be in the future.";
-        assertEquals(LocalDate.now(), ParserUtil.parseRecordDate(" " + LocalDate.now() + " ", futureMessage));
-        assertEquals(LocalDate.of(2024, 2, 29), ParserUtil.parseRecordDate("2024-02-29", futureMessage));
-        assertThrows(ParseException.class, futureMessage, () ->
-                ParserUtil.parseRecordDate(LocalDate.now().plusDays(1).toString(), futureMessage));
-        assertThrows(ParseException.class, "The date must use the format yyyy-MM-dd.", () ->
-                ParserUtil.parseRecordDate("2025-02-29", futureMessage));
     }
 
     @Test
