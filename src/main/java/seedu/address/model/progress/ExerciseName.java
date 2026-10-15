@@ -12,6 +12,8 @@ import java.util.Locale;
  * <p>Names are normalised by trimming them and collapsing repeated internal whitespace into one space.
  * Two exercise names are equal if their normalised forms match, ignoring letter case,
  * so that {@code bench  press} and {@code Bench Press} refer to the same exercise.
+ *
+ * <p>AI assistance: Claude (Anthropic) helped implement this class and its tests.
  */
 public class ExerciseName {
 

@@ -11,6 +11,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.progress.GymPerformance;
+import seedu.address.model.progress.PerformanceHistory;
 import seedu.address.model.session.NextSession;
 import seedu.address.model.tag.Tag;
 
@@ -30,9 +32,10 @@ public class Person {
     private final NextSession nextSession;
     private final Set<Tag> tags = new HashSet<>();
     private final List<Measurement> measurements;
+    private final PerformanceHistory performanceHistory;
 
     /**
-     * Name, phone and tags must be present and not null.
+     * Creates a client with no session or training records. Name, phone and tags must be present and not null.
      *
      * @param email The client's email, or {@code null} if none was given.
      */
@@ -41,18 +44,29 @@ public class Person {
     }
 
     /**
-     * Creates a client with an optional session and an immutable copy of their measurement records.
-     * A single full constructor keeps both features together when a client is copied or restored.
+     * Creates a client with an optional session, their measurement records and no gym-performance records.
      */
     public Person(Name name, Phone phone, Email email, Set<Tag> tags,
             NextSession nextSession, List<Measurement> measurements) {
-        requireAllNonNull(name, phone, tags);
+        this(name, phone, email, tags, nextSession, measurements, new PerformanceHistory());
+    }
+
+    /**
+     * Creates a client with an optional session, an immutable copy of their measurement records,
+     * and their gym-performance records.
+     * This single full constructor keeps all training information together when a client is copied or restored,
+     * so every copy method must pass all of it on.
+     */
+    public Person(Name name, Phone phone, Email email, Set<Tag> tags,
+            NextSession nextSession, List<Measurement> measurements, PerformanceHistory performanceHistory) {
+        requireAllNonNull(name, phone, tags, measurements, performanceHistory);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.nextSession = nextSession;
         this.tags.addAll(tags);
         this.measurements = List.copyOf(measurements);
+        this.performanceHistory = performanceHistory;
     }
 
     public List<Measurement> getMeasurements() {
@@ -78,11 +92,11 @@ public class Person {
         for (int i = 0; i < updatedMeasurements.size(); i++) {
             if (updatedMeasurements.get(i).isSameMeasurement(measurement)) {
                 updatedMeasurements.set(i, measurement);
-                return new Person(name, phone, email, tags, nextSession, updatedMeasurements);
+                return new Person(name, phone, email, tags, nextSession, updatedMeasurements, performanceHistory);
             }
         }
         updatedMeasurements.add(measurement);
-        return new Person(name, phone, email, tags, nextSession, updatedMeasurements);
+        return new Person(name, phone, email, tags, nextSession, updatedMeasurements, performanceHistory);
     }
 
     public Optional<NextSession> getNextSession() {
@@ -93,7 +107,7 @@ public class Person {
      * Returns a copy with the supplied session, preserving all other client information.
      */
     public Person withNextSession(NextSession session) {
-        return new Person(name, phone, email, tags, session, measurements);
+        return new Person(name, phone, email, tags, session, measurements, performanceHistory);
     }
 
     public Name getName() {
@@ -114,6 +128,33 @@ public class Person {
      */
     public Set<Tag> getTags() {
         return Collections.unmodifiableSet(tags);
+    }
+
+    public PerformanceHistory getPerformanceHistory() {
+        return performanceHistory;
+    }
+
+    /**
+     * Returns the client's gym-performance records as an unmodifiable list, oldest recorded first.
+     */
+    public List<GymPerformance> getGymPerformances() {
+        return performanceHistory.asUnmodifiableList();
+    }
+
+    /**
+     * Returns true if the client already has a record for the same exercise on the same date as {@code performance}.
+     */
+    public boolean hasGymPerformance(GymPerformance performance) {
+        return performanceHistory.hasSameEntry(performance);
+    }
+
+    /**
+     * Returns a copy of this client with {@code performance} recorded, replacing any record for the same
+     * exercise on the same date. All other client information is preserved.
+     */
+    public Person withGymPerformance(GymPerformance performance) {
+        return new Person(name, phone, email, tags, nextSession, measurements,
+                performanceHistory.withRecord(performance));
     }
 
     /**
@@ -149,13 +190,14 @@ public class Person {
                 && Objects.equals(email, otherPerson.email)
                 && tags.equals(otherPerson.tags)
                 && Objects.equals(nextSession, otherPerson.nextSession)
-                && measurements.equals(otherPerson.measurements);
+                && measurements.equals(otherPerson.measurements)
+                && performanceHistory.equals(otherPerson.performanceHistory);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, tags, nextSession, measurements);
+        return Objects.hash(name, phone, email, tags, nextSession, measurements, performanceHistory);
     }
 
     @Override
@@ -166,6 +208,7 @@ public class Person {
                 .add("email", email)
                 .add("tags", tags)
                 .add("nextSession", nextSession)
+                .add("performanceHistory", performanceHistory)
                 .toString();
     }
 

@@ -222,6 +222,51 @@ and displayed list. The failed measurement is not retained in memory.
 
 <!-- AI assistance: OpenAI Codex helped draft the measurement command documentation. -->
 
+### Recording a gym performance: `performance`
+
+Records a client's result for one exercise on a given date, so that you can track their training progress.
+
+Format: `performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`
+
+* Records the performance for the client at the specified `INDEX`, as shown in the displayed client list.
+* Each prefix must appear exactly once. The prefixes can be in any order.
+* If the client already has a record for the same exercise on the same date, the new sets, repetitions and load
+  replace the old record. Spotter keeps one result per exercise per client per day, so you can correct a mistake
+  by recording it again.
+
+Parameter | Accepted values
+----------|----------------
+`INDEX` | A positive integer from the displayed client list, e.g. `1`.
+`DATE` | A real date in `yyyy-MM-dd` format, e.g. `2026-09-18`. It can be today or in the past, but not in the future.
+`EXERCISE` | 1 to 50 characters: letters, numbers, spaces, hyphens (`-`) and apostrophes (`'`). It must contain at least one letter or number. Extra spaces are ignored, and letter case does not matter when checking for an existing record, so `bench press` and `Bench Press` are the same exercise.
+`SETS` | A whole number from 1 to 100.
+`REPS` | The repetitions per set, as a whole number from 1 to 1000.
+`LOAD` | The load in kg, from 0 to 1000, with at most two decimal places. Use `0` for bodyweight exercises. Do not type the unit.
+
+After a performance is recorded, the client's card shows their latest performance and the number of records,
+e.g. `Latest performance: 18 Sep - Bench Press, 3 sets of 8 reps at 60 kg (4 records)`.
+If several records share the latest date, the one recorded last is shown.
+
+Examples:
+* `performance 2 d/2026-09-18 e/Bench Press s/3 r/8 w/60` records `Recorded performance for <client name>: Bench Press, 3 sets of 8 reps at 60 kg on 2026-09-18.`
+* `performance 2 d/2026-09-18 e/Pull-up s/3 r/10 w/0` records a bodyweight exercise.
+* `performance 2 d/2026-09-18 e/bench press s/3 r/8 w/62.5` then replaces the first record and shows `Updated performance for <client name>: bench press, 3 sets of 8 reps at 62.5 kg on 2026-09-18.`
+
+If the command is not accepted, Spotter shows the reason followed by the expected format, and no record is added or changed:
+
+Problem | Message
+--------|--------
+A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invalid command format. Use: performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`
+`INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
+`DATE` is not a real date in `yyyy-MM-dd` format | `The date must use the format yyyy-MM-dd.`
+`DATE` is in the future | `The performance date cannot be in the future.`
+`EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only letters, numbers, spaces, hyphens, and apostrophes.`
+`SETS` is invalid | `The number of sets must be a whole number between 1 and 100.`
+`REPS` is invalid | `The number of repetitions must be a whole number between 1 and 1000.`
+`LOAD` is not a number | `Exercise load must be numeric.`
+`LOAD` is outside 0 to 1000 | `Exercise load must be between 0 and 1000 kg.`
+`LOAD` has more than two decimal places | `Exercise load may have at most two decimal places.`
+
 ### Clearing all entries: `clear`
 
 Clears all clients from Spotter.
@@ -335,4 +380,5 @@ Action     | Format, Examples
 **List**   | `list`
 **Session** | `session INDEX d/DATE t/TIME` or `session n/NAME d/DATE t/TIME`<br> e.g., `session 1 d/2026-12-15 t/1900`
 **Measure** | `measure INDEX d/DATE t/TYPE v/VALUE`<br> e.g., `measure 1 d/2026-09-12 t/weight v/72.4`
+**Performance** | `performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`<br> e.g., `performance 2 d/2026-09-18 e/Bench Press s/3 r/8 w/60`
 **Help**   | `help`

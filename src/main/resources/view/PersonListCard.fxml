@@ -33,6 +33,8 @@
       <Label fx:id="nextSession" styleClass="cell_small_label" wrapText="true" text="Next session: - (none booked)" />
       <Label fx:id="latestMeasurement" styleClass="cell_small_label" text="Latest measurement: -"
              wrapText="true" />
+      <Label fx:id="latestPerformance" styleClass="cell_small_label" text="Latest performance: -"
+             wrapText="true" />
     </VBox>
   </GridPane>
 </HBox>

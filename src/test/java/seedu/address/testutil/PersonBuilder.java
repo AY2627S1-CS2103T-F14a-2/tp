@@ -1,5 +1,6 @@
 package seedu.address.testutil;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -9,6 +10,8 @@ import seedu.address.model.person.Measurement;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.progress.GymPerformance;
+import seedu.address.model.progress.PerformanceHistory;
 import seedu.address.model.session.NextSession;
 import seedu.address.model.tag.Tag;
 import seedu.address.model.util.SampleDataUtil;
@@ -28,6 +31,7 @@ public class PersonBuilder {
     private Set<Tag> tags;
     private NextSession nextSession;
     private List<Measurement> measurements = List.of();
+    private PerformanceHistory performanceHistory;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -37,6 +41,7 @@ public class PersonBuilder {
         phone = new Phone(DEFAULT_PHONE);
         email = new Email(DEFAULT_EMAIL);
         tags = new HashSet<>();
+        performanceHistory = new PerformanceHistory();
     }
 
     /**
@@ -49,6 +54,7 @@ public class PersonBuilder {
         tags = new HashSet<>(personToCopy.getTags());
         nextSession = personToCopy.getNextSession().orElse(null);
         measurements = personToCopy.getMeasurements();
+        performanceHistory = personToCopy.getPerformanceHistory();
     }
 
     /**
@@ -99,16 +105,24 @@ public class PersonBuilder {
         return this;
     }
 
-    public Person build() {
-        return new Person(name, phone, email, tags, nextSession, measurements);
-    }
-
     /**
      * Sets the measurement records of the client being built.
      */
     public PersonBuilder withMeasurements(Measurement... measurements) {
         this.measurements = List.of(measurements);
         return this;
+    }
+
+    /**
+     * Sets the gym-performance records of the {@code Person} that we are building, oldest recorded first.
+     */
+    public PersonBuilder withGymPerformances(GymPerformance... performances) {
+        this.performanceHistory = new PerformanceHistory(Arrays.asList(performances));
+        return this;
+    }
+
+    public Person build() {
+        return new Person(name, phone, email, tags, nextSession, measurements, performanceHistory);
     }
 
 }

@@ -9,6 +9,7 @@ import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalGymPerformances.BENCH_PRESS;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.AMY;
 import static seedu.address.testutil.TypicalPersons.BENSON;
@@ -27,6 +28,7 @@ import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.PerformanceCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
@@ -45,6 +47,8 @@ public class LogicManagerTest {
     private static final IOException DUMMY_AD_EXCEPTION = new AccessDeniedException("dummy access denied exception");
     private static final String ADD_AMY_COMMAND = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
             + EMAIL_DESC_AMY;
+    private static final String PERFORMANCE_COMMAND = PerformanceCommand.COMMAND_WORD
+            + " 1 d/2026-09-18 e/Bench Press s/3 r/8 w/60";
 
     @TempDir
     public Path temporaryFolder;
@@ -120,6 +124,28 @@ public class LogicManagerTest {
     @Test
     public void execute_editFailsToSaveWhileFiltered_displayedListUnchanged() {
         assertSaveFailureKeepsFilteredList(EditCommand.COMMAND_WORD + " 1" + PHONE_DESC_AMY);
+    }
+
+    @Test
+    public void execute_performanceCommand_savesRecordToDataFile() throws Exception {
+        // Saving is triggered by Person#equals detecting a change, so a new record must reach the data file
+        model.addPerson(ALICE);
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+
+        logic.execute(PERFORMANCE_COMMAND);
+
+        ReadOnlyAddressBook savedData = new JsonAddressBookStorage(dataFile).readAddressBook().orElseThrow();
+        assertEquals(List.of(BENCH_PRESS), savedData.getPersonList().get(0).getGymPerformances());
+    }
+
+    @Test
+    public void execute_performanceFailsToSave_restoresPreviousState() {
+        model.addPerson(ALICE);
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        logic = new LogicManager(model, createStorageThrowing(DUMMY_IO_EXCEPTION));
+
+        assertCommandFailure(PERFORMANCE_COMMAND, CommandException.class, LogicManager.MESSAGE_SAVE_FAILURE,
+                expectedModel);
     }
 
     @Test

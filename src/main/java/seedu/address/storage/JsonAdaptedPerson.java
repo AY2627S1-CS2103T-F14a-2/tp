@@ -15,6 +15,8 @@ import seedu.address.model.person.Measurement;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.progress.GymPerformance;
+import seedu.address.model.progress.PerformanceHistory;
 import seedu.address.model.session.NextSession;
 import seedu.address.model.tag.Tag;
 
@@ -24,6 +26,7 @@ import seedu.address.model.tag.Tag;
 class JsonAdaptedPerson {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Person's %s field is missing!";
+    public static final String MESSAGE_NULL_PERFORMANCE = "Person's performances field contains an empty entry!";
 
     private final String name;
     private final String phone;
@@ -31,22 +34,33 @@ class JsonAdaptedPerson {
     private final String nextSession;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
     private final List<JsonAdaptedMeasurement> measurements = new ArrayList<>();
+    private final List<JsonAdaptedGymPerformance> performances = new ArrayList<>();
 
     /**
-     * Constructs a {@code JsonAdaptedPerson} with the given person details.
+     * Constructs a {@code JsonAdaptedPerson} with the given contact details, and no session or training records.
      */
     public JsonAdaptedPerson(String name, String phone, String email, List<JsonAdaptedTag> tags) {
         this(name, phone, email, tags, null, null);
     }
 
     /**
-     * Loads optional session and measurement data, accepting older files without either field.
+     * Constructs a {@code JsonAdaptedPerson} with the given details and no gym-performance records.
+     */
+    public JsonAdaptedPerson(String name, String phone, String email, List<JsonAdaptedTag> tags,
+            String nextSession, List<JsonAdaptedMeasurement> measurements) {
+        this(name, phone, email, tags, nextSession, measurements, null);
+    }
+
+    /**
+     * Loads optional session, measurement and gym-performance data. A missing field is treated as empty,
+     * so data files saved before these features were supported can still be loaded.
      */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email,
             @JsonProperty("tags") List<JsonAdaptedTag> tags, @JsonProperty("nextSession") String nextSession,
-            @JsonProperty("measurements") List<JsonAdaptedMeasurement> measurements) {
+            @JsonProperty("measurements") List<JsonAdaptedMeasurement> measurements,
+            @JsonProperty("performances") List<JsonAdaptedGymPerformance> performances) {
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -56,6 +70,9 @@ class JsonAdaptedPerson {
         }
         if (measurements != null) {
             this.measurements.addAll(measurements);
+        }
+        if (performances != null) {
+            this.performances.addAll(performances);
         }
     }
 
@@ -71,6 +88,9 @@ class JsonAdaptedPerson {
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
         measurements.addAll(source.getMeasurements().stream().map(JsonAdaptedMeasurement::new).toList());
+        performances.addAll(source.getGymPerformances().stream()
+                .map(JsonAdaptedGymPerformance::new)
+                .collect(Collectors.toList()));
     }
 
     /**
@@ -107,10 +127,12 @@ class JsonAdaptedPerson {
         final Email modelEmail = email == null ? null : new Email(email);
 
         final Set<Tag> modelTags = new HashSet<>(personTags);
+
         if (nextSession != null && !NextSession.isValidNextSession(nextSession)) {
             throw new IllegalValueException(NextSession.MESSAGE_CONSTRAINTS);
         }
         final NextSession modelSession = nextSession == null ? null : new NextSession(nextSession);
+
         final List<Measurement> modelMeasurements = new ArrayList<>();
         for (JsonAdaptedMeasurement measurement : measurements) {
             if (measurement == null) {
@@ -122,7 +144,22 @@ class JsonAdaptedPerson {
             }
             modelMeasurements.add(record);
         }
-        return new Person(modelName, modelPhone, modelEmail, modelTags, modelSession, modelMeasurements);
+
+        final List<GymPerformance> modelPerformances = new ArrayList<>();
+        for (JsonAdaptedGymPerformance performance : performances) {
+            // A null entry, e.g. "performances": [null], is damaged data rather than a programming error
+            if (performance == null) {
+                throw new IllegalValueException(MESSAGE_NULL_PERFORMANCE);
+            }
+            modelPerformances.add(performance.toModelType());
+        }
+        if (!PerformanceHistory.hasNoDuplicates(modelPerformances)) {
+            throw new IllegalValueException(PerformanceHistory.MESSAGE_DUPLICATE_RECORDS);
+        }
+        final PerformanceHistory modelPerformanceHistory = new PerformanceHistory(modelPerformances);
+
+        return new Person(modelName, modelPhone, modelEmail, modelTags, modelSession, modelMeasurements,
+                modelPerformanceHistory);
     }
 
 }

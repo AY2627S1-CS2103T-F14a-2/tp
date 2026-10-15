@@ -19,6 +19,8 @@ import seedu.address.commons.util.ToStringBuilder;
  *
  * <p>Whether the date is in the future is not checked here, because a stored record must stay valid
  * regardless of when the data is loaded. That rule is enforced when the user records a performance.
+ *
+ * <p>AI assistance: Claude (Anthropic) helped implement this class and its tests.
  */
 public class GymPerformance {
 
@@ -36,6 +38,12 @@ public class GymPerformance {
     /** Format used when entering and storing the date of a performance. */
     public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("uuuu-MM-dd")
             .withResolverStyle(ResolverStyle.STRICT);
+
+    // Ensures exactly four year digits, matching the date rule used when parsing commands.
+    private static final String DATE_SHAPE_REGEX = "\\d{4}-\\d{2}-\\d{2}";
+
+    // Up to nine digits always fits in an int, so parsing cannot overflow.
+    private static final String WHOLE_NUMBER_REGEX = "\\d{1,9}";
 
     private final LocalDate date;
     private final ExerciseName exerciseName;
@@ -58,13 +66,15 @@ public class GymPerformance {
     }
 
     /**
-     * Returns true if the given string is a real calendar date in yyyy-MM-dd format.
+     * Returns true if the given string is a real calendar date in yyyy-MM-dd format, with a year from 0001.
      */
     public static boolean isValidDate(String test) {
         requireNonNull(test);
+        if (!test.matches(DATE_SHAPE_REGEX)) {
+            return false;
+        }
         try {
-            LocalDate.parse(test, DATE_FORMATTER);
-            return true;
+            return LocalDate.parse(test, DATE_FORMATTER).getYear() != 0;
         } catch (DateTimeParseException e) {
             return false;
         }
@@ -78,10 +88,26 @@ public class GymPerformance {
     }
 
     /**
+     * Returns true if the given string is a whole number of sets within the permitted range.
+     */
+    public static boolean isValidSets(String test) {
+        requireNonNull(test);
+        return test.matches(WHOLE_NUMBER_REGEX) && isValidSets(Integer.parseInt(test));
+    }
+
+    /**
      * Returns true if the given number of repetitions per set is within the permitted range.
      */
     public static boolean isValidReps(int test) {
         return test >= MIN_REPS && test <= MAX_REPS;
+    }
+
+    /**
+     * Returns true if the given string is a whole number of repetitions within the permitted range.
+     */
+    public static boolean isValidReps(String test) {
+        requireNonNull(test);
+        return test.matches(WHOLE_NUMBER_REGEX) && isValidReps(Integer.parseInt(test));
     }
 
     public LocalDate getDate() {
@@ -102,6 +128,18 @@ public class GymPerformance {
 
     public Load getLoad() {
         return load;
+    }
+
+    /**
+     * Returns a short description of the result, e.g. "Bench Press, 3 sets of 8 reps at 60 kg".
+     * "set" and "rep" are used in the singular when the count is 1.
+     */
+    public String getSummary() {
+        return exerciseName + ", " + countOf(sets, "set") + " of " + countOf(reps, "rep") + " at " + load + " kg";
+    }
+
+    private static String countOf(int count, String unit) {
+        return count + " " + (count == 1 ? unit : unit + "s");
     }
 
     /**

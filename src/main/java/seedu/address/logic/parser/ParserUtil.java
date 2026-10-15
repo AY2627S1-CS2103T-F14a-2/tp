@@ -38,28 +38,6 @@ public class ParserUtil {
             .withResolverStyle(ResolverStyle.STRICT);
 
     /**
-     * Parses a real calendar date for a past or present record, ignoring surrounding whitespace.
-     */
-    public static LocalDate parseRecordDate(String date, String futureDateMessage) throws ParseException {
-        requireNonNull(date);
-        requireNonNull(futureDateMessage);
-        String trimmedDate = date.trim();
-        if (!trimmedDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
-            throw new ParseException(MESSAGE_INVALID_RECORD_DATE);
-        }
-        final LocalDate parsedDate;
-        try {
-            parsedDate = LocalDate.parse(trimmedDate);
-        } catch (DateTimeParseException e) {
-            throw new ParseException(MESSAGE_INVALID_RECORD_DATE, e);
-        }
-        if (parsedDate.isAfter(LocalDate.now())) {
-            throw new ParseException(futureDateMessage);
-        }
-        return parsedDate;
-    }
-
-    /**
      * Parses a session date, allowing today but rejecting past dates.
      */
     public static LocalDate parseSessionDate(String date) throws ParseException {
@@ -114,6 +92,37 @@ public class ParserUtil {
             throw new ParseException(MESSAGE_INVALID_INDEX);
         }
         return Index.fromOneBased(Integer.parseInt(trimmedIndex));
+    }
+
+    /**
+     * Parses the date of a progress record, such as a body measurement or a gym performance,
+     * ignoring surrounding whitespace.
+     * The date must be a real calendar date in yyyy-MM-dd format with a year from 0001, and must not be
+     * in the future, as only results that have already happened can be recorded.
+     *
+     * @param futureDateMessage The message to show if the date is in the future.
+     * @throws ParseException if the date is malformed, does not exist, or is in the future.
+     */
+    public static LocalDate parseRecordDate(String date, String futureDateMessage) throws ParseException {
+        requireNonNull(date);
+        requireNonNull(futureDateMessage);
+        String trimmedDate = date.trim();
+        if (!trimmedDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
+            throw new ParseException(MESSAGE_INVALID_RECORD_DATE);
+        }
+        final LocalDate parsedDate;
+        try {
+            parsedDate = LocalDate.parse(trimmedDate, DATE_FORMATTER);
+        } catch (DateTimeParseException e) {
+            throw new ParseException(MESSAGE_INVALID_RECORD_DATE, e);
+        }
+        if (parsedDate.getYear() == 0) {
+            throw new ParseException(MESSAGE_INVALID_RECORD_DATE);
+        }
+        if (parsedDate.isAfter(LocalDate.now())) {
+            throw new ParseException(futureDateMessage);
+        }
+        return parsedDate;
     }
 
     /**

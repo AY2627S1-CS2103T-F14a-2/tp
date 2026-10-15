@@ -11,23 +11,27 @@ import java.math.BigDecimal;
  * Guarantees: immutable; is valid as declared in {@link #isValidLoad(String)}
  *
  * <p>The value is stored as a {@code BigDecimal} so that decimal loads such as 62.5 are kept exactly.
+ *
+ * <p>AI assistance: Claude (Anthropic) helped implement this class and its tests.
  */
 public class Load {
 
+    public static final String MESSAGE_NOT_NUMERIC = "Exercise load must be numeric.";
     public static final String MESSAGE_RANGE_CONSTRAINTS = "Exercise load must be between 0 and 1000 kg.";
     public static final String MESSAGE_DECIMAL_PLACES_CONSTRAINTS =
             "Exercise load may have at most two decimal places.";
 
     public static final int MAX_DECIMAL_PLACES = 2;
 
+    private static final BigDecimal MIN_LOAD = BigDecimal.ZERO;
     private static final BigDecimal MAX_LOAD = new BigDecimal("1000");
 
     /*
-     * Accepts only plain non-negative decimal numbers, so that inputs such as "-5", "+5", "1e2" and ".5"
-     * are rejected before they reach BigDecimal, which would otherwise accept some of them.
-     * As negative numbers never match, only the upper bound of the range needs to be checked.
+     * Accepts plain decimal numbers with an optional sign, in the same form as body-measurement values.
+     * Inputs such as "1e2", "NaN" or "60kg" are rejected before they reach BigDecimal,
+     * which would otherwise accept some of them.
      */
-    private static final String NUMBER_REGEX = "\\d+(\\.\\d+)?";
+    private static final String NUMBER_REGEX = "[+-]?(\\d+(\\.\\d*)?|\\.\\d+)";
 
     public final BigDecimal value;
 
@@ -38,6 +42,7 @@ public class Load {
      */
     public Load(String load) {
         requireNonNull(load);
+        checkArgument(isNumeric(load), MESSAGE_NOT_NUMERIC);
         checkArgument(isNumberWithinRange(load), MESSAGE_RANGE_CONSTRAINTS);
         checkArgument(hasValidDecimalPlaces(load), MESSAGE_DECIMAL_PLACES_CONSTRAINTS);
         value = new BigDecimal(load);
@@ -51,14 +56,22 @@ public class Load {
     }
 
     /**
-     * Returns true if the given string is a plain number from 0 to 1000 inclusive.
+     * Returns true if the given string is a plain decimal number.
+     */
+    public static boolean isNumeric(String test) {
+        requireNonNull(test);
+        return test.matches(NUMBER_REGEX);
+    }
+
+    /**
+     * Returns true if the given string is a plain decimal number from 0 to 1000 inclusive.
      */
     public static boolean isNumberWithinRange(String test) {
-        requireNonNull(test);
-        if (!test.matches(NUMBER_REGEX)) {
+        if (!isNumeric(test)) {
             return false;
         }
-        return new BigDecimal(test).compareTo(MAX_LOAD) <= 0;
+        BigDecimal load = new BigDecimal(test);
+        return load.compareTo(MIN_LOAD) >= 0 && load.compareTo(MAX_LOAD) <= 0;
     }
 
     /**
