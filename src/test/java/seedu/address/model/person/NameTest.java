@@ -43,6 +43,13 @@ public class NameTest {
     }
 
     @Test
+    public void isTooLong() {
+        assertFalse(Name.isTooLong("a".repeat(Name.MAX_LENGTH))); // maximum length
+        assertFalse(Name.isTooLong("a".repeat(Name.MAX_LENGTH) + "   ")); // within limit once trimmed
+        assertTrue(Name.isTooLong("a".repeat(Name.MAX_LENGTH + 1)));
+    }
+
+    @Test
     public void constructor_extraSpaces_normalizesName() {
         assertEquals("John Tan", new Name("  John    Tan ").fullName);
     }

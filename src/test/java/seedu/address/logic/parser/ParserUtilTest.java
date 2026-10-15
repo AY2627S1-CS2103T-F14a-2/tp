@@ -62,6 +62,12 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parseName_tooLong_throwsLengthMessage() {
+        assertThrows(ParseException.class, Name.MESSAGE_LENGTH_CONSTRAINTS, ()
+            -> ParserUtil.parseName("a".repeat(Name.MAX_LENGTH + 1)));
+    }
+
+    @Test
     public void parseName_validValueWithoutWhitespace_returnsName() throws Exception {
         Name expectedName = new Name(VALID_NAME);
         assertEquals(expectedName, ParserUtil.parseName(VALID_NAME));
