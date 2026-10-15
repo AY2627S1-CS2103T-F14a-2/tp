@@ -11,8 +11,10 @@ public class Name {
 
     public static final int MAX_LENGTH = 100;
 
-    public static final String MESSAGE_CONSTRAINTS = "Names should only contain alphanumeric characters and spaces, "
-            + "should not be blank, and should be at most " + MAX_LENGTH + " characters long";
+    public static final String MESSAGE_CONSTRAINTS =
+            "Names should only contain alphanumeric characters and spaces, and it should not be blank";
+    public static final String MESSAGE_LENGTH_CONSTRAINTS =
+            "Names should be at most " + MAX_LENGTH + " characters long";
 
     /*
      * The first character of the name must not be a whitespace,
@@ -38,6 +40,13 @@ public class Name {
      */
     public static boolean isValidName(String test) {
         return normalizeSpaces(test).matches(VALIDATION_REGEX);
+    }
+
+    /**
+     * Returns true if a given string is longer than {@code MAX_LENGTH} once trimmed and its internal spaces collapsed.
+     */
+    public static boolean isTooLong(String test) {
+        return normalizeSpaces(test).length() > MAX_LENGTH;
     }
 
     /**
