@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Measurement;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
@@ -31,21 +32,23 @@ class JsonAdaptedPerson {
     private final String address;
     private final String nextSession;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
+    private final List<JsonAdaptedMeasurement> measurements = new ArrayList<>();
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
      */
     public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags) {
-        this(name, phone, email, address, tags, null);
+        this(name, phone, email, address, tags, null, null);
     }
 
     /**
-     * Loads client details, accepting an absent nextSession in older data files.
+     * Loads optional session and measurement data, accepting older files without either field.
      */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
-            @JsonProperty("tags") List<JsonAdaptedTag> tags, @JsonProperty("nextSession") String nextSession) {
+            @JsonProperty("tags") List<JsonAdaptedTag> tags, @JsonProperty("nextSession") String nextSession,
+            @JsonProperty("measurements") List<JsonAdaptedMeasurement> measurements) {
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -53,6 +56,9 @@ class JsonAdaptedPerson {
         this.nextSession = nextSession;
         if (tags != null) {
             this.tags.addAll(tags);
+        }
+        if (measurements != null) {
+            this.measurements.addAll(measurements);
         }
     }
 
@@ -68,6 +74,7 @@ class JsonAdaptedPerson {
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
+        measurements.addAll(source.getMeasurements().stream().map(JsonAdaptedMeasurement::new).toList());
     }
 
     /**
@@ -118,7 +125,18 @@ class JsonAdaptedPerson {
             throw new IllegalValueException(NextSession.MESSAGE_CONSTRAINTS);
         }
         final NextSession modelSession = nextSession == null ? null : new NextSession(nextSession);
-        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, modelSession);
+        final List<Measurement> modelMeasurements = new ArrayList<>();
+        for (JsonAdaptedMeasurement measurement : measurements) {
+            if (measurement == null) {
+                throw new IllegalValueException("Measurement records must not be null.");
+            }
+            Measurement record = measurement.toModelType();
+            if (modelMeasurements.stream().anyMatch(existing -> existing.isSameMeasurement(record))) {
+                throw new IllegalValueException("Duplicate measurement date and type.");
+            }
+            modelMeasurements.add(record);
+        }
+        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, modelSession, modelMeasurements);
     }
 
 }

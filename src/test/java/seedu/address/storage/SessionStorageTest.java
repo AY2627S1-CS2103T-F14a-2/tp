@@ -93,7 +93,7 @@ public class SessionStorageTest {
         Person client = new PersonBuilder().build();
         for (String invalid : List.of("", "2026-02-30 17:00", "2026-10-12 24:00", "0000-01-01 00:00")) {
             JsonAdaptedPerson adapted = new JsonAdaptedPerson(client.getName().fullName, client.getPhone().value,
-                    client.getEmail().value, client.getAddress().value, List.of(), invalid);
+                    client.getEmail().value, client.getAddress().value, List.of(), invalid, List.of());
             assertThrows(IllegalValueException.class, NextSession.MESSAGE_CONSTRAINTS, adapted::toModelType);
         }
         AddressBook book = new AddressBook();

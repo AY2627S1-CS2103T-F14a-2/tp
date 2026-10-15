@@ -25,6 +25,7 @@ import seedu.address.model.tag.Tag;
  */
 public class ParserUtil {
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_INVALID_RECORD_DATE = "The date must use the format yyyy-MM-dd.";
 
     public static final String MESSAGE_SESSION_DATE_FORMAT =
             "Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).";
@@ -36,6 +37,28 @@ public class ParserUtil {
             .withResolverStyle(ResolverStyle.STRICT);
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm")
             .withResolverStyle(ResolverStyle.STRICT);
+
+    /**
+     * Parses a real calendar date for a past or present record, ignoring surrounding whitespace.
+     */
+    public static LocalDate parseRecordDate(String date, String futureDateMessage) throws ParseException {
+        requireNonNull(date);
+        requireNonNull(futureDateMessage);
+        String trimmedDate = date.trim();
+        if (!trimmedDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
+            throw new ParseException(MESSAGE_INVALID_RECORD_DATE);
+        }
+        final LocalDate parsedDate;
+        try {
+            parsedDate = LocalDate.parse(trimmedDate);
+        } catch (DateTimeParseException e) {
+            throw new ParseException(MESSAGE_INVALID_RECORD_DATE, e);
+        }
+        if (parsedDate.isAfter(LocalDate.now())) {
+            throw new ParseException(futureDateMessage);
+        }
+        return parsedDate;
+    }
 
     /**
      * Parses a session date, allowing today but rejecting past dates.

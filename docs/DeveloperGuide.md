@@ -824,6 +824,33 @@ testers are expected to do more *exploratory* testing.
 
 1. _{ more test cases … }_
 
+### Recording body measurements
+
+Use fictional data in a disposable test folder. Start with a client without measurements,
+run `list` and substitute that client's displayed index for `1` below.
+
+1. Enter `measure 1 d/2026-09-12 t/weight v/72.4`.<br>
+   Expected: `Recorded measurement for NAME: weight = 72.4 kg on 2026-09-12.`
+   The card shows `Latest measurement: 12 Sep - weight 72.4 kg (1 record)`.
+1. Enter `measure 1 d/2026-09-12 t/weight v/71.8`.<br>
+   Expected: `Updated measurement for NAME: weight = 71.8 kg on 2026-09-12.`
+   The card value changes to 71.8 and the count stays at one.
+1. Add `measure 1 d/2026-09-12 t/waist v/81`, then
+   `measure 1 d/2026-09-11 t/bodyfat v/18.4`.<br>
+   Expected: Both commands record new entries. The card still shows weight 71.8 kg, with three records.
+1. Try `measure 1 d/2026-02-30 t/weight v/72`, `measure 1 d/2026-09-12 t/bodyfat v/0`,
+   and a command using tomorrow's date.<br>
+   Expected: Appropriate date/range errors; card and saved measurements remain unchanged.
+1. Try a missing prefix, repeated prefix, unsupported type, non-numeric value, value with three decimal places,
+   and an index outside the displayed list.<br>
+   Expected: Each command is rejected without changing measurements.
+1. Edit the client's phone number, close Spotter and restart it.<br>
+   Expected: All three measurements persist and the card still shows weight 71.8 kg with three records.
+1. Resize the window and check long card rows.<br>
+   Expected: The measurement row remains readable and does not overlap neighbouring cards.
+
+<!-- AI assistance: OpenAI Codex helped draft measurement acceptance tests. -->
+
 ### Saving data
 
 1. Dealing with missing/corrupted data files

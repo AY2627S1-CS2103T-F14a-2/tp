@@ -144,6 +144,67 @@ Examples:
 * `list` followed by `delete 2` deletes the 2nd person in the address book.
 * `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
 
+### Recording body measurements: `measure`
+
+Records a client's weight, body fat percentage or waist measurement.
+
+Format: `measure INDEX d/DATE t/TYPE v/VALUE`
+
+* `INDEX` is the positive index in the currently displayed client list.
+* `DATE` is a real date in `yyyy-MM-dd` format, today or earlier.
+* `TYPE` is case-insensitive: `weight` (kg), `bodyfat` (%) or `waist` (cm).
+* Weight accepts 1–500 kg; body fat accepts values greater than 0 and up to 100%; waist accepts 1–300 cm.
+* Values accept up to two decimal places. Enter only the number, without units, commas or scientific notation.
+  Surrounding whitespace is ignored.
+* Each prefix must appear exactly once. Prefixes may appear in any order.
+* The same date and type replaces the previous value without increasing the record count.
+* Records are saved automatically and restored when the application restarts.
+* The client card shows the measurement with the latest date and the total record count, for example:
+  `Latest measurement: 12 Sep - weight 72.4 kg (4 records)`.
+* When multiple types share the latest date, the card prefers weight, then body fat, then waist.
+* Clients without measurements show `Latest measurement: -`.
+* The count includes all dates and types. Adding an older measurement increases the count but does not change
+  the displayed latest measurement. A single record is shown as `(1 record)`.
+
+Examples:
+
+Run `list` first and use the displayed index of your intended client. These examples use client 1.
+
+* `measure 1 d/2026-09-12 t/weight v/72.4` records a weight measurement.
+* `measure 1 d/2026-09-12 t/weight v/71.8` updates that record.
+* `measure 1 d/2026-09-12 t/waist v/81` adds a separate waist record.
+* `measure 1 d/2026-09-12 t/bodyfat v/18.4` adds a separate body fat record.
+
+Success messages begin with `Recorded measurement for` or `Updated measurement for`,
+followed by the client's name, measurement and date. Invalid input is rejected without changing records.
+
+For a client named Alex Tan, the first two examples produce:
+
+```text
+Recorded measurement for Alex Tan: weight = 72.4 kg on 2026-09-12.
+Updated measurement for Alex Tan: weight = 71.8 kg on 2026-09-12.
+```
+
+Common errors:
+
+| Input problem | Message |
+| --- | --- |
+| Missing or repeated prefix | `Invalid command format. Use: measure INDEX d/DATE t/TYPE v/VALUE` |
+| Invalid client index | `The client index provided is invalid.` |
+| Invalid date or date format | `The date must use the format yyyy-MM-dd.` |
+| Future date | `The measurement date cannot be in the future.` |
+| Unsupported type | `Measurement type must be weight, bodyfat, or waist.` |
+| Non-numeric value | `Measurement value must be numeric.` |
+| Too many decimal places | `Measurement values may have at most two decimal places.` |
+
+Out-of-range values produce a message stating the permitted range for that type.
+Parsing errors and invalid client indexes also show the expected command format.
+
+If saving fails, Spotter displays `Unable to save Spotter data` and restores the previous client records
+and displayed list. The failed measurement is not retained in memory.
+
+<!-- AI assistance: OpenAI Codex helped draft the measurement command documentation. -->
+
 ### Clearing all entries: `clear`
 
 Clears all entries from the address book.
@@ -251,4 +312,5 @@ Action     | Format, Examples
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
 **Session** | `session INDEX d/DATE t/TIME` or `session n/NAME d/DATE t/TIME`<br> e.g., `session 1 d/2026-12-15 t/1900`
+**Measure** | `measure INDEX d/DATE t/TYPE v/VALUE`<br> e.g., `measure 1 d/2026-09-12 t/weight v/72.4`
 **Help**   | `help`

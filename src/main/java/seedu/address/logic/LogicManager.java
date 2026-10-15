@@ -1,7 +1,7 @@
 package seedu.address.logic;
 
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
@@ -12,18 +12,17 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 import seedu.address.storage.Storage;
 
 /**
  * The main LogicManager of the app.
+ * AI assistance: OpenAI Codex helped implement save-failure rollback and its regression tests.
  */
 public class LogicManager implements Logic {
-    public static final String FILE_OPS_ERROR_FORMAT = "Could not save data due to the following error: %s";
-
-    public static final String FILE_OPS_PERMISSION_ERROR_FORMAT =
-            "Could not save data to file %s due to insufficient permissions to write to the file or the folder.";
+    public static final String MESSAGE_SAVE_FAILURE = "Unable to save Spotter data";
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 
@@ -46,14 +45,17 @@ public class LogicManager implements Logic {
 
         CommandResult commandResult;
         Command command = addressBookParser.parseCommand(commandText);
+        AddressBook previousData = new AddressBook(model.getAddressBook());
+        Predicate<Person> previousFilter = model.getFilteredPersonPredicate();
         commandResult = command.execute(model);
 
         try {
             storage.saveAddressBook(model.getAddressBook());
-        } catch (AccessDeniedException e) {
-            throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
         } catch (IOException ioe) {
-            throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
+            // Restore the filter too: add and edit can change which clients are displayed.
+            model.setAddressBook(previousData);
+            model.updateFilteredPersonList(previousFilter);
+            throw new CommandException(MESSAGE_SAVE_FAILURE, ioe);
         }
 
         return commandResult;
