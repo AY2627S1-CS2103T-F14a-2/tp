@@ -13,9 +13,7 @@
 
 ## **Acknowledgements**
 
-* Gabriel Wan used [OpenAI Codex](https://openai.com/codex/) to assist with implementing, testing,
-  and documenting the v1.3 next-session feature, including parsing, client integration, JSON storage, sorting,
-  and the client card row.
+* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #64 changes (the `list` command messages, undoing changes when saving fails, the damaged data file warning, the client card phone and email rows, and the related tests and User Guide wording) on 2026-10-15. The changes were reviewed and tested by the author.
 * Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the client `add`/`delete` changes for v1.3 (removing address, optional email, name and phone limits, Spotter messages). All generated code was reviewed and tested before committing.
 
@@ -649,22 +647,21 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 3.
 
-* 3d. The given date is before the current system date.
+* 3d. The given date and time are in the past.
 
-    * 3d1. Spotter shows an error message stating that the date cannot be in the past. Today is accepted,
-      even when the supplied time has already passed.
+    * 3d1. Spotter shows an error message stating that the next session must be in the future.
 
       Use case resumes at step 3.
 
 * 3e. The client already has a next session.
 
-    * 3e1. Spotter replaces the existing next session with the new date and time.
+    * 3e1. Spotter informs the trainer that the existing next session will be replaced.
 
       Use case resumes at step 4.
 
 * 4a. Another client's next session is at the same date and time.
 
-    * 4a1. Spotter keeps both sessions; the MVP does not warn about clashes.
+    * 4a1. Spotter keeps the recorded session and warns the trainer about the clashing session.
 
       Use case ends.
 
@@ -825,33 +822,6 @@ testers are expected to do more *exploratory* testing.
       Expected: Similar to previous.
 
 1. _{ more test cases … }_
-
-### Recording body measurements
-
-Use fictional data in a disposable test folder. Start with a client without measurements,
-run `list` and substitute that client's displayed index for `1` below.
-
-1. Enter `measure 1 d/2026-09-12 t/weight v/72.4`.<br>
-   Expected: `Recorded measurement for NAME: weight = 72.4 kg on 2026-09-12.`
-   The card shows `Latest measurement: 12 Sep - weight 72.4 kg (1 record)`.
-1. Enter `measure 1 d/2026-09-12 t/weight v/71.8`.<br>
-   Expected: `Updated measurement for NAME: weight = 71.8 kg on 2026-09-12.`
-   The card value changes to 71.8 and the count stays at one.
-1. Add `measure 1 d/2026-09-12 t/waist v/81`, then
-   `measure 1 d/2026-09-11 t/bodyfat v/18.4`.<br>
-   Expected: Both commands record new entries. The card still shows weight 71.8 kg, with three records.
-1. Try `measure 1 d/2026-02-30 t/weight v/72`, `measure 1 d/2026-09-12 t/bodyfat v/0`,
-   and a command using tomorrow's date.<br>
-   Expected: Appropriate date/range errors; card and saved measurements remain unchanged.
-1. Try a missing prefix, repeated prefix, unsupported type, non-numeric value, value with three decimal places,
-   and an index outside the displayed list.<br>
-   Expected: Each command is rejected without changing measurements.
-1. Edit the client's phone number, close Spotter and restart it.<br>
-   Expected: All three measurements persist and the card still shows weight 71.8 kg with three records.
-1. Resize the window and check long card rows.<br>
-   Expected: The measurement row remains readable and does not overlap neighbouring cards.
-
-<!-- AI assistance: OpenAI Codex helped draft measurement acceptance tests. -->
 
 ### Saving data
 

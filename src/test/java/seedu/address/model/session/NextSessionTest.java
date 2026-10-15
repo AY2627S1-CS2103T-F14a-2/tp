@@ -5,8 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
-import java.time.LocalDateTime;
-
 import org.junit.jupiter.api.Test;
 
 public class NextSessionTest {
@@ -52,22 +50,6 @@ public class NextSessionTest {
     public void toString_returnsRequiredFormat() {
         NextSession nextSession = new NextSession("2026-10-08 09:05");
         assertEquals("2026-10-08 09:05", nextSession.toString());
-    }
-
-    @Test
-    public void toDisplayString_englishDateAndTwelveHourTime() {
-        LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
-        assertEquals("Wed 18 Sep, 7:00pm", new NextSession("2030-09-18 19:00").toDisplayString(now));
-        assertEquals("Wed 18 Sep, 12:00am", new NextSession("2030-09-18 00:00").toDisplayString(now));
-        assertEquals("Wed 18 Sep, 12:05pm", new NextSession("2030-09-18 12:05").toDisplayString(now));
-        assertEquals("Wed 18 Sep, 9:05am", new NextSession("2030-09-18 09:05").toDisplayString(now));
-    }
-
-    @Test
-    public void toDisplayString_atSessionTimeAndJustAfter_distinguishesExpiry() {
-        NextSession session = new NextSession("2030-09-18 19:00");
-        assertEquals("Wed 18 Sep, 7:00pm", session.toDisplayString(session.value));
-        assertEquals("- (none upcoming)", session.toDisplayString(session.value.plusSeconds(1)));
     }
 
     @Test

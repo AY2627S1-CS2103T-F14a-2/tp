@@ -53,23 +53,11 @@ public class Name {
      * Returns true if both names refer to the same client, ignoring case.
      */
     public boolean isSameName(Name otherName) {
-        return otherName != null
-                && matches(otherName.fullName);
+        return otherName != null && fullName.equalsIgnoreCase(otherName.fullName);
     }
 
-    /**
-     * Returns whether the supplied full name identifies this client, ignoring case and extra whitespace.
-     */
-    public boolean matches(String candidate) {
-        return candidate != null
-                && normalizeSpaces(fullName).equalsIgnoreCase(normalizeSpaces(candidate));
-    }
-
-    /**
-     * Trims outer whitespace and collapses internal whitespace using the same rule as duplicate detection.
-     */
-    public static String normalizeSpaces(String name) {
-        return requireNonNull(name).trim().replaceAll("\\s+", " ");
+    private static String normalizeSpaces(String name) {
+        return name.trim().replaceAll("\\s+", " ");
     }
 
     @Override
