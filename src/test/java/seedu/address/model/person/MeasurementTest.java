@@ -49,8 +49,6 @@ public class MeasurementTest {
                         new Measurement(DATE, MeasurementType.BODYFAT, new BigDecimal("100.01")));
         assertThrows(IllegalArgumentException.class, () ->
                         new Measurement(DATE, MeasurementType.WAIST, new BigDecimal("300.01")));
-        assertThrows(IllegalArgumentException.class, () ->
-                        new Measurement(LocalDate.now().plusDays(1), MeasurementType.WEIGHT, BigDecimal.ONE));
         assertThrows(NullPointerException.class, () ->
                         new Measurement(null, MeasurementType.WEIGHT, BigDecimal.ONE));
         assertThrows(NullPointerException.class, () -> new Measurement(DATE, null, BigDecimal.ONE));

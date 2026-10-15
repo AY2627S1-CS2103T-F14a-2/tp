@@ -41,6 +41,23 @@ public class MeasurementStorageTest {
     }
 
     @Test
+    public void saveAndReload_futureDatedMeasurement_preservesRecord() throws Exception {
+        // A saved record may appear future-dated after a clock or time-zone change.
+        LocalDate date = LocalDate.now().plusDays(1);
+        Measurement measurement = new JsonAdaptedMeasurement(date.toString(), "weight", "72.4").toModelType();
+        assertEquals(date, measurement.getDate());
+        assertEquals(MeasurementType.WEIGHT, measurement.getType());
+        assertEquals(new BigDecimal("72.4"), measurement.getValue());
+        Person client = new PersonBuilder().withMeasurements(measurement).build();
+        AddressBook book = new AddressBook();
+        book.addPerson(client);
+        Path file = temporaryFolder.resolve("clients.json");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(file);
+        storage.saveAddressBook(book);
+        assertEquals(book, storage.readAddressBook().orElseThrow());
+    }
+
+    @Test
     public void load_legacyClient_hasNoMeasurements() throws Exception {
         String json = JsonUtil.toJsonString(new JsonAdaptedPerson(new PersonBuilder().build()));
         json = json.replaceAll(",?\\s*\"measurements\"\\s*:\\s*\\[\\s*\\]", "");
@@ -53,7 +70,6 @@ public class MeasurementStorageTest {
         for (JsonAdaptedMeasurement record : List.of(
                 new JsonAdaptedMeasurement(null, "weight", "72"),
                 new JsonAdaptedMeasurement("2026-02-30", "weight", "72"),
-                new JsonAdaptedMeasurement(LocalDate.now().plusDays(1).toString(), "weight", "72"),
                 new JsonAdaptedMeasurement("2026-09-12", "height", "72"),
                 new JsonAdaptedMeasurement("2026-09-12", "weight", "NaN"),
                 new JsonAdaptedMeasurement("2026-09-12", "weight", "501"),

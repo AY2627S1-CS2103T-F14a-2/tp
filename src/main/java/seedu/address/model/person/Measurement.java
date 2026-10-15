@@ -20,11 +20,11 @@ public final class Measurement {
     private final BigDecimal value;
 
     /**
-     * Creates a measurement with a non-future date and a value valid for its type.
+     * Creates a measurement with a value valid for its type.
+     * Future dates are checked by the parser so saved records remain loadable after clock changes.
      */
     public Measurement(LocalDate date, MeasurementType type, BigDecimal value) {
         requireAllNonNull(date, type, value);
-        checkArgument(!date.isAfter(LocalDate.now()), MESSAGE_FUTURE_DATE);
         checkArgument(value.scale() <= 2, MESSAGE_PRECISION);
         checkArgument(type.isValidValue(value), type.getValueConstraints());
         this.date = date;
