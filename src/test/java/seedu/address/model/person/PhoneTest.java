@@ -40,6 +40,13 @@ public class PhoneTest {
     }
 
     @Test
+    public void isTooLong() {
+        assertFalse(Phone.isTooLong("124293842033123")); // exactly 15 numbers
+        assertFalse(Phone.isTooLong("1242938420331234a")); // not digits only
+        assertTrue(Phone.isTooLong("1242938420331234")); // 16 numbers
+    }
+
+    @Test
     public void equals() {
         Phone phone = new Phone("999");
 

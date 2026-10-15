@@ -91,6 +91,12 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parsePhone_tooLong_throwsLengthMessage() {
+        assertThrows(ParseException.class, Phone.MESSAGE_LENGTH_CONSTRAINTS, ()
+            -> ParserUtil.parsePhone("1".repeat(Phone.MAX_LENGTH + 1)));
+    }
+
+    @Test
     public void parsePhone_validValueWithoutWhitespace_returnsPhone() throws Exception {
         Phone expectedPhone = new Phone(VALID_PHONE);
         assertEquals(expectedPhone, ParserUtil.parsePhone(VALID_PHONE));
