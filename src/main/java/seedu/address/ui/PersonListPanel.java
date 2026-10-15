@@ -36,6 +36,13 @@ public class PersonListPanel extends UiPart<Region> {
     }
 
     /**
+     * Scrolls the list back to the first client.
+     */
+    public void scrollToTop() {
+        personListView.scrollTo(0);
+    }
+
+    /**
      * Custom {@code ListCell} that displays the graphics of a {@code Person} using a {@code PersonCard}.
      */
     class PersonListViewCell extends ListCell<Person> {

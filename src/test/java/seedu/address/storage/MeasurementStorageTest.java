@@ -67,7 +67,7 @@ public class MeasurementStorageTest {
         Person client = new PersonBuilder().build();
         JsonAdaptedMeasurement record = new JsonAdaptedMeasurement("2026-09-12", "weight", "72");
         JsonAdaptedPerson adapted = new JsonAdaptedPerson(client.getName().fullName, client.getPhone().value,
-                client.getEmail().value, client.getAddress().value, List.of(), null, List.of(record, record));
+                client.getEmail().map(email -> email.value).orElse(null), List.of(), null, List.of(record, record));
         assertThrows(IllegalValueException.class, adapted::toModelType);
     }
 }

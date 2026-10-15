@@ -10,9 +10,13 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 public class Phone {
 
 
+    public static final int MAX_LENGTH = 15;
+
     public static final String MESSAGE_CONSTRAINTS =
-            "Phone numbers should only contain digits, and should be at least 3 digits long";
-    public static final String VALIDATION_REGEX = "\\d{3,}";
+            "Phone numbers should only contain numbers, and it should be at least 3 digits long";
+    public static final String MESSAGE_LENGTH_CONSTRAINTS =
+            "Phone numbers should be at most " + MAX_LENGTH + " digits long";
+    public static final String VALIDATION_REGEX = "\\d{3," + MAX_LENGTH + "}";
     public final String value;
 
     /**
@@ -31,6 +35,13 @@ public class Phone {
      */
     public static boolean isValidPhone(String test) {
         return test.matches(VALIDATION_REGEX);
+    }
+
+    /**
+     * Returns true if a given string contains only digits but has more than {@code MAX_LENGTH} of them.
+     */
+    public static boolean isTooLong(String test) {
+        return test.matches("\\d{" + (MAX_LENGTH + 1) + ",}");
     }
 
     @Override

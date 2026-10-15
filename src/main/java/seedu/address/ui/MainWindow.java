@@ -128,6 +128,13 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     /**
+     * Shows {@code message} in the result display. Must be called after {@link #fillInnerParts()}.
+     */
+    void showMessage(String message) {
+        resultDisplay.setFeedbackToUser(message);
+    }
+
+    /**
      * Sets the default size based on {@code guiSettings}.
      */
     private void setWindowDefaultSize(GuiSettings guiSettings) {
@@ -188,6 +195,10 @@ public class MainWindow extends UiPart<Stage> {
 
             if (commandResult.isExit()) {
                 handleExit();
+            }
+
+            if (commandResult.isScrollToTop()) {
+                personListPanel.scrollToTop();
             }
 
             return commandResult;

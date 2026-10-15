@@ -36,9 +36,9 @@ public class SessionMeasurementIntegrationTest {
     public Path folder;
 
     @Test
-    public void execute_sessionMeasurementReplacementsAndContactEdit_preservesBothAfterRestart() throws Exception {
+    public void execute_sessionMeasurementReplacementsAndEditWithoutEmail_preservesBothAfterRestart() throws Exception {
         ModelManager model = new ModelManager();
-        model.addPerson(new PersonBuilder().withName("Sarah Lim").build());
+        model.addPerson(new PersonBuilder().withName("Sarah Lim").withoutEmail().build());
         JsonAddressBookStorage json = new JsonAddressBookStorage(folder.resolve("clients.json"));
         LogicManager logic = createLogic(model, json);
         String tomorrow = LocalDate.now().plusDays(1).toString();
@@ -46,7 +46,7 @@ public class SessionMeasurementIntegrationTest {
 
         logic.execute("session n/Sarah Lim d/" + tomorrow + " t/1700");
         logic.execute("measure 1 d/" + today + " t/weight v/72.4");
-        Person booked = new PersonBuilder().withName("Sarah Lim").withNextSession(tomorrow + " 17:00")
+        Person booked = new PersonBuilder().withName("Sarah Lim").withoutEmail().withNextSession(tomorrow + " 17:00")
                 .withMeasurements(weight(today, "72.4")).build();
         assertEquals(booked, model.getFilteredPersonList().getFirst());
         assertEquals(booked, json.readAddressBook().orElseThrow().getPersonList().getFirst());

@@ -152,7 +152,7 @@ public class AddCommandTest {
         }
 
         @Override
-        public Predicate<Person> getFilteredPersonPredicate() {
+        public Predicate<Person> getFilteredPersonListPredicate() {
             throw new AssertionError("This method should not be called.");
         }
     }
