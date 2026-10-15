@@ -54,7 +54,7 @@ public class SessionCommand extends Command {
         requireNonNull(model);
         // Recheck at execution in case the date changed after parsing the command.
         if (nextSession.value.toLocalDate().isBefore(LocalDate.now())) {
-            throw new CommandException(ParserUtil.MESSAGE_INVALID_SESSION_DATE);
+            throw new CommandException(ParserUtil.MESSAGE_PAST_SESSION_DATE);
         }
         Person target;
         if (index != null) {

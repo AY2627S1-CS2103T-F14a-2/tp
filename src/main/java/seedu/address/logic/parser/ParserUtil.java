@@ -26,8 +26,10 @@ import seedu.address.model.tag.Tag;
 public class ParserUtil {
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
 
-    public static final String MESSAGE_INVALID_SESSION_DATE =
-            "Date must be a valid date in YYYY-MM-DD format, and cannot be in the past.";
+    public static final String MESSAGE_SESSION_DATE_FORMAT =
+            "Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).";
+    public static final String MESSAGE_INVALID_SESSION_DATE = "Date must be a valid calendar date.";
+    public static final String MESSAGE_PAST_SESSION_DATE = "Date cannot be in the past.";
     public static final String MESSAGE_INVALID_SESSION_TIME = "Time must be a valid time in HHMM or HH:MM format.";
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("uuuu-MM-dd")
@@ -39,28 +41,27 @@ public class ParserUtil {
      * Parses a session date, allowing today but rejecting past dates.
      */
     public static LocalDate parseSessionDate(String date) throws ParseException {
-        LocalDate parsed = parseDate(date, MESSAGE_INVALID_SESSION_DATE);
-        if (parsed.isBefore(LocalDate.now())) {
-            throw new ParseException(MESSAGE_INVALID_SESSION_DATE);
-        }
-        return parsed;
-    }
-
-    private static LocalDate parseDate(String date, String message) throws ParseException {
         requireNonNull(date);
         String trimmed = date.trim();
         if (!trimmed.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}")) {
-            throw new ParseException(message);
+            throw new ParseException(MESSAGE_SESSION_DATE_FORMAT);
         }
+        int year = Integer.parseInt(trimmed.substring(0, 4));
+        int month = Integer.parseInt(trimmed.substring(5, 7));
+        int day = Integer.parseInt(trimmed.substring(8, 10));
+        if (year == 0 || month < 1 || month > 12 || day < 1 || day > 31) {
+            throw new ParseException(MESSAGE_SESSION_DATE_FORMAT);
+        }
+        LocalDate parsed;
         try {
-            LocalDate parsed = LocalDate.parse(trimmed, DATE_FORMATTER);
-            if (parsed.getYear() == 0) {
-                throw new ParseException(message);
-            }
-            return parsed;
+            parsed = LocalDate.parse(trimmed, DATE_FORMATTER);
         } catch (DateTimeParseException exception) {
-            throw new ParseException(message);
+            throw new ParseException(MESSAGE_INVALID_SESSION_DATE);
         }
+        if (parsed.isBefore(LocalDate.now())) {
+            throw new ParseException(MESSAGE_PAST_SESSION_DATE);
+        }
+        return parsed;
     }
 
     /**

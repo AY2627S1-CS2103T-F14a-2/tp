@@ -200,7 +200,9 @@ Invalid index | `The client index provided is invalid.`
 Unknown name | `No client with that name exists in Spotter.`
 Empty name | `Name cannot be empty.`
 Name containing a slash | `Name must not contain '/'.`
-Invalid or past date | `Date must be a valid date in YYYY-MM-DD format, and cannot be in the past.`
+Malformed date or component out of range | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`
+Impossible calendar date (e.g. 30 February) | `Date must be a valid calendar date.`
+Date before today | `Date cannot be in the past.`
 Invalid time | `Time must be a valid time in HHMM or HH:MM format.`
 
 ### Saving the data

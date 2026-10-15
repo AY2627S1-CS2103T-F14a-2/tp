@@ -90,7 +90,7 @@ public class SessionCommandTest {
     @Test
     public void execute_dateBecamePast_keepsData() {
         NextSession expired = new NextSession(LocalDate.now().minusDays(1) + " 17:00");
-        assertCommandFailure(new SessionCommand("Sarah Lim", expired), model, ParserUtil.MESSAGE_INVALID_SESSION_DATE);
+        assertCommandFailure(new SessionCommand("Sarah Lim", expired), model, ParserUtil.MESSAGE_PAST_SESSION_DATE);
     }
 
     @Test
