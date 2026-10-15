@@ -15,6 +15,7 @@
 
 * _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #64 changes (the `list` command messages, undoing changes when saving fails, the damaged data file warning, the client card phone and email rows, and the related tests and User Guide wording) on 2026-10-15. The changes were reviewed and tested by the author.
+* Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the client `add`/`delete` changes for v1.3 (removing address, optional email, name and phone limits, Spotter messages). All generated code was reviewed and tested before committing.
 
 --------------------------------------------------------------------------------------------------------------------
 

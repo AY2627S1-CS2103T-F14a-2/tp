@@ -1,5 +1,6 @@
 package seedu.address.model.person;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -29,6 +30,7 @@ public class NameTest {
         assertFalse(Name.isValidName(" ")); // spaces only
         assertFalse(Name.isValidName("^")); // only non-alphanumeric characters
         assertFalse(Name.isValidName("peter*")); // contains non-alphanumeric characters
+        assertFalse(Name.isValidName("a".repeat(Name.MAX_LENGTH + 1))); // too long
 
         // valid name
         assertTrue(Name.isValidName("peter jack")); // alphabets only
@@ -36,6 +38,20 @@ public class NameTest {
         assertTrue(Name.isValidName("peter the 2nd")); // alphanumeric characters
         assertTrue(Name.isValidName("Capital Tan")); // with capital letters
         assertTrue(Name.isValidName("David Roger Jackson Ray Jr 2nd")); // long names
+        assertTrue(Name.isValidName("a".repeat(Name.MAX_LENGTH))); // maximum length
+        assertTrue(Name.isValidName(" " + "a".repeat(Name.MAX_LENGTH - 2) + "  b ")); // within limit once collapsed
+    }
+
+    @Test
+    public void isTooLong() {
+        assertFalse(Name.isTooLong("a".repeat(Name.MAX_LENGTH))); // maximum length
+        assertFalse(Name.isTooLong("a".repeat(Name.MAX_LENGTH) + "   ")); // within limit once trimmed
+        assertTrue(Name.isTooLong("a".repeat(Name.MAX_LENGTH + 1)));
+    }
+
+    @Test
+    public void constructor_extraSpaces_normalizesName() {
+        assertEquals("John Tan", new Name("  John    Tan ").fullName);
     }
 
     @Test

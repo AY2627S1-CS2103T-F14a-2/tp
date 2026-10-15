@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
-import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
@@ -44,6 +43,8 @@ import seedu.address.testutil.PersonBuilder;
 public class LogicManagerTest {
     private static final IOException DUMMY_IO_EXCEPTION = new IOException("dummy IO exception");
     private static final IOException DUMMY_AD_EXCEPTION = new AccessDeniedException("dummy access denied exception");
+    private static final String ADD_AMY_COMMAND = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
+            + EMAIL_DESC_AMY;
 
     @TempDir
     public Path temporaryFolder;
@@ -81,7 +82,7 @@ public class LogicManagerTest {
     @Test
     public void execute_dataChangingCommand_savesDataFile() throws Exception {
         Path dataFile = temporaryFolder.resolve("addressBook.json");
-        logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY);
+        logic.execute(ADD_AMY_COMMAND);
         assertTrue(Files.exists(dataFile));
     }
 
@@ -113,9 +114,7 @@ public class LogicManagerTest {
 
     @Test
     public void execute_addFailsToSaveWhileFiltered_displayedListUnchanged() {
-        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
-                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
-        assertSaveFailureKeepsFilteredList(addCommand);
+        assertSaveFailureKeepsFilteredList(ADD_AMY_COMMAND);
     }
 
     @Test
@@ -197,13 +196,11 @@ public class LogicManagerTest {
         logic = new LogicManager(model, createStorageThrowing(e));
 
         // Triggers the saveAddressBook method by executing an add command
-        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
-                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
         Person addedPerson = new PersonBuilder(AMY).withTags().build();
 
         // The failed save must undo the add, leaving the model in its pre-command state
         ModelManager expectedModel = new ModelManager();
-        assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
+        assertCommandFailure(ADD_AMY_COMMAND, CommandException.class, expectedMessage, expectedModel);
         assertFalse(model.hasPerson(addedPerson));
     }
 

@@ -17,6 +17,7 @@ public class PersonCard extends UiPart<Region> {
     private static final String FXML = "PersonListCard.fxml";
     private static final String PHONE_LABEL = "Phone: ";
     private static final String EMAIL_LABEL = "Email: ";
+    private static final String NO_EMAIL = "-";
 
     /**
      * Note: Certain keywords such as "location" and "resources" are reserved keywords in JavaFX.
@@ -37,8 +38,6 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label phone;
     @FXML
-    private Label address;
-    @FXML
     private Label email;
     @FXML
     private FlowPane tags;
@@ -52,7 +51,6 @@ public class PersonCard extends UiPart<Region> {
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
         phone.setText(PHONE_LABEL + PhoneDisplayFormatter.format(person.getPhone().value));
-        address.setText(person.getAddress().value);
         email.setText(EMAIL_LABEL + getEmailDisplay(person));
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
@@ -60,9 +58,9 @@ public class PersonCard extends UiPart<Region> {
     }
 
     /**
-     * Returns the text shown after the email label.
+     * Returns the text shown after the email label, or "-" if the client has no email.
      */
     private static String getEmailDisplay(Person person) {
-        return person.getEmail().value;
+        return person.getEmail().map(e -> e.value).orElse(NO_EMAIL);
     }
 }
