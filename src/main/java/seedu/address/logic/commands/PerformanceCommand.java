@@ -7,6 +7,7 @@ import java.util.List;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
@@ -24,7 +25,7 @@ public class PerformanceCommand extends Command {
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + " INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD";
     public static final String MESSAGE_INVALID_FORMAT = "Invalid command format. Use: " + MESSAGE_USAGE;
-    public static final String MESSAGE_INVALID_INDEX = "The client index provided is invalid.";
+    public static final String MESSAGE_INVALID_INDEX = Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
     public static final String MESSAGE_FUTURE_DATE = "The performance date cannot be in the future.";
     public static final String MESSAGE_RECORDED = "Recorded performance for %1$s: %2$s on %3$s.";
     public static final String MESSAGE_UPDATED = "Updated performance for %1$s: %2$s on %3$s.";

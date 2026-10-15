@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
@@ -15,7 +16,7 @@ import seedu.address.model.tag.Tag;
 
 /**
  * Represents a Person in the address book.
- * Guarantees: details are present and not null, field values are validated, immutable.
+ * Guarantees: name, phone and tags are present and not null, field values are validated, immutable.
  */
 public class Person {
 
@@ -25,27 +26,28 @@ public class Person {
     private final Email email;
 
     // Data fields
-    private final Address address;
     private final Set<Tag> tags = new HashSet<>();
     private final PerformanceHistory performanceHistory;
 
     /**
-     * Creates a client with no gym-performance records. Every field must be present and not null.
+     * Creates a client with no gym-performance records. Name, phone and tags must be present and not null.
+     *
+     * @param email The client's email, or {@code null} if none was given.
      */
-    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        this(name, phone, email, address, tags, new PerformanceHistory());
+    public Person(Name name, Phone phone, Email email, Set<Tag> tags) {
+        this(name, phone, email, tags, new PerformanceHistory());
     }
 
     /**
-     * Every field must be present and not null.
+     * Name, phone, tags and performance history must be present and not null.
+     *
+     * @param email The client's email, or {@code null} if none was given.
      */
-    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
-            PerformanceHistory performanceHistory) {
-        requireAllNonNull(name, phone, email, address, tags, performanceHistory);
+    public Person(Name name, Phone phone, Email email, Set<Tag> tags, PerformanceHistory performanceHistory) {
+        requireAllNonNull(name, phone, tags, performanceHistory);
         this.name = name;
         this.phone = phone;
         this.email = email;
-        this.address = address;
         this.tags.addAll(tags);
         this.performanceHistory = performanceHistory;
     }
@@ -58,12 +60,8 @@ public class Person {
         return phone;
     }
 
-    public Email getEmail() {
-        return email;
-    }
-
-    public Address getAddress() {
-        return address;
+    public Optional<Email> getEmail() {
+        return Optional.ofNullable(email);
     }
 
     /**
@@ -97,7 +95,7 @@ public class Person {
      * exercise on the same date. All other client information is preserved.
      */
     public Person withGymPerformance(GymPerformance performance) {
-        return new Person(name, phone, email, address, tags, performanceHistory.withRecord(performance));
+        return new Person(name, phone, email, tags, performanceHistory.withRecord(performance));
     }
 
     /**
@@ -130,8 +128,7 @@ public class Person {
 
         return name.equals(otherPerson.name)
                 && phone.equals(otherPerson.phone)
-                && email.equals(otherPerson.email)
-                && address.equals(otherPerson.address)
+                && Objects.equals(email, otherPerson.email)
                 && tags.equals(otherPerson.tags)
                 && performanceHistory.equals(otherPerson.performanceHistory);
     }
@@ -139,7 +136,7 @@ public class Person {
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, tags, performanceHistory);
+        return Objects.hash(name, phone, email, tags, performanceHistory);
     }
 
     @Override
@@ -148,7 +145,6 @@ public class Person {
                 .add("name", name)
                 .add("phone", phone)
                 .add("email", email)
-                .add("address", address)
                 .add("tags", tags)
                 .add("performanceHistory", performanceHistory)
                 .toString();
