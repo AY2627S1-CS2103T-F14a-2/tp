@@ -10,12 +10,15 @@ import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.AMY;
+import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +26,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -108,6 +112,18 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_addFailsToSaveWhileFiltered_displayedListUnchanged() {
+        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
+                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
+        assertSaveFailureKeepsFilteredList(addCommand);
+    }
+
+    @Test
+    public void execute_editFailsToSaveWhileFiltered_displayedListUnchanged() {
+        assertSaveFailureKeepsFilteredList(EditCommand.COMMAND_WORD + " 1" + PHONE_DESC_AMY);
+    }
+
+    @Test
     public void execute_readOnlyCommandWhenStorageThrows_success() throws Exception {
         logic = new LogicManager(model, createStorageThrowing(DUMMY_IO_EXCEPTION));
         assertCommandSuccess(ListCommand.COMMAND_WORD, ListCommand.MESSAGE_NO_CLIENTS, new ModelManager());
@@ -189,6 +205,22 @@ public class LogicManagerTest {
         ModelManager expectedModel = new ModelManager();
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
         assertFalse(model.hasPerson(addedPerson));
+    }
+
+    /**
+     * Filters the list to one of two clients, executes the data-changing {@code inputCommand} with storage that
+     * fails to save, and confirms that both the clients and the displayed list are restored.
+     */
+    private void assertSaveFailureKeepsFilteredList(String inputCommand) {
+        model.addPerson(ALICE);
+        model.addPerson(BENSON);
+        model.updateFilteredPersonList(person -> person.isSamePerson(BENSON));
+        AddressBook expectedAddressBook = new AddressBook(model.getAddressBook());
+        logic = new LogicManager(model, createStorageThrowing(DUMMY_IO_EXCEPTION));
+
+        assertThrows(CommandException.class, LogicManager.MESSAGE_SAVE_FAILURE, () -> logic.execute(inputCommand));
+        assertEquals(expectedAddressBook, model.getAddressBook());
+        assertEquals(List.of(BENSON), model.getFilteredPersonList());
     }
 
     /**

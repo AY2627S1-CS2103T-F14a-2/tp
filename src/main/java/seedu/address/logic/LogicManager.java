@@ -1,6 +1,7 @@
 package seedu.address.logic;
 
 import java.io.IOException;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
@@ -43,11 +44,12 @@ public class LogicManager implements Logic {
 
         Command command = addressBookParser.parseCommand(commandText);
         AddressBook addressBookBeforeCommand = new AddressBook(model.getAddressBook());
+        Predicate<Person> predicateBeforeCommand = model.getFilteredPersonListPredicate();
         CommandResult commandResult = command.execute(model);
 
         // Read-only commands leave the data unchanged, so they never write (or fail to write) the data file.
         if (!model.getAddressBook().equals(addressBookBeforeCommand)) {
-            saveOrRollBack(addressBookBeforeCommand);
+            saveOrRollBack(addressBookBeforeCommand, predicateBeforeCommand);
         }
 
         return commandResult;
@@ -55,14 +57,17 @@ public class LogicManager implements Logic {
 
     /**
      * Saves the model's address book to storage. If saving fails (including {@code AccessDeniedException}),
-     * restores {@code addressBookBeforeCommand} so that the app keeps showing the last saved state.
+     * restores {@code addressBookBeforeCommand} and {@code predicateBeforeCommand} so that the app keeps
+     * showing the last saved state with the same displayed list.
      */
-    private void saveOrRollBack(AddressBook addressBookBeforeCommand) throws CommandException {
+    private void saveOrRollBack(AddressBook addressBookBeforeCommand, Predicate<Person> predicateBeforeCommand)
+            throws CommandException {
         try {
             storage.saveAddressBook(model.getAddressBook());
         } catch (IOException ioe) {
             logger.warning("Unable to save data file, undoing the change: " + ioe);
             model.setAddressBook(addressBookBeforeCommand);
+            model.updateFilteredPersonList(predicateBeforeCommand);
             throw new CommandException(MESSAGE_SAVE_FAILURE, ioe);
         }
     }
