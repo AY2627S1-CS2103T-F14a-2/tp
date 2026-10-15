@@ -64,13 +64,13 @@ public interface Model {
     ObservableList<Person> getFilteredPersonList();
 
     /**
-     * Returns the current client filter for restoring the view after a failed save.
-     */
-    Predicate<Person> getFilteredPersonPredicate();
-
-    /**
      * Updates the filter of the filtered person list to filter by the given {@code predicate}.
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPersonList(Predicate<Person> predicate);
+
+    /**
+     * Returns the predicate currently used to filter the filtered person list.
+     */
+    Predicate<Person> getFilteredPersonListPredicate();
 }

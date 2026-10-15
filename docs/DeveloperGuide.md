@@ -13,7 +13,11 @@
 
 ## **Acknowledgements**
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+* Gabriel Wan used [OpenAI Codex](https://openai.com/codex/) to assist with implementing, testing,
+  and documenting the v1.3 next-session feature, including parsing, client integration, JSON storage, sorting,
+  and the client card row.
+* AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #64 changes (the `list` command messages, undoing changes when saving fails, the damaged data file warning, the client card phone and email rows, and the related tests and User Guide wording) on 2026-10-15. The changes were reviewed and tested by the author.
+* Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the client `add`/`delete` changes for v1.3 (removing address, optional email, name and phone limits, Spotter messages). All generated code was reviewed and tested before committing.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -645,21 +649,22 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 3.
 
-* 3d. The given date and time are in the past.
+* 3d. The given date is before the current system date.
 
-    * 3d1. Spotter shows an error message stating that the next session must be in the future.
+    * 3d1. Spotter shows an error message stating that the date cannot be in the past. Today is accepted,
+      even when the supplied time has already passed.
 
       Use case resumes at step 3.
 
 * 3e. The client already has a next session.
 
-    * 3e1. Spotter informs the trainer that the existing next session will be replaced.
+    * 3e1. Spotter replaces the existing next session with the new date and time.
 
       Use case resumes at step 4.
 
 * 4a. Another client's next session is at the same date and time.
 
-    * 4a1. Spotter keeps the recorded session and warns the trainer about the clashing session.
+    * 4a1. Spotter keeps both sessions; the MVP does not warn about clashes.
 
       Use case ends.
 

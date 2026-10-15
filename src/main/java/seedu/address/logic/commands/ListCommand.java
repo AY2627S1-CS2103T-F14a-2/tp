@@ -6,19 +6,37 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import seedu.address.model.Model;
 
 /**
- * Lists all persons in the address book to the user.
+ * Lists all clients in Spotter to the user.
  */
 public class ListCommand extends Command {
 
     public static final String COMMAND_WORD = "list";
 
-    public static final String MESSAGE_SUCCESS = "Listed all persons.";
-
+    public static final String MESSAGE_SUCCESS = "Listed %1$d clients.";
+    public static final String MESSAGE_SUCCESS_ONE_CLIENT = "Listed 1 client.";
+    public static final String MESSAGE_NO_CLIENTS =
+            "You have no clients yet. Use \"add\" to add your first client.";
+    public static final String MESSAGE_EXTRA_PARAMETERS =
+            "\"" + COMMAND_WORD + "\" does not take any parameters.\nExample: " + COMMAND_WORD;
 
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-        return new CommandResult(MESSAGE_SUCCESS);
+        return new CommandResult(getResultMessage(model.getFilteredPersonList().size()), false, false, true);
+    }
+
+    /**
+     * Returns the feedback message for listing {@code clientCount} clients.
+     */
+    public static String getResultMessage(int clientCount) {
+        assert clientCount >= 0;
+        if (clientCount == 0) {
+            return MESSAGE_NO_CLIENTS;
+        }
+        if (clientCount == 1) {
+            return MESSAGE_SUCCESS_ONE_CLIENT;
+        }
+        return String.format(MESSAGE_SUCCESS, clientCount);
     }
 }

@@ -9,46 +9,67 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
  */
 public class Name {
 
+    public static final int MAX_LENGTH = 100;
+
     public static final String MESSAGE_CONSTRAINTS =
-            "Names should only contain alphanumeric characters and spaces, and should not be blank";
+            "Names should only contain alphanumeric characters and spaces, and it should not be blank";
+    public static final String MESSAGE_LENGTH_CONSTRAINTS =
+            "Names should be at most " + MAX_LENGTH + " characters long";
 
     /*
      * The first character of the name must not be a whitespace,
      * otherwise " " (a blank string) becomes a valid input.
      */
-    public static final String VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} ]*";
+    public static final String VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} ]{0," + (MAX_LENGTH - 1) + "}";
 
     public final String fullName;
 
     /**
-     * Constructs a {@code Name}.
+     * Constructs a {@code Name}, trimming it and collapsing repeated internal spaces.
      *
      * @param name A valid name.
      */
     public Name(String name) {
         requireNonNull(name);
         checkArgument(isValidName(name), MESSAGE_CONSTRAINTS);
-        fullName = name;
+        fullName = normalizeSpaces(name);
     }
 
     /**
-     * Returns true if a given string is a valid name.
+     * Returns true if a given string is a valid name once trimmed and its internal spaces collapsed.
      */
     public static boolean isValidName(String test) {
-        return test.matches(VALIDATION_REGEX);
+        return normalizeSpaces(test).matches(VALIDATION_REGEX);
     }
 
     /**
-     * Returns true if both names refer to the same client, ignoring case,
-     * leading and trailing spaces, and repeated internal spaces.
+     * Returns true if a given string is longer than {@code MAX_LENGTH} once trimmed and its internal spaces collapsed.
+     */
+    public static boolean isTooLong(String test) {
+        return normalizeSpaces(test).length() > MAX_LENGTH;
+    }
+
+    /**
+     * Returns true if both names refer to the same client, ignoring case.
      */
     public boolean isSameName(Name otherName) {
         return otherName != null
-                && normalizeSpaces(fullName).equalsIgnoreCase(normalizeSpaces(otherName.fullName));
+                && matches(otherName.fullName);
     }
 
-    private static String normalizeSpaces(String name) {
-        return name.trim().replaceAll("\\s+", " ");
+    /**
+     * Returns whether the supplied full name identifies this client, ignoring case and extra whitespace.
+     */
+    public boolean matches(String candidate) {
+        return candidate != null
+                && normalizeSpaces(fullName).equalsIgnoreCase(normalizeSpaces(candidate));
+    }
+
+    /**
+     * Trims outer whitespace and collapses internal whitespace using the same rule as duplicate detection.
+     */
+    public static String normalizeSpaces(String name) {
+        return requireNonNull(name).trim().replaceAll("\\s+", " ");
     }
 
     @Override

@@ -1,5 +1,6 @@
 package seedu.address.ui;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
@@ -21,6 +22,9 @@ public class PersonCard extends UiPart<Region> {
     private static final String FXML = "PersonListCard.fxml";
     private static final DateTimeFormatter MEASUREMENT_DATE_FORMAT =
             DateTimeFormatter.ofPattern("d MMM", Locale.ENGLISH);
+    private static final String PHONE_LABEL = "Phone: ";
+    private static final String EMAIL_LABEL = "Email: ";
+    private static final String NO_EMAIL = "-";
 
     /**
      * Note: Certain keywords such as "location" and "resources" are reserved keywords in JavaFX.
@@ -41,9 +45,9 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label phone;
     @FXML
-    private Label address;
-    @FXML
     private Label email;
+    @FXML
+    private Label nextSession;
     @FXML
     private Label latestMeasurement;
     @FXML
@@ -57,9 +61,10 @@ public class PersonCard extends UiPart<Region> {
         this.person = person;
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
-        phone.setText(person.getPhone().value);
-        address.setText(person.getAddress().value);
-        email.setText(person.getEmail().value);
+        phone.setText(PHONE_LABEL + PhoneDisplayFormatter.format(person.getPhone().value));
+        email.setText(EMAIL_LABEL + getEmailDisplay(person));
+        nextSession.setText("Next session: " + person.getNextSession()
+                .map(session -> session.toDisplayString(LocalDateTime.now())).orElse("- (none booked)"));
         latestMeasurement.setText(formatLatestMeasurement(person.getMeasurements()));
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
@@ -80,5 +85,12 @@ public class PersonCard extends UiPart<Region> {
         return "Latest measurement: " + latest.getDate().format(MEASUREMENT_DATE_FORMAT)
                 + " - " + latest.getType() + " " + latest.getValue().toPlainString()
                 + " " + latest.getType().getUnit() + " (" + count + (count == 1 ? " record)" : " records)");
+    }
+
+    /**
+     * Returns the text shown after the email label, or "-" if the client has no email.
+     */
+    private static String getEmailDisplay(Person person) {
+        return person.getEmail().map(e -> e.value).orElse(NO_EMAIL);
     }
 }

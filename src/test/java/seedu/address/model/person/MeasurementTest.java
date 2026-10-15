@@ -72,8 +72,8 @@ public class MeasurementTest {
         Measurement measurement = new Measurement(DATE, MeasurementType.WEIGHT, new BigDecimal("72.4"));
         Person original = new PersonBuilder().build();
         List<Measurement> records = new ArrayList<>(List.of(measurement));
-        Person person = new Person(original.getName(), original.getPhone(), original.getEmail(),
-                original.getAddress(), original.getTags(), records);
+        Person person = new Person(original.getName(), original.getPhone(), original.getEmail().orElse(null),
+                original.getTags(), null, records);
         records.clear();
         assertEquals(List.of(measurement), person.getMeasurements());
         assertThrows(UnsupportedOperationException.class, () -> person.getMeasurements().clear());

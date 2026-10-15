@@ -19,6 +19,7 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.MeasureCommand;
+import seedu.address.logic.commands.SessionCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
 /**
@@ -61,7 +62,8 @@ public class AddressBookParser {
             case ClearCommand.COMMAND_WORD -> new ClearCommand();
             case FindCommand.COMMAND_WORD -> new FindCommandParser().parse(arguments);
             case FilterCommand.COMMAND_WORD -> new FilterCommandParser().parse(arguments);
-            case ListCommand.COMMAND_WORD -> new ListCommand();
+            case SessionCommand.COMMAND_WORD -> new SessionCommandParser().parse(arguments);
+            case ListCommand.COMMAND_WORD -> parseListCommand(arguments);
             case ExitCommand.COMMAND_WORD -> new ExitCommand();
             case HelpCommand.COMMAND_WORD -> new HelpCommand();
             default -> {
@@ -69,6 +71,16 @@ public class AddressBookParser {
                 throw new ParseException(MESSAGE_UNKNOWN_COMMAND);
             }
         };
+    }
+
+    /**
+     * Returns a {@code ListCommand}, rejecting any non-blank text after the command word.
+     */
+    private ListCommand parseListCommand(String arguments) throws ParseException {
+        if (!arguments.isBlank()) {
+            throw new ParseException(ListCommand.MESSAGE_EXTRA_PARAMETERS);
+        }
+        return new ListCommand();
     }
 
 }

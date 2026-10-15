@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
+import java.util.Locale;
 
 /**
  * Represents the date and time of a client's next training session.
@@ -53,6 +54,18 @@ public class NextSession {
         } catch (DateTimeParseException exception) {
             return false;
         }
+    }
+
+    /**
+     * Formats the card row in English, retaining the distinction between expired and unbooked sessions.
+     */
+    public String toDisplayString(LocalDateTime now) {
+        requireNonNull(now);
+        if (value.isBefore(now)) {
+            return "- (none upcoming)";
+        }
+        return value.format(DateTimeFormatter.ofPattern("EEE d MMM, h:mm", Locale.ENGLISH))
+                + (value.getHour() < 12 ? "am" : "pm");
     }
 
     @Override
