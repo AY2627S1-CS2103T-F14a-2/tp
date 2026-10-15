@@ -15,6 +15,9 @@ import seedu.address.model.person.Person;
 public class PersonCard extends UiPart<Region> {
 
     private static final String FXML = "PersonListCard.fxml";
+    private static final String PHONE_LABEL = "Phone: ";
+    private static final String EMAIL_LABEL = "Email: ";
+    private static final String NO_EMAIL = "-";
 
     /**
      * Note: Certain keywords such as "location" and "resources" are reserved keywords in JavaFX.
@@ -47,10 +50,17 @@ public class PersonCard extends UiPart<Region> {
         this.person = person;
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
-        phone.setText(person.getPhone().value);
-        email.setText(person.getEmail().map(e -> e.value).orElse("-"));
+        phone.setText(PHONE_LABEL + PhoneDisplayFormatter.format(person.getPhone().value));
+        email.setText(EMAIL_LABEL + getEmailDisplay(person));
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+    }
+
+    /**
+     * Returns the text shown after the email label, or "-" if the client has no email.
+     */
+    private static String getEmailDisplay(Person person) {
+        return person.getEmail().map(e -> e.value).orElse(NO_EMAIL);
     }
 }
