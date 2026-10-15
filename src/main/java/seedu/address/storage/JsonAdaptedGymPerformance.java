@@ -13,6 +13,8 @@ import seedu.address.model.progress.Load;
 /**
  * Jackson-friendly version of {@link GymPerformance}.
  * All fields are stored as strings so that the data file stays easy to edit by hand.
+ *
+ * <p>AI assistance: Claude (Anthropic) helped implement this class and its tests.
  */
 class JsonAdaptedGymPerformance {
 
@@ -90,6 +92,9 @@ class JsonAdaptedGymPerformance {
 
         if (load == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, "load"));
+        }
+        if (!Load.isNumeric(load)) {
+            throw new IllegalValueException(Load.MESSAGE_NOT_NUMERIC);
         }
         if (!Load.isNumberWithinRange(load)) {
             throw new IllegalValueException(Load.MESSAGE_RANGE_CONSTRAINTS);

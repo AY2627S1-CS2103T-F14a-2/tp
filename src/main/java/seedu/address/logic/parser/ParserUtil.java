@@ -2,6 +2,10 @@ package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -21,6 +25,10 @@ import seedu.address.model.tag.Tag;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_INVALID_RECORD_DATE = "The date must use the format yyyy-MM-dd.";
+
+    private static final DateTimeFormatter RECORD_DATE_FORMATTER = DateTimeFormatter.ofPattern("uuuu-MM-dd")
+            .withResolverStyle(ResolverStyle.STRICT);
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
@@ -33,6 +41,36 @@ public class ParserUtil {
             throw new ParseException(MESSAGE_INVALID_INDEX);
         }
         return Index.fromOneBased(Integer.parseInt(trimmedIndex));
+    }
+
+    /**
+     * Parses the date of a progress record, such as a gym performance, ignoring surrounding whitespace.
+     * The date must be a real calendar date in yyyy-MM-dd format with a year from 0001, and must not be
+     * in the future, as only results that have already happened can be recorded.
+     *
+     * @param futureDateMessage The message to show if the date is in the future.
+     * @throws ParseException if the date is malformed, does not exist, or is in the future.
+     */
+    public static LocalDate parseRecordDate(String date, String futureDateMessage) throws ParseException {
+        requireNonNull(date);
+        requireNonNull(futureDateMessage);
+        String trimmedDate = date.trim();
+        if (!trimmedDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
+            throw new ParseException(MESSAGE_INVALID_RECORD_DATE);
+        }
+        final LocalDate parsedDate;
+        try {
+            parsedDate = LocalDate.parse(trimmedDate, RECORD_DATE_FORMATTER);
+        } catch (DateTimeParseException e) {
+            throw new ParseException(MESSAGE_INVALID_RECORD_DATE, e);
+        }
+        if (parsedDate.getYear() == 0) {
+            throw new ParseException(MESSAGE_INVALID_RECORD_DATE);
+        }
+        if (parsedDate.isAfter(LocalDate.now())) {
+            throw new ParseException(futureDateMessage);
+        }
+        return parsedDate;
     }
 
     /**

@@ -4,10 +4,13 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.progress.GymPerformance;
+import seedu.address.model.progress.PerformanceHistory;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -24,17 +27,27 @@ public class Person {
     // Data fields
     private final Address address;
     private final Set<Tag> tags = new HashSet<>();
+    private final PerformanceHistory performanceHistory;
+
+    /**
+     * Creates a client with no gym-performance records. Every field must be present and not null.
+     */
+    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
+        this(name, phone, email, address, tags, new PerformanceHistory());
+    }
 
     /**
      * Every field must be present and not null.
      */
-    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, address, tags);
+    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
+            PerformanceHistory performanceHistory) {
+        requireAllNonNull(name, phone, email, address, tags, performanceHistory);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
         this.tags.addAll(tags);
+        this.performanceHistory = performanceHistory;
     }
 
     public Name getName() {
@@ -59,6 +72,32 @@ public class Person {
      */
     public Set<Tag> getTags() {
         return Collections.unmodifiableSet(tags);
+    }
+
+    public PerformanceHistory getPerformanceHistory() {
+        return performanceHistory;
+    }
+
+    /**
+     * Returns the client's gym-performance records as an unmodifiable list, oldest recorded first.
+     */
+    public List<GymPerformance> getGymPerformances() {
+        return performanceHistory.asUnmodifiableList();
+    }
+
+    /**
+     * Returns true if the client already has a record for the same exercise on the same date as {@code performance}.
+     */
+    public boolean hasGymPerformance(GymPerformance performance) {
+        return performanceHistory.hasSameEntry(performance);
+    }
+
+    /**
+     * Returns a copy of this client with {@code performance} recorded, replacing any record for the same
+     * exercise on the same date. All other client information is preserved.
+     */
+    public Person withGymPerformance(GymPerformance performance) {
+        return new Person(name, phone, email, address, tags, performanceHistory.withRecord(performance));
     }
 
     /**
@@ -93,13 +132,14 @@ public class Person {
                 && phone.equals(otherPerson.phone)
                 && email.equals(otherPerson.email)
                 && address.equals(otherPerson.address)
-                && tags.equals(otherPerson.tags);
+                && tags.equals(otherPerson.tags)
+                && performanceHistory.equals(otherPerson.performanceHistory);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, tags);
+        return Objects.hash(name, phone, email, address, tags, performanceHistory);
     }
 
     @Override
@@ -110,6 +150,7 @@ public class Person {
                 .add("email", email)
                 .add("address", address)
                 .add("tags", tags)
+                .add("performanceHistory", performanceHistory)
                 .toString();
     }
 

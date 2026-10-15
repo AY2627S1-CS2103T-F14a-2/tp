@@ -3,6 +3,8 @@ package seedu.address.storage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.storage.JsonAdaptedPerson.MISSING_FIELD_MESSAGE_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalGymPerformances.BENCH_PRESS;
+import static seedu.address.testutil.TypicalGymPerformances.SQUAT;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import java.util.ArrayList;
@@ -15,7 +17,11 @@ import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.progress.GymPerformance;
+import seedu.address.model.progress.PerformanceHistory;
+import seedu.address.testutil.PersonBuilder;
 
 public class JsonAdaptedPersonTest {
     private static final String INVALID_NAME = "R@chel";
@@ -36,6 +42,40 @@ public class JsonAdaptedPersonTest {
     public void toModelType_validPersonDetails_returnsPerson() throws Exception {
         JsonAdaptedPerson person = new JsonAdaptedPerson(BENSON);
         assertEquals(BENSON, person.toModelType());
+    }
+
+    @Test
+    public void toModelType_withGymPerformances_returnsPersonWithRecordsInOrder() throws Exception {
+        Person bensonWithRecords = new PersonBuilder(BENSON).withGymPerformances(BENCH_PRESS, SQUAT).build();
+        JsonAdaptedPerson person = new JsonAdaptedPerson(bensonWithRecords);
+        assertEquals(bensonWithRecords, person.toModelType());
+    }
+
+    @Test
+    public void toModelType_missingPerformances_returnsPersonWithNoRecords() throws Exception {
+        // Data files saved before gym performances were supported have no "performances" field
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
+                VALID_TAGS, null);
+        assertEquals(List.of(), person.toModelType().getGymPerformances());
+    }
+
+    @Test
+    public void toModelType_duplicatePerformances_throwsIllegalValueException() {
+        JsonAdaptedGymPerformance benchPress = new JsonAdaptedGymPerformance(BENCH_PRESS);
+        JsonAdaptedGymPerformance sameEntry = new JsonAdaptedGymPerformance("2026-09-18", "bench press",
+                "5", "5", "80");
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
+                VALID_TAGS, List.of(benchPress, sameEntry));
+        assertThrows(IllegalValueException.class, PerformanceHistory.MESSAGE_DUPLICATE_RECORDS, person::toModelType);
+    }
+
+    @Test
+    public void toModelType_invalidPerformance_throwsIllegalValueException() {
+        JsonAdaptedGymPerformance invalidPerformance = new JsonAdaptedGymPerformance("2026-09-18", "Bench Press",
+                "0", "8", "60");
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
+                VALID_TAGS, List.of(invalidPerformance));
+        assertThrows(IllegalValueException.class, GymPerformance.MESSAGE_SETS_CONSTRAINTS, person::toModelType);
     }
 
     @Test

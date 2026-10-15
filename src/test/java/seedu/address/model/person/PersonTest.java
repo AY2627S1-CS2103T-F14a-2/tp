@@ -9,11 +9,17 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalGymPerformances.BENCH_PRESS;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.progress.ExerciseName;
+import seedu.address.model.progress.GymPerformance;
+import seedu.address.model.progress.Load;
 import seedu.address.testutil.PersonBuilder;
 
 public class PersonTest {
@@ -94,9 +100,51 @@ public class PersonTest {
     }
 
     @Test
+    public void equals_differentGymPerformances_returnsFalse() {
+        // Saving relies on equals to detect changes, so a new record must make the client unequal
+        Person aliceWithRecord = new PersonBuilder(ALICE).withGymPerformances(BENCH_PRESS).build();
+        assertFalse(ALICE.equals(aliceWithRecord));
+        assertTrue(aliceWithRecord.equals(new PersonBuilder(ALICE).withGymPerformances(BENCH_PRESS).build()));
+        assertEquals(aliceWithRecord.hashCode(),
+                new PersonBuilder(ALICE).withGymPerformances(BENCH_PRESS).build().hashCode());
+    }
+
+    @Test
+    public void hasGymPerformance() {
+        Person alice = new PersonBuilder(ALICE).withGymPerformances(BENCH_PRESS).build();
+
+        GymPerformance sameEntry = new GymPerformance(BENCH_PRESS.getDate(), new ExerciseName("bench press"), 5, 5,
+                new Load("80"));
+        assertTrue(alice.hasGymPerformance(sameEntry));
+        assertFalse(ALICE.hasGymPerformance(BENCH_PRESS));
+    }
+
+    @Test
+    public void withGymPerformance_preservesOtherDetails() {
+        Person alice = new PersonBuilder(ALICE).withGymPerformances(BENCH_PRESS).build();
+        GymPerformance squat = new GymPerformance(BENCH_PRESS.getDate(), new ExerciseName("Squat"), 5, 5,
+                new Load("100"));
+
+        Person updatedAlice = alice.withGymPerformance(squat);
+
+        assertEquals(new PersonBuilder(ALICE).withGymPerformances(BENCH_PRESS, squat).build(), updatedAlice);
+        assertEquals(List.of(BENCH_PRESS), alice.getGymPerformances()); // original unchanged
+    }
+
+    @Test
+    public void withGymPerformance_sameEntry_replacesRecord() {
+        Person alice = new PersonBuilder(ALICE).withGymPerformances(BENCH_PRESS).build();
+        GymPerformance correctedBench = new GymPerformance(BENCH_PRESS.getDate(), new ExerciseName("Bench Press"),
+                4, 6, new Load("65"));
+
+        assertEquals(List.of(correctedBench), alice.withGymPerformance(correctedBench).getGymPerformances());
+    }
+
+    @Test
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
-                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags() + "}";
+                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags()
+                + ", performanceHistory=" + ALICE.getPerformanceHistory() + "}";
         assertEquals(expected, ALICE.toString());
     }
 }

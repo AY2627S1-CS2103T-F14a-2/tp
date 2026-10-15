@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalGymPerformances.BENCH_PRESS;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.util.List;
@@ -22,6 +23,7 @@ import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.PerformanceCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
@@ -88,6 +90,13 @@ public class AddressBookParserTest {
     public void parseCommand_help() throws Exception {
         assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD) instanceof HelpCommand);
         assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD + " 3") instanceof HelpCommand);
+    }
+
+    @Test
+    public void parseCommand_performance() throws Exception {
+        PerformanceCommand command = (PerformanceCommand) parser.parseCommand(PerformanceCommand.COMMAND_WORD
+                + " " + INDEX_FIRST_PERSON.getOneBased() + " d/2026-09-18 e/Bench Press s/3 r/8 w/60");
+        assertEquals(new PerformanceCommand(INDEX_FIRST_PERSON, BENCH_PRESS), command);
     }
 
     @Test

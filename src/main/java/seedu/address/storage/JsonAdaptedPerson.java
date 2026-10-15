@@ -15,6 +15,8 @@ import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.progress.GymPerformance;
+import seedu.address.model.progress.PerformanceHistory;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -29,20 +31,34 @@ class JsonAdaptedPerson {
     private final String email;
     private final String address;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
+    private final List<JsonAdaptedGymPerformance> performances = new ArrayList<>();
+
+    /**
+     * Constructs a {@code JsonAdaptedPerson} with the given person details and no gym-performance records.
+     */
+    public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags) {
+        this(name, phone, email, address, tags, null);
+    }
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
+     * A missing {@code performances} list is treated as empty, so data files saved before
+     * gym performances were supported can still be loaded.
      */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
-            @JsonProperty("tags") List<JsonAdaptedTag> tags) {
+            @JsonProperty("tags") List<JsonAdaptedTag> tags,
+            @JsonProperty("performances") List<JsonAdaptedGymPerformance> performances) {
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
         if (tags != null) {
             this.tags.addAll(tags);
+        }
+        if (performances != null) {
+            this.performances.addAll(performances);
         }
     }
 
@@ -56,6 +72,9 @@ class JsonAdaptedPerson {
         address = source.getAddress().value;
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
+                .collect(Collectors.toList()));
+        performances.addAll(source.getGymPerformances().stream()
+                .map(JsonAdaptedGymPerformance::new)
                 .collect(Collectors.toList()));
     }
 
@@ -103,7 +122,17 @@ class JsonAdaptedPerson {
         final Address modelAddress = new Address(address);
 
         final Set<Tag> modelTags = new HashSet<>(personTags);
-        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags);
+
+        final List<GymPerformance> modelPerformances = new ArrayList<>();
+        for (JsonAdaptedGymPerformance performance : performances) {
+            modelPerformances.add(performance.toModelType());
+        }
+        if (!PerformanceHistory.hasNoDuplicates(modelPerformances)) {
+            throw new IllegalValueException(PerformanceHistory.MESSAGE_DUPLICATE_RECORDS);
+        }
+        final PerformanceHistory modelPerformanceHistory = new PerformanceHistory(modelPerformances);
+
+        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, modelPerformanceHistory);
     }
 
 }

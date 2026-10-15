@@ -6,6 +6,7 @@ import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -33,6 +34,7 @@ public class ParserUtilTest {
     private static final String VALID_TAG_2 = "neighbour";
 
     private static final String WHITESPACE = " \t\r\n";
+    private static final String FUTURE_DATE_MESSAGE = "The record date cannot be in the future.";
 
     @Test
     public void parseIndex_invalidInput_throwsParseException() {
@@ -52,6 +54,38 @@ public class ParserUtilTest {
 
         // Leading and trailing whitespaces
         assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex("  1  "));
+    }
+
+    @Test
+    public void parseRecordDate_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseRecordDate(null, FUTURE_DATE_MESSAGE));
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseRecordDate("2026-09-18", null));
+    }
+
+    @Test
+    public void parseRecordDate_invalidDate_throwsParseException() {
+        for (String invalidDate : List.of("", "18-09-2026", "2026/09/18", "2026-9-18", "2026-02-30",
+                "2026-13-01", "0000-01-01", "12026-09-18", "+2026-09-18", "today")) {
+            assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_RECORD_DATE, ()
+                -> ParserUtil.parseRecordDate(invalidDate, FUTURE_DATE_MESSAGE));
+        }
+    }
+
+    @Test
+    public void parseRecordDate_futureDate_throwsParseException() {
+        String tomorrow = LocalDate.now().plusDays(1).toString();
+        assertThrows(ParseException.class, FUTURE_DATE_MESSAGE, ()
+            -> ParserUtil.parseRecordDate(tomorrow, FUTURE_DATE_MESSAGE));
+    }
+
+    @Test
+    public void parseRecordDate_pastOrPresentDate_returnsDate() throws Exception {
+        assertEquals(LocalDate.of(2026, 9, 18), ParserUtil.parseRecordDate("2026-09-18", FUTURE_DATE_MESSAGE));
+        assertEquals(LocalDate.of(2024, 2, 29), ParserUtil.parseRecordDate("2024-02-29", FUTURE_DATE_MESSAGE));
+        assertEquals(LocalDate.now(), ParserUtil.parseRecordDate(LocalDate.now().toString(), FUTURE_DATE_MESSAGE));
+
+        // leading and trailing whitespace
+        assertEquals(LocalDate.of(2026, 9, 18), ParserUtil.parseRecordDate("  2026-09-18  ", FUTURE_DATE_MESSAGE));
     }
 
     @Test

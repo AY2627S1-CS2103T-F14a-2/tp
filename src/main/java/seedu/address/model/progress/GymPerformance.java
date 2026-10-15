@@ -19,6 +19,8 @@ import seedu.address.commons.util.ToStringBuilder;
  *
  * <p>Whether the date is in the future is not checked here, because a stored record must stay valid
  * regardless of when the data is loaded. That rule is enforced when the user records a performance.
+ *
+ * <p>AI assistance: Claude (Anthropic) helped implement this class and its tests.
  */
 public class GymPerformance {
 

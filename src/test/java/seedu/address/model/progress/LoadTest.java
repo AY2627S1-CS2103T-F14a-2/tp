@@ -15,6 +15,11 @@ public class LoadTest {
     }
 
     @Test
+    public void constructor_notNumeric_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, Load.MESSAGE_NOT_NUMERIC, () -> new Load("abc"));
+    }
+
+    @Test
     public void constructor_outOfRange_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, Load.MESSAGE_RANGE_CONSTRAINTS, () -> new Load("1000.01"));
     }
@@ -25,22 +30,40 @@ public class LoadTest {
     }
 
     @Test
+    public void isNumeric() {
+        // null load
+        assertThrows(NullPointerException.class, () -> Load.isNumeric(null));
+
+        // not a plain number
+        assertFalse(Load.isNumeric("")); // empty string
+        assertFalse(Load.isNumeric(" ")); // spaces only
+        assertFalse(Load.isNumeric("abc")); // letters
+        assertFalse(Load.isNumeric("60kg")); // unit included
+        assertFalse(Load.isNumeric("1e2")); // scientific notation
+        assertFalse(Load.isNumeric("NaN")); // not a number
+        assertFalse(Load.isNumeric("1,000")); // thousands separator
+        assertFalse(Load.isNumeric(".")); // decimal point only
+
+        // plain numbers, including signed and partial decimal forms
+        assertTrue(Load.isNumeric("60"));
+        assertTrue(Load.isNumeric("62.5"));
+        assertTrue(Load.isNumeric("-1"));
+        assertTrue(Load.isNumeric("+5"));
+        assertTrue(Load.isNumeric(".5"));
+        assertTrue(Load.isNumeric("5."));
+    }
+
+    @Test
     public void isNumberWithinRange() {
         // null load
         assertThrows(NullPointerException.class, () -> Load.isNumberWithinRange(null));
 
-        // not a plain number
-        assertFalse(Load.isNumberWithinRange("")); // empty string
-        assertFalse(Load.isNumberWithinRange(" ")); // spaces only
-        assertFalse(Load.isNumberWithinRange("abc")); // letters
-        assertFalse(Load.isNumberWithinRange("60kg")); // unit included
-        assertFalse(Load.isNumberWithinRange("-1")); // negative sign
-        assertFalse(Load.isNumberWithinRange("+5")); // positive sign
-        assertFalse(Load.isNumberWithinRange("1e2")); // scientific notation
-        assertFalse(Load.isNumberWithinRange(".5")); // no digit before decimal point
-        assertFalse(Load.isNumberWithinRange("5.")); // no digit after decimal point
+        // not numeric
+        assertFalse(Load.isNumberWithinRange("abc"));
 
         // out of range
+        assertFalse(Load.isNumberWithinRange("-0.01")); // just below minimum
+        assertFalse(Load.isNumberWithinRange("-1"));
         assertFalse(Load.isNumberWithinRange("1000.01")); // just above maximum
         assertFalse(Load.isNumberWithinRange("1001"));
 
@@ -49,6 +72,8 @@ public class LoadTest {
         assertTrue(Load.isNumberWithinRange("0.00")); // minimum with decimal places
         assertTrue(Load.isNumberWithinRange("60"));
         assertTrue(Load.isNumberWithinRange("62.5"));
+        assertTrue(Load.isNumberWithinRange("+5")); // explicit positive sign
+        assertTrue(Load.isNumberWithinRange(".5")); // no digit before decimal point
         assertTrue(Load.isNumberWithinRange("1000")); // maximum
         assertTrue(Load.isNumberWithinRange("1000.00")); // maximum with decimal places
     }

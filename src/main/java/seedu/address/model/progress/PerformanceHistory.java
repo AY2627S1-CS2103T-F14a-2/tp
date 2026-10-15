@@ -19,6 +19,8 @@ import seedu.address.commons.util.ToStringBuilder;
  *
  * <p>The recording order is kept so that, among records on the same date, the one recorded last
  * is treated as the latest.
+ *
+ * <p>AI assistance: Claude (Anthropic) helped implement this class and its tests.
  */
 public final class PerformanceHistory {
 

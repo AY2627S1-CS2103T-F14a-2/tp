@@ -99,6 +99,13 @@ public class JsonAdaptedGymPerformanceTest {
     }
 
     @Test
+    public void toModelType_nonNumericLoad_throwsIllegalValueException() {
+        JsonAdaptedGymPerformance performance = new JsonAdaptedGymPerformance(VALID_DATE, VALID_EXERCISE,
+                VALID_SETS, VALID_REPS, "sixty");
+        assertThrows(IllegalValueException.class, Load.MESSAGE_NOT_NUMERIC, performance::toModelType);
+    }
+
+    @Test
     public void toModelType_loadOutOfRange_throwsIllegalValueException() {
         JsonAdaptedGymPerformance performance = new JsonAdaptedGymPerformance(VALID_DATE, VALID_EXERCISE,
                 VALID_SETS, VALID_REPS, "1000.01");
