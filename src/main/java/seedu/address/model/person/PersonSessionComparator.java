@@ -21,7 +21,7 @@ public class PersonSessionComparator implements Comparator<Person> {
         return Comparator.comparingInt(this::sessionGroup)
                 .thenComparing(person -> person.getNextSession().map(session -> session.value)
                         .orElse(LocalDateTime.MAX))
-                .thenComparing(person -> person.getName().fullName.trim().replaceAll("\\s+", " "),
+                .thenComparing(person -> Name.normalizeSpaces(person.getName().fullName),
                         String.CASE_INSENSITIVE_ORDER)
                 .compare(first, second);
     }

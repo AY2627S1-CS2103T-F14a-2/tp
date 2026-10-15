@@ -1,5 +1,6 @@
 package seedu.address.model.person;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -59,6 +60,25 @@ public class NameTest {
 
         // null -> returns false
         assertFalse(name.isSameName(null));
+    }
+
+    @Test
+    public void matches_rawNames_followDuplicateDetectionRules() {
+        Name name = new Name("Sarah   Lim");
+        assertTrue(name.matches("Sarah Lim"));
+        assertTrue(name.matches("  sArAh\t lIm  "));
+        assertFalse(name.matches("Sarah"));
+        assertFalse(name.matches("Sarah Lime"));
+        assertFalse(name.matches("Sarah/Lim"));
+        assertFalse(name.matches(" "));
+        assertFalse(name.matches(null));
+    }
+
+    @Test
+    public void normalizeSpaces_preservesCaseAndCollapsesWhitespace() {
+        assertEquals("Sarah Lim", Name.normalizeSpaces(" \tSarah   Lim\t "));
+        assertEquals("", Name.normalizeSpaces(" \t "));
+        assertThrows(NullPointerException.class, () -> Name.normalizeSpaces(null));
     }
 
     @Test

@@ -11,6 +11,7 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.ParserUtil;
 import seedu.address.model.Model;
+import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.session.NextSession;
 
@@ -45,7 +46,7 @@ public class SessionCommand extends Command {
      */
     public SessionCommand(String name, NextSession nextSession) {
         this.index = null;
-        this.name = requireNonNull(name).trim().replaceAll("\\s+", " ");
+        this.name = Name.normalizeSpaces(name);
         this.nextSession = requireNonNull(nextSession);
     }
 
@@ -64,7 +65,7 @@ public class SessionCommand extends Command {
             target = model.getFilteredPersonList().get(index.getZeroBased());
         } else {
             target = model.getAddressBook().getPersonList().stream()
-                    .filter(person -> person.getName().fullName.trim().replaceAll("\\s+", " ").equalsIgnoreCase(name))
+                    .filter(person -> person.getName().matches(name))
                     .findFirst().orElseThrow(() -> new CommandException(MESSAGE_NO_SUCH_NAME));
         }
         model.setPerson(target, target.withNextSession(nextSession));

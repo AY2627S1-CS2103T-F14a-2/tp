@@ -44,11 +44,22 @@ public class Name {
      */
     public boolean isSameName(Name otherName) {
         return otherName != null
-                && normalizeSpaces(fullName).equalsIgnoreCase(normalizeSpaces(otherName.fullName));
+                && matches(otherName.fullName);
     }
 
-    private static String normalizeSpaces(String name) {
-        return name.trim().replaceAll("\\s+", " ");
+    /**
+     * Returns whether the supplied full name identifies this client, ignoring case and extra whitespace.
+     */
+    public boolean matches(String candidate) {
+        return candidate != null
+                && normalizeSpaces(fullName).equalsIgnoreCase(normalizeSpaces(candidate));
+    }
+
+    /**
+     * Trims outer whitespace and collapses internal whitespace using the same rule as duplicate detection.
+     */
+    public static String normalizeSpaces(String name) {
+        return requireNonNull(name).trim().replaceAll("\\s+", " ");
     }
 
     @Override

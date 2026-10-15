@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.SessionCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.Name;
 import seedu.address.model.session.NextSession;
 
 /**
@@ -47,7 +48,7 @@ public class SessionCommandParser implements Parser<SessionCommand> {
         String name = null;
         Index index = null;
         if (byName) {
-            name = arguments.getValue(PREFIX_NAME).orElseThrow().trim().replaceAll("\\s+", " ");
+            name = Name.normalizeSpaces(arguments.getValue(PREFIX_NAME).orElseThrow());
             if (name.isEmpty()) {
                 throw new ParseException(SessionCommand.MESSAGE_EMPTY_NAME);
             }
