@@ -18,6 +18,9 @@ import seedu.address.model.progress.PerformanceHistory;
 public class PersonCard extends UiPart<Region> {
 
     private static final String FXML = "PersonListCard.fxml";
+    private static final String PHONE_LABEL = "Phone: ";
+    private static final String EMAIL_LABEL = "Email: ";
+    private static final String NO_EMAIL = "-";
     private static final String PERFORMANCE_ROW_PREFIX = "Latest performance: ";
 
     // An English locale keeps month names, e.g. "Sep", the same on every system.
@@ -56,8 +59,8 @@ public class PersonCard extends UiPart<Region> {
         this.person = person;
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
-        phone.setText(person.getPhone().value);
-        email.setText(person.getEmail().map(e -> e.value).orElse("-"));
+        phone.setText(PHONE_LABEL + PhoneDisplayFormatter.format(person.getPhone().value));
+        email.setText(EMAIL_LABEL + getEmailDisplay(person));
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
@@ -75,5 +78,12 @@ public class PersonCard extends UiPart<Region> {
                         + " - " + latest.getSummary() + " (" + history.size()
                         + (history.size() == 1 ? " record)" : " records)"))
                 .orElse(PERFORMANCE_ROW_PREFIX + "-");
+    }
+
+    /**
+     * Returns the text shown after the email label, or "-" if the client has no email.
+     */
+    private static String getEmailDisplay(Person person) {
+        return person.getEmail().map(e -> e.value).orElse(NO_EMAIL);
     }
 }

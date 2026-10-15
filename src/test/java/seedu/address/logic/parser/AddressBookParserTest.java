@@ -102,7 +102,17 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_list() throws Exception {
         assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD) instanceof ListCommand);
-        assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD + " 3") instanceof ListCommand);
+        assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD + "   ") instanceof ListCommand);
+        assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD + "\t") instanceof ListCommand);
+    }
+
+    @Test
+    public void parseCommand_listWithParameters_throwsParseException() {
+        String expectedMessage = "\"list\" does not take any parameters.\nExample: list";
+        assertThrows(ParseException.class, expectedMessage, () -> parser.parseCommand("list 3"));
+        assertThrows(ParseException.class, expectedMessage, () -> parser.parseCommand("list all"));
+        assertThrows(ParseException.class, expectedMessage, () -> parser.parseCommand("list n/John"));
+        assertThrows(ParseException.class, expectedMessage, () -> parser.parseCommand("list\t3"));
     }
 
     @Test

@@ -21,6 +21,7 @@ public class ModelManager implements Model {
     private final AddressBook addressBook;
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
+    private Predicate<Person> filteredPersonListPredicate = PREDICATE_SHOW_ALL_PERSONS;
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -107,7 +108,13 @@ public class ModelManager implements Model {
     @Override
     public void updateFilteredPersonList(Predicate<Person> predicate) {
         requireNonNull(predicate);
+        filteredPersonListPredicate = predicate;
         filteredPersons.setPredicate(predicate);
+    }
+
+    @Override
+    public Predicate<Person> getFilteredPersonListPredicate() {
+        return filteredPersonListPredicate;
     }
 
     @Override
