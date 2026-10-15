@@ -59,7 +59,7 @@ public class JsonAdaptedPersonTest {
     public void toModelType_missingPerformances_returnsPersonWithNoRecords() throws Exception {
         // Data files saved before gym performances were supported have no "performances" field
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
-                VALID_TAGS, null);
+                VALID_TAGS, null, null, null);
         assertEquals(List.of(), person.toModelType().getGymPerformances());
     }
 
@@ -69,14 +69,14 @@ public class JsonAdaptedPersonTest {
         JsonAdaptedGymPerformance sameEntry = new JsonAdaptedGymPerformance("2026-09-18", "bench press",
                 "5", "5", "80");
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
-                VALID_TAGS, List.of(benchPress, sameEntry));
+                VALID_TAGS, null, null, List.of(benchPress, sameEntry));
         assertThrows(IllegalValueException.class, PerformanceHistory.MESSAGE_DUPLICATE_RECORDS, person::toModelType);
     }
 
     @Test
     public void toModelType_nullPerformanceEntry_throwsIllegalValueException() {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
-                VALID_TAGS, Arrays.asList(new JsonAdaptedGymPerformance(BENCH_PRESS), null));
+                VALID_TAGS, null, null, Arrays.asList(new JsonAdaptedGymPerformance(BENCH_PRESS), null));
         assertThrows(IllegalValueException.class, JsonAdaptedPerson.MESSAGE_NULL_PERFORMANCE, person::toModelType);
     }
 
@@ -85,7 +85,7 @@ public class JsonAdaptedPersonTest {
         JsonAdaptedGymPerformance invalidPerformance = new JsonAdaptedGymPerformance("2026-09-18", "Bench Press",
                 "0", "8", "60");
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
-                VALID_TAGS, List.of(invalidPerformance));
+                VALID_TAGS, null, null, List.of(invalidPerformance));
         assertThrows(IllegalValueException.class, GymPerformance.MESSAGE_SETS_CONSTRAINTS, person::toModelType);
     }
 

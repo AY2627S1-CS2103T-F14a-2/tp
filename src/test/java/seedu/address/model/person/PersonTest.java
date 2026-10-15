@@ -100,6 +100,19 @@ public class PersonTest {
     }
 
     @Test
+    public void session_affectsEqualityButNotClientIdentity() {
+        Person booked = new PersonBuilder(ALICE).withNextSession("2026-10-12 17:00").build();
+        Person sameBooking = new PersonBuilder(booked).build();
+        Person replacement = new PersonBuilder(booked).withNextSession("2026-10-13 17:00").build();
+        assertEquals(booked, sameBooking);
+        assertEquals(booked.hashCode(), sameBooking.hashCode());
+        assertFalse(booked.equals(ALICE));
+        assertFalse(booked.equals(replacement));
+        assertTrue(booked.isSamePerson(ALICE));
+        assertTrue(ALICE.getNextSession().isEmpty());
+    }
+
+    @Test
     public void hashCode_equalPersons_sameHashCode() {
         assertEquals(ALICE.hashCode(), new PersonBuilder(ALICE).build().hashCode());
 
@@ -153,7 +166,7 @@ public class PersonTest {
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail().orElse(null) + ", tags=" + ALICE.getTags()
-                + ", performanceHistory=" + ALICE.getPerformanceHistory() + "}";
+                + ", nextSession=null, performanceHistory=" + ALICE.getPerformanceHistory() + "}";
         assertEquals(expected, ALICE.toString());
     }
 }

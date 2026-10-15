@@ -97,8 +97,9 @@ public class EditCommand extends Command {
         Email updatedEmail = editPersonDescriptor.getEmail().or(personToEdit::getEmail).orElse(null);
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
 
-        // Gym-performance records cannot be edited here, so they are carried over unchanged.
+        // The session and training records cannot be edited here, so they are carried over unchanged.
         return new Person(updatedName, updatedPhone, updatedEmail, updatedTags,
+                personToEdit.getNextSession().orElse(null), personToEdit.getMeasurements(),
                 personToEdit.getPerformanceHistory());
     }
 

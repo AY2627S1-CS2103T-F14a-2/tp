@@ -2,6 +2,7 @@ package seedu.address.model.person;
 
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.Set;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.progress.GymPerformance;
 import seedu.address.model.progress.PerformanceHistory;
+import seedu.address.model.session.NextSession;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -26,30 +28,86 @@ public class Person {
     private final Email email;
 
     // Data fields
+    /** Null when no session has ever been booked; past sessions are retained for display. */
+    private final NextSession nextSession;
     private final Set<Tag> tags = new HashSet<>();
+    private final List<Measurement> measurements;
     private final PerformanceHistory performanceHistory;
 
     /**
-     * Creates a client with no gym-performance records. Name, phone and tags must be present and not null.
+     * Creates a client with no session or training records. Name, phone and tags must be present and not null.
      *
      * @param email The client's email, or {@code null} if none was given.
      */
     public Person(Name name, Phone phone, Email email, Set<Tag> tags) {
-        this(name, phone, email, tags, new PerformanceHistory());
+        this(name, phone, email, tags, null, List.of());
     }
 
     /**
-     * Name, phone, tags and performance history must be present and not null.
-     *
-     * @param email The client's email, or {@code null} if none was given.
+     * Creates a client with an optional session, their measurement records and no gym-performance records.
      */
-    public Person(Name name, Phone phone, Email email, Set<Tag> tags, PerformanceHistory performanceHistory) {
-        requireAllNonNull(name, phone, tags, performanceHistory);
+    public Person(Name name, Phone phone, Email email, Set<Tag> tags,
+            NextSession nextSession, List<Measurement> measurements) {
+        this(name, phone, email, tags, nextSession, measurements, new PerformanceHistory());
+    }
+
+    /**
+     * Creates a client with an optional session, an immutable copy of their measurement records,
+     * and their gym-performance records.
+     * This single full constructor keeps all training information together when a client is copied or restored,
+     * so every copy method must pass all of it on.
+     */
+    public Person(Name name, Phone phone, Email email, Set<Tag> tags,
+            NextSession nextSession, List<Measurement> measurements, PerformanceHistory performanceHistory) {
+        requireAllNonNull(name, phone, tags, measurements, performanceHistory);
         this.name = name;
         this.phone = phone;
         this.email = email;
+        this.nextSession = nextSession;
         this.tags.addAll(tags);
+        this.measurements = List.copyOf(measurements);
         this.performanceHistory = performanceHistory;
+    }
+
+    public List<Measurement> getMeasurements() {
+        return measurements;
+    }
+
+    /**
+     * Checks for a record with the same date and type, so callers can distinguish an update from an addition.
+     */
+    public boolean hasMeasurement(Measurement measurement) {
+        requireAllNonNull(measurement);
+        return measurements.stream().anyMatch(record -> record.isSameMeasurement(measurement));
+    }
+
+    /**
+     * Returns a new client with the measurement added, or replaced at its existing position.
+     * Other records and client details are preserved; this client remains unchanged.
+     * AI assistance: OpenAI Codex helped implement record replacement and its tests.
+     */
+    public Person withMeasurement(Measurement measurement) {
+        requireAllNonNull(measurement);
+        List<Measurement> updatedMeasurements = new ArrayList<>(measurements);
+        for (int i = 0; i < updatedMeasurements.size(); i++) {
+            if (updatedMeasurements.get(i).isSameMeasurement(measurement)) {
+                updatedMeasurements.set(i, measurement);
+                return new Person(name, phone, email, tags, nextSession, updatedMeasurements, performanceHistory);
+            }
+        }
+        updatedMeasurements.add(measurement);
+        return new Person(name, phone, email, tags, nextSession, updatedMeasurements, performanceHistory);
+    }
+
+    public Optional<NextSession> getNextSession() {
+        return Optional.ofNullable(nextSession);
+    }
+
+    /**
+     * Returns a copy with the supplied session, preserving all other client information.
+     */
+    public Person withNextSession(NextSession session) {
+        return new Person(name, phone, email, tags, session, measurements, performanceHistory);
     }
 
     public Name getName() {
@@ -95,7 +153,8 @@ public class Person {
      * exercise on the same date. All other client information is preserved.
      */
     public Person withGymPerformance(GymPerformance performance) {
-        return new Person(name, phone, email, tags, performanceHistory.withRecord(performance));
+        return new Person(name, phone, email, tags, nextSession, measurements,
+                performanceHistory.withRecord(performance));
     }
 
     /**
@@ -130,13 +189,15 @@ public class Person {
                 && phone.equals(otherPerson.phone)
                 && Objects.equals(email, otherPerson.email)
                 && tags.equals(otherPerson.tags)
+                && Objects.equals(nextSession, otherPerson.nextSession)
+                && measurements.equals(otherPerson.measurements)
                 && performanceHistory.equals(otherPerson.performanceHistory);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, tags, performanceHistory);
+        return Objects.hash(name, phone, email, tags, nextSession, measurements, performanceHistory);
     }
 
     @Override
@@ -146,6 +207,7 @@ public class Person {
                 .add("phone", phone)
                 .add("email", email)
                 .add("tags", tags)
+                .add("nextSession", nextSession)
                 .add("performanceHistory", performanceHistory)
                 .toString();
     }

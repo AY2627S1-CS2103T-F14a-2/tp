@@ -2,14 +2,17 @@ package seedu.address.testutil;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Measurement;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.progress.GymPerformance;
 import seedu.address.model.progress.PerformanceHistory;
+import seedu.address.model.session.NextSession;
 import seedu.address.model.tag.Tag;
 import seedu.address.model.util.SampleDataUtil;
 
@@ -26,6 +29,8 @@ public class PersonBuilder {
     private Phone phone;
     private Email email;
     private Set<Tag> tags;
+    private NextSession nextSession;
+    private List<Measurement> measurements = List.of();
     private PerformanceHistory performanceHistory;
 
     /**
@@ -47,6 +52,8 @@ public class PersonBuilder {
         phone = personToCopy.getPhone();
         email = personToCopy.getEmail().orElse(null);
         tags = new HashSet<>(personToCopy.getTags());
+        nextSession = personToCopy.getNextSession().orElse(null);
+        measurements = personToCopy.getMeasurements();
         performanceHistory = personToCopy.getPerformanceHistory();
     }
 
@@ -83,10 +90,26 @@ public class PersonBuilder {
     }
 
     /**
+     * Sets the optional next session using the canonical storage format.
+     */
+    public PersonBuilder withNextSession(String nextSession) {
+        this.nextSession = nextSession == null ? null : new NextSession(nextSession);
+        return this;
+    }
+
+    /**
      * Removes the {@code Email} of the {@code Person} that we are building.
      */
     public PersonBuilder withoutEmail() {
         this.email = null;
+        return this;
+    }
+
+    /**
+     * Sets the measurement records of the client being built.
+     */
+    public PersonBuilder withMeasurements(Measurement... measurements) {
+        this.measurements = List.of(measurements);
         return this;
     }
 
@@ -99,7 +122,7 @@ public class PersonBuilder {
     }
 
     public Person build() {
-        return new Person(name, phone, email, tags, performanceHistory);
+        return new Person(name, phone, email, tags, nextSession, measurements, performanceHistory);
     }
 
 }
