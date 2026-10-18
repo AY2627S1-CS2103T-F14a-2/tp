@@ -94,7 +94,7 @@ public class EditCommand extends Command {
 
         Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
         Phone updatedPhone = editPersonDescriptor.getPhone().orElse(personToEdit.getPhone());
-        Email updatedEmail = editPersonDescriptor.getEmail().or(personToEdit::getEmail).orElse(null);
+        Email updatedEmail = editPersonDescriptor.getEmail().orElse(personToEdit.getEmail()).orElse(null);
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
 
         // The session and training records cannot be edited here, so they are carried over unchanged.
@@ -133,7 +133,8 @@ public class EditCommand extends Command {
     public static class EditPersonDescriptor {
         private Name name;
         private Phone phone;
-        private Email email;
+        // Null leaves the email unchanged, while an empty Optional removes it.
+        private Optional<Email> email;
         private Set<Tag> tags;
 
         public EditPersonDescriptor() {}
@@ -145,7 +146,7 @@ public class EditCommand extends Command {
         public EditPersonDescriptor(EditPersonDescriptor toCopy) {
             setName(toCopy.name);
             setPhone(toCopy.phone);
-            setEmail(toCopy.email);
+            email = toCopy.email;
             setTags(toCopy.tags);
         }
 
@@ -172,11 +173,19 @@ public class EditCommand extends Command {
             return Optional.ofNullable(phone);
         }
 
+        /**
+         * Sets the email to replace the person's email with.
+         * A null {@code email} removes the person's email.
+         */
         public void setEmail(Email email) {
-            this.email = email;
+            this.email = Optional.ofNullable(email);
         }
 
-        public Optional<Email> getEmail() {
+        /**
+         * Returns {@code Optional#empty()} if the email is not edited.
+         * Otherwise, returns the replacement email, which is itself empty if the email is to be removed.
+         */
+        public Optional<Optional<Email>> getEmail() {
             return Optional.ofNullable(email);
         }
 

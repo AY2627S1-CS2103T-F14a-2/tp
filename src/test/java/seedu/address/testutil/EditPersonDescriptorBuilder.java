@@ -62,6 +62,14 @@ public class EditPersonDescriptorBuilder {
     }
 
     /**
+     * Sets the {@code EditPersonDescriptor} that we are building to remove the email.
+     */
+    public EditPersonDescriptorBuilder withoutEmail() {
+        descriptor.setEmail(null);
+        return this;
+    }
+
+    /**
      * Parses the {@code tags} into a {@code Set<Tag>} and sets it to the {@code EditPersonDescriptor}
      * that we are building.
      */
