@@ -41,6 +41,18 @@ public class ParserUtil {
      * Parses a session date, allowing today but rejecting past dates.
      */
     public static LocalDate parseSessionDate(String date) throws ParseException {
+        LocalDate parsed = parseCalendarDate(date);
+        if (parsed.isBefore(LocalDate.now())) {
+            throw new ParseException(MESSAGE_PAST_SESSION_DATE);
+        }
+        return parsed;
+    }
+
+    /**
+     * Parses a real YYYY-MM-DD date in years 0001-9999 without restricting it relative to today.
+     * Booking commands separately reject past dates; date filters may inspect retained past bookings.
+     */
+    public static LocalDate parseCalendarDate(String date) throws ParseException {
         requireNonNull(date);
         String trimmed = date.trim();
         if (!trimmed.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}")) {
@@ -57,9 +69,6 @@ public class ParserUtil {
             parsed = LocalDate.parse(trimmed, DATE_FORMATTER);
         } catch (DateTimeParseException exception) {
             throw new ParseException(MESSAGE_INVALID_SESSION_DATE);
-        }
-        if (parsed.isBefore(LocalDate.now())) {
-            throw new ParseException(MESSAGE_PAST_SESSION_DATE);
         }
         return parsed;
     }
