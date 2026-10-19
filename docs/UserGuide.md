@@ -312,7 +312,7 @@ filtered lists, and startup. Sorting the displayed list does not reorder the JSO
 
 The card shows `Next session: Tue 15 Dec, 7:00pm` for an upcoming booking, `Next session: - (none booked)`
 when no session has been recorded, and `Next session: - (none upcoming)` when the recorded booking has passed.
-Expired bookings are retained in the data file until replaced.
+Expired bookings are retained in the data file until replaced or cancelled.
 
 Invalid commands leave client data and list order unchanged. The relevant messages are:
 
@@ -327,6 +327,50 @@ Malformed date or component out of range | `Date must use YYYY-MM-DD format (yea
 Impossible calendar date (e.g. 30 February) | `Date must be a valid calendar date.`
 Date before today | `Date cannot be in the past.`
 Invalid time | `Time must be a valid time in HHMM or HH:MM format.`
+
+### Cancelling a recorded session: `cancelsession`
+
+Removes the recorded session for the client at the current displayed index.
+
+Format: `cancelsession INDEX`
+
+* `INDEX` must be a positive integer shown in the current list, including results from `find`, `filter` or `sessions`.
+* Both upcoming and expired recorded sessions can be cancelled.
+* Contact details, tags, measurements and performance records are preserved. The cancellation is saved automatically.
+* The current filter stays active. A cancelled client disappears from a `sessions` date view, but remains in Spotter.
+  In the full list, their card shows `Next session: - (none booked)` and moves to the unbooked group.
+* Indices may change after cancellation. Check the displayed list before entering the next index-based command.
+* A client with no recorded session is rejected with `No session is recorded for NAME.`
+  An invalid index shows `The client index provided is invalid.`
+  Missing, non-numeric or extra arguments show `Invalid command format! Use: cancelsession INDEX`.
+* If saving fails, the original session and displayed list are restored and `Unable to save Spotter data.` is shown.
+
+Example: `cancelsession 1` cancels the first displayed client's session.
+Success: `Cancelled next session for Sarah Lim.` (when Sarah Lim is the first displayed client).
+
+### Listing sessions on a date: `sessions`
+
+Shows clients whose recorded session is on a specified date. This searches all clients and replaces the previous filter.
+
+Format: `sessions d/DATE`
+
+* `DATE` must be a real `YYYY-MM-DD` date, with a year from `0001` to `9999`. Past dates are accepted for retained bookings.
+* Supply exactly one `d/` prefix. Missing/repeated/unknown prefixes or extra arguments show
+  `Invalid command format! Use: sessions d/DATE`. Invalid dates use the date-format/calendar errors listed under `session`.
+* Results use the normal session ordering: upcoming bookings first, then expired bookings, with time and name breaking ties.
+  For today, this puts upcoming sessions before sessions whose times have passed.
+* Spotter still stores only one session per client. Replaced or cancelled bookings cannot be retrieved using this command.
+  An expired booking's card continues to show `- (none upcoming)`.
+* The panel scrolls to the top and displayed indices start at 1. The command changes no client data and does not save the file.
+* Use `list` to show all clients again. Use the indices in the current results for `cancelsession`, `edit` or `delete`.
+
+Example: `sessions d/2026-12-15`.
+
+Result | Message
+-------|--------
+Multiple matches | `Listed 3 clients with sessions on 2026-12-15.`
+One match | `Listed 1 client with a session on 2026-12-15.`
+No matches (empty panel) | `No sessions recorded on 2026-12-15.`
 
 ### Saving the data
 
@@ -379,6 +423,8 @@ Action     | Format, Examples
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
 **Session** | `session INDEX d/DATE t/TIME` or `session n/NAME d/DATE t/TIME`<br> e.g., `session 1 d/2026-12-15 t/1900`
+**Cancel session** | `cancelsession INDEX`<br> e.g., `cancelsession 1`
+**Sessions on date** | `sessions d/DATE`<br> e.g., `sessions d/2026-12-15`
 **Measure** | `measure INDEX d/DATE t/TYPE v/VALUE`<br> e.g., `measure 1 d/2026-09-12 t/weight v/72.4`
 **Performance** | `performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`<br> e.g., `performance 2 d/2026-09-18 e/Bench Press s/3 r/8 w/60`
 **Help**   | `help`

@@ -15,7 +15,7 @@
 
 * Gabriel Wan used [OpenAI Codex](https://openai.com/codex/) to assist with implementing, testing,
   and documenting the v1.3 next-session feature, including parsing, client integration, JSON storage, sorting,
-  and the client card row.
+  and the client card row, and the v1.4 session cancellation/date-filter commands, tests and documentation.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #64 changes (the `list` command messages, undoing changes when saving fails, the damaged data file warning, the client card phone and email rows, and the related tests and User Guide wording) on 2026-10-15. The changes were reviewed and tested by the author.
 * Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the client `add`/`delete` changes for v1.3 (removing address, optional email, name and phone limits, Spotter messages). All generated code was reviewed and tested before committing.
 
@@ -162,6 +162,38 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 ## **Implementation**
 
 This section describes some noteworthy details on how certain features are implemented.
+
+### Session cancellation and date filtering
+
+`cancelsession INDEX` removes the current displayed client's single recorded session.
+`CancelSessionCommandParser` accepts exactly one index and `CancelSessionCommand` resolves it against
+`Model#getFilteredPersonList()`, so indices refer to the sorted/filtered UI rather than JSON order.
+It rejects an invalid index or a client without a recorded session before changing the model.
+
+The following partial model diagram shows the session field, the date predicate and the progress data that must survive
+cancellation. Contact fields are omitted to keep the diagram focused.
+
+<puml src="diagrams/SessionModelClassDiagram.puml" alt="Session date filtering and the client data preserved during cancellation" />
+
+`Person#withNextSession(null)` returns a new immutable client with the session removed, carrying forward contact details,
+tags, measurements and performance history. The command replaces the client and reapplies the current predicate to
+refresh sorting. A session-date predicate no longer matches the cancelled client, so that card disappears from that view;
+search/tag filters remain active. The observable list updates the UI and `CommandResult` requests scrolling to the top.
+
+`LogicManager` handles saving. If storage throws an `IOException`, its existing transaction restores both the original
+address book and the predicate captured before cancellation. This restores the booking and the date-filtered view.
+No constructor, JSON schema or UI-specific cancellation path is needed.
+
+`sessions d/DATE` uses `SessionsCommandParser` and `ParserUtil#parseCalendarDate` to validate one real calendar date.
+Unlike booking a session, filtering permits past dates so retained expired bookings can be found. The shared calendar
+validator preserves the existing booking errors; `parseSessionDate` adds the separate no-past-date rule for bookings.
+`SessionsCommand` replaces the current predicate with `SessionOnDatePredicate` and reuses the normal session comparator.
+It returns a count or a no-matches message. As no client data changes, `LogicManager` does not save the file.
+
+**Design choices:** Reusing the current view avoids a second schedule panel or a separate session collection.
+Retaining the predicate during cancellation lets a trainer cancel several bookings in the same date view.
+The trade-off is that the date view contains only each client's currently recorded booking; it is not a session history.
+The main list's upcoming-before-expired ordering also applies to date results, including today's elapsed sessions.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -852,6 +884,36 @@ run `list` and substitute that client's displayed index for `1` below.
    Expected: The measurement row remains readable and does not overlap neighbouring cards.
 
 <!-- AI assistance: OpenAI Codex helped draft measurement acceptance tests. -->
+
+### Cancelling and listing sessions
+
+Use a disposable folder containing the JAR and fictional data. Let `DATE` be tomorrow in `YYYY-MM-DD` format;
+replace `DATE` in every command below, and `TODAY` with today's date. Add unique test clients if the names already exist.
+
+1. Enter `add n/SessionCancelAda p/91234567`, then `add n/SessionCancelZoe p/92345678`.
+   Book them with `session n/SessionCancelAda d/DATE t/0900` and `session n/SessionCancelZoe d/DATE t/1700`.
+1. Enter `find Nobody`, then `sessions d/DATE`.<br>
+   Expected: Both test clients are visible, Ada before Zoe, with consecutive indices. The date command searches all
+   clients, replacing the empty search. If other clients already have bookings that day, they also appear.
+1. Enter `find SessionCancelAda`, then `measure 1 d/TODAY t/weight v/72.4`.
+   Enter `find SessionCancelAda` again, then `performance 1 d/TODAY e/Squat s/3 r/5 w/100`.
+   Re-enter `sessions d/DATE` and note Ada's current index `INDEX` before continuing.
+1. Enter `cancelsession INDEX` for Ada.<br>
+   Expected: `Cancelled next session for SessionCancelAda.` Ada disappears from the date view; Zoe remains.
+   Enter `list` and locate Ada. The card shows `Next session: - (none booked)` while both progress rows remain populated.
+   Close and restart Spotter. Ada remains unbooked and the contact/progress data are unchanged.
+1. Enter `find SessionCancelAda`, then try `cancelsession 1`.<br>
+   Expected: `No session is recorded for SessionCancelAda.` No client data or displayed results change.
+1. Try `cancelsession 0`, `cancelsession 999999`, `cancelsession 1 2`, `sessions d/2026-02-30`,
+   `sessions d/DATE d/DATE` and `sessions d/DATE x/foo`.<br>
+   Expected: Invalid index, format or calendar errors, with no changes to clients, the current filter or saved data.
+1. Enter `sessions d/0001-01-01` in this test dataset.<br>
+   Expected: `No sessions recorded on 0001-01-01.` and an empty panel. `list` restores all clients.
+1. For a save-failure test, first book Ada again and display `sessions d/DATE`.
+   While Spotter is running, move `data/spotter.json` to a backup and create a directory named `data/spotter.json`.
+   Cancel Ada's current displayed index.<br>
+   Expected: `Unable to save Spotter data.` The booking and date-filtered list are restored with all progress intact.
+   Close Spotter, remove the empty blocking directory and restore the backup file before further testing.
 
 ### Saving data
 
