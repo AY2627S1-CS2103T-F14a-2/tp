@@ -40,21 +40,22 @@ import seedu.address.testutil.PersonBuilder;
  */
 public class EditCommandTest {
 
+    private static final Measurement WEIGHT_RECORD = new Measurement(LocalDate.of(2026, 9, 12),
+            MeasurementType.WEIGHT, new BigDecimal("72.4"));
+
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
     @Test
     public void execute_contactEdit_preservesMeasurements() throws Exception {
         Person original = model.getFilteredPersonList().get(0);
-        Measurement measurement = new Measurement(LocalDate.of(2026, 9, 12),
-                MeasurementType.WEIGHT, new BigDecimal("72.4"));
-        Person client = new PersonBuilder(original).withMeasurements(measurement).build();
+        Person client = new PersonBuilder(original).withMeasurements(WEIGHT_RECORD).build();
         model.setPerson(original, client);
         EditCommand command = new EditCommand(INDEX_FIRST_PERSON,
                 new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build());
 
         command.execute(model);
 
-        assertEquals(List.of(measurement), model.getFilteredPersonList().get(0).getMeasurements());
+        assertEquals(List.of(WEIGHT_RECORD), model.getFilteredPersonList().get(0).getMeasurements());
         assertEquals(VALID_PHONE_BOB, model.getFilteredPersonList().get(0).getPhone().value);
     }
 
@@ -96,9 +97,10 @@ public class EditCommandTest {
     @Test
     public void execute_removeEmailUnfilteredList_success() {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person bookedPerson = new PersonBuilder(firstPerson).withNextSession("2026-10-12 17:00").build();
-        model.setPerson(firstPerson, bookedPerson);
-        Person editedPerson = new PersonBuilder(bookedPerson).withoutEmail().build();
+        Person personWithRecords = new PersonBuilder(firstPerson).withNextSession("2026-10-12 17:00")
+                .withMeasurements(WEIGHT_RECORD).withGymPerformances(BENCH_PRESS).build();
+        model.setPerson(firstPerson, personWithRecords);
+        Person editedPerson = new PersonBuilder(personWithRecords).withoutEmail().build();
 
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withoutEmail().build();
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, descriptor);
@@ -106,9 +108,9 @@ public class EditCommandTest {
         String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(bookedPerson, editedPerson);
+        expectedModel.setPerson(personWithRecords, editedPerson);
 
-        // Person equality covers the next session, so this also checks that the session is kept.
+        // Person equality covers the session, measurements and performances, so this checks they are kept.
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
     }
 
