@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -70,6 +71,29 @@ public final class PerformanceHistory {
     public boolean hasSameEntry(GymPerformance record) {
         requireNonNull(record);
         return records.stream().anyMatch(record::isSameEntry);
+    }
+
+    /**
+     * Returns the record for {@code exerciseName} on {@code date}, if any.
+     * Exercise names are matched ignoring letter case and extra spaces, as in {@link ExerciseName}.
+     */
+    public Optional<GymPerformance> find(LocalDate date, ExerciseName exerciseName) {
+        requireAllNonNull(date, exerciseName);
+        return records.stream()
+                .filter(record -> record.getDate().equals(date) && record.getExerciseName().equals(exerciseName))
+                .findFirst();
+    }
+
+    /**
+     * Returns a copy of this history without the record for the same exercise on the same date as {@code record}.
+     * The other records keep their recording order, so the latest record and the count are recalculated
+     * from what remains.
+     */
+    public PerformanceHistory withoutRecord(GymPerformance record) {
+        requireNonNull(record);
+        List<GymPerformance> updatedRecords = new ArrayList<>(records);
+        updatedRecords.removeIf(record::isSameEntry);
+        return new PerformanceHistory(updatedRecords);
     }
 
     /**

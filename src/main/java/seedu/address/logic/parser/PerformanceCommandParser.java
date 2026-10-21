@@ -27,10 +27,10 @@ import seedu.address.model.progress.Load;
  */
 public class PerformanceCommandParser implements Parser<PerformanceCommand> {
 
-    private static final Prefix[] PREFIXES = {PREFIX_DATE, PREFIX_EXERCISE, PREFIX_SETS, PREFIX_REPS, PREFIX_LOAD};
-
     // An index that looks like an integer is reported as an invalid index rather than an invalid format.
-    private static final String INTEGER_REGEX = "[+-]?\\d+";
+    static final String INTEGER_REGEX = "[+-]?\\d+";
+
+    private static final Prefix[] PREFIXES = {PREFIX_DATE, PREFIX_EXERCISE, PREFIX_SETS, PREFIX_REPS, PREFIX_LOAD};
 
     /**
      * Parses the given {@code String} of arguments in the context of the {@code PerformanceCommand}
@@ -64,7 +64,11 @@ public class PerformanceCommandParser implements Parser<PerformanceCommand> {
         }
     }
 
-    private static Index parseIndex(String index) throws ParseException {
+    /**
+     * Parses an index that looks like an integer, reporting zero, negative and overflowing values
+     * as an invalid client index. Shared with {@code DeletePerformanceCommandParser}.
+     */
+    static Index parseIndex(String index) throws ParseException {
         try {
             return ParserUtil.parseIndex(index);
         } catch (ParseException pe) {
@@ -73,7 +77,10 @@ public class PerformanceCommandParser implements Parser<PerformanceCommand> {
         }
     }
 
-    private static ExerciseName parseExerciseName(String exerciseName) throws ParseException {
+    /**
+     * Parses an exercise name, normalising its spaces. Shared with {@code DeletePerformanceCommandParser}.
+     */
+    static ExerciseName parseExerciseName(String exerciseName) throws ParseException {
         if (!ExerciseName.isValidExerciseName(exerciseName)) {
             throw new ParseException(ExerciseName.MESSAGE_CONSTRAINTS);
         }

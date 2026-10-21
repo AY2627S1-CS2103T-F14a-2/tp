@@ -104,8 +104,24 @@ public class ParserUtil {
      * @throws ParseException if the date is malformed, does not exist, or is in the future.
      */
     public static LocalDate parseRecordDate(String date, String futureDateMessage) throws ParseException {
-        requireNonNull(date);
         requireNonNull(futureDateMessage);
+        LocalDate parsedDate = parseExistingRecordDate(date);
+        if (parsedDate.isAfter(LocalDate.now())) {
+            throw new ParseException(futureDateMessage);
+        }
+        return parsedDate;
+    }
+
+    /**
+     * Parses the date that identifies an existing progress record, ignoring surrounding whitespace.
+     * The date must be a real calendar date in yyyy-MM-dd format with a year from 0001.
+     * Unlike {@link #parseRecordDate(String, String)}, future dates are accepted, because a record with a
+     * future date may have been loaded from an edited data file and must still be removable.
+     *
+     * @throws ParseException if the date is malformed or does not exist.
+     */
+    public static LocalDate parseExistingRecordDate(String date) throws ParseException {
+        requireNonNull(date);
         String trimmedDate = date.trim();
         if (!trimmedDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
             throw new ParseException(MESSAGE_INVALID_RECORD_DATE);
@@ -118,9 +134,6 @@ public class ParserUtil {
         }
         if (parsedDate.getYear() == 0) {
             throw new ParseException(MESSAGE_INVALID_RECORD_DATE);
-        }
-        if (parsedDate.isAfter(LocalDate.now())) {
-            throw new ParseException(futureDateMessage);
         }
         return parsedDate;
     }

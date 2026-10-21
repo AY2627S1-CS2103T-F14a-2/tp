@@ -267,6 +267,39 @@ A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invali
 `LOAD` is outside 0 to 1000 | `Exercise load must be between 0 and 1000 kg.`
 `LOAD` has more than two decimal places | `Exercise load may have at most two decimal places.`
 
+### Deleting a gym performance: `deleteperformance`
+
+Deletes one of a client's gym-performance records, for example a record entered by mistake.
+
+Format: `deleteperformance INDEX d/DATE e/EXERCISE`
+
+* Deletes the record for `EXERCISE` on `DATE` for the client at the specified `INDEX`, as shown in the displayed
+  client list.
+* Each prefix must appear exactly once. The prefixes can be in any order.
+* `EXERCISE` is matched ignoring letter case and extra spaces, so `bench press` matches a record for `Bench Press`.
+* `DATE` uses the `yyyy-MM-dd` format. Unlike `performance`, a future date is accepted, so that a future-dated
+  record in an edited data file can still be deleted.
+* The client's other records, next session and body measurements are not changed.
+* The client's card is updated straight away: the latest performance and the record count are recalculated from
+  the remaining records. If no records remain, the card shows `Latest performance: -`.
+
+Examples:
+* `deleteperformance 2 d/2026-09-18 e/Bench Press` deletes the bench press record of 18 Sep 2026 and shows
+  `Deleted performance for <client name>: Bench Press, 3 sets of 8 reps at 60 kg on 2026-09-18.`
+* `deleteperformance 1 d/2026-09-15 e/squat` deletes the squat record of 15 Sep 2026.
+
+To change a record instead of deleting it, use `performance` with the same date and exercise to replace it.
+
+If the command is not accepted, Spotter shows the reason followed by the expected format, and no record is deleted:
+
+Problem | Message
+--------|--------
+A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invalid command format. Use: deleteperformance INDEX d/DATE e/EXERCISE`
+`INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
+`DATE` is not a real date in `yyyy-MM-dd` format | `The date must use the format yyyy-MM-dd.`
+`EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only letters, numbers, spaces, hyphens, and apostrophes.`
+The client has no record for that exercise on that date | `No performance record for <exercise> on <date> was found for <client name>.`
+
 ### Clearing all entries: `clear`
 
 Clears all clients from Spotter.
@@ -381,4 +414,5 @@ Action     | Format, Examples
 **Session** | `session INDEX d/DATE t/TIME` or `session n/NAME d/DATE t/TIME`<br> e.g., `session 1 d/2026-12-15 t/1900`
 **Measure** | `measure INDEX d/DATE t/TYPE v/VALUE`<br> e.g., `measure 1 d/2026-09-12 t/weight v/72.4`
 **Performance** | `performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`<br> e.g., `performance 2 d/2026-09-18 e/Bench Press s/3 r/8 w/60`
+**Delete performance** | `deleteperformance INDEX d/DATE e/EXERCISE`<br> e.g., `deleteperformance 2 d/2026-09-18 e/Bench Press`
 **Help**   | `help`

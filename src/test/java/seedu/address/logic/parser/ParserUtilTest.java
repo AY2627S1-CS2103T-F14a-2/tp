@@ -76,6 +76,23 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parseExistingRecordDate_invalidDate_throwsParseException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseExistingRecordDate(null));
+        for (String invalidDate : List.of("", "18-09-2026", "2026-02-30", "0000-01-01", "12026-09-18")) {
+            assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_RECORD_DATE, ()
+                -> ParserUtil.parseExistingRecordDate(invalidDate));
+        }
+    }
+
+    @Test
+    public void parseExistingRecordDate_anyRealDate_returnsDate() throws Exception {
+        // future dates are accepted, so that future-dated records loaded from a data file can be deleted
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
+        assertEquals(tomorrow, ParserUtil.parseExistingRecordDate(tomorrow.toString()));
+        assertEquals(LocalDate.of(2026, 9, 18), ParserUtil.parseExistingRecordDate(" 2026-09-18 "));
+    }
+
+    @Test
     public void parseRecordDate_pastOrPresentDate_returnsDate() throws Exception {
         assertEquals(LocalDate.of(2026, 9, 18), ParserUtil.parseRecordDate("2026-09-18", FUTURE_DATE_MESSAGE));
         assertEquals(LocalDate.of(2024, 2, 29), ParserUtil.parseRecordDate("2024-02-29", FUTURE_DATE_MESSAGE));

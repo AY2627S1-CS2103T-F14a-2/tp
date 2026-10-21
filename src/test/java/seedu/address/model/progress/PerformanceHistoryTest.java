@@ -59,6 +59,76 @@ public class PerformanceHistoryTest {
     }
 
     @Test
+    public void find() {
+        PerformanceHistory history = new PerformanceHistory(List.of(BENCH_DAY_ONE, SQUAT_DAY_ONE, BENCH_DAY_TWO));
+
+        assertEquals(Optional.of(BENCH_DAY_TWO), history.find(DAY_TWO, new ExerciseName("Bench Press")));
+
+        // exercise name differs only in letter case and spacing
+        assertEquals(Optional.of(BENCH_DAY_ONE), history.find(DAY_ONE, new ExerciseName("  bench   PRESS ")));
+
+        // right exercise on the wrong date, and the wrong exercise on the right date
+        assertEquals(Optional.empty(), history.find(DAY_TWO, new ExerciseName("Squat")));
+        assertEquals(Optional.empty(), history.find(DAY_ONE, new ExerciseName("Deadlift")));
+
+        // empty history
+        assertEquals(Optional.empty(), new PerformanceHistory().find(DAY_ONE, new ExerciseName("Squat")));
+
+        assertThrows(NullPointerException.class, () -> history.find(null, new ExerciseName("Squat")));
+        assertThrows(NullPointerException.class, () -> history.find(DAY_ONE, null));
+    }
+
+    @Test
+    public void withoutRecord_existingRecord_removesOnlyThatRecord() {
+        PerformanceHistory history = new PerformanceHistory(List.of(BENCH_DAY_ONE, SQUAT_DAY_ONE, BENCH_DAY_TWO));
+
+        PerformanceHistory updatedHistory = history.withoutRecord(SQUAT_DAY_ONE);
+
+        assertEquals(List.of(BENCH_DAY_ONE, BENCH_DAY_TWO), updatedHistory.asUnmodifiableList());
+        assertEquals(2, updatedHistory.size());
+        assertEquals(3, history.size()); // original unchanged
+    }
+
+    @Test
+    public void withoutRecord_latestRecord_latestFallsBackToPreviousRecord() {
+        PerformanceHistory history = new PerformanceHistory(List.of(BENCH_DAY_ONE, SQUAT_DAY_ONE, BENCH_DAY_TWO));
+
+        // removing the record with the latest date
+        assertEquals(Optional.of(SQUAT_DAY_ONE), history.withoutRecord(BENCH_DAY_TWO).getLatest());
+
+        // removing the last-recorded record of a same-date tie
+        PerformanceHistory sameDate = new PerformanceHistory(List.of(BENCH_DAY_ONE, SQUAT_DAY_ONE));
+        assertEquals(Optional.of(BENCH_DAY_ONE), sameDate.withoutRecord(SQUAT_DAY_ONE).getLatest());
+
+        // removing an older record leaves the latest unchanged
+        assertEquals(Optional.of(BENCH_DAY_TWO), history.withoutRecord(BENCH_DAY_ONE).getLatest());
+    }
+
+    @Test
+    public void withoutRecord_onlyRecord_leavesEmptyHistory() {
+        PerformanceHistory history = new PerformanceHistory(List.of(BENCH_DAY_ONE));
+
+        PerformanceHistory updatedHistory = history.withoutRecord(BENCH_DAY_ONE);
+
+        assertEquals(new PerformanceHistory(), updatedHistory);
+        assertEquals(Optional.empty(), updatedHistory.getLatest());
+    }
+
+    @Test
+    public void withoutRecord_matchesSameEntryAndIgnoresMissingRecord() {
+        PerformanceHistory history = new PerformanceHistory(List.of(BENCH_DAY_ONE, SQUAT_DAY_ONE));
+
+        // a record for the same exercise and date with different results identifies the same entry
+        assertEquals(List.of(SQUAT_DAY_ONE),
+                history.withoutRecord(performance(DAY_ONE, "bench press", 1, 1, "0")).asUnmodifiableList());
+
+        // a record that is not in the history leaves it unchanged
+        assertEquals(history, history.withoutRecord(BENCH_DAY_TWO));
+
+        assertThrows(NullPointerException.class, () -> history.withoutRecord(null));
+    }
+
+    @Test
     public void withRecord_newEntry_appendsRecord() {
         PerformanceHistory history = new PerformanceHistory(List.of(BENCH_DAY_ONE));
 
