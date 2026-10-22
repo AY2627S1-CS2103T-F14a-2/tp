@@ -224,6 +224,49 @@ and displayed list. The failed measurement is not retained in memory.
 
 <!-- AI assistance: OpenAI Codex helped draft the measurement command documentation. -->
 
+### Deleting a body measurement: `deletemeasure`
+
+Removes one measurement recorded for the wrong date or type.
+
+Format: `deletemeasure INDEX d/DATE t/TYPE`
+
+* `INDEX` is the positive index in the currently displayed client list, including filtered results.
+* `DATE` must be a real date in `yyyy-MM-dd` format, with a year from 0001 to 9999.
+  Future dates are accepted so that records loaded from a manually edited data file can still be removed.
+* `TYPE` is case-insensitive: `weight`, `bodyfat` or `waist`. No measurement value is needed.
+* Each prefix must appear exactly once; prefixes may appear in any order. Surrounding whitespace is ignored.
+* Only the measurement matching both date and type is deleted. Other measurements, contact details, tags,
+  the next session and gym-performance records are kept. The active client filter is kept.
+* The client card immediately shows the remaining record count and latest measurement, using the same
+  same-date type order as `measure`. Deleting the final measurement shows `Latest measurement: -`.
+* Deletions are saved automatically and remain deleted after restarting Spotter.
+
+Example: run `list`, identify your intended client's index, and use that index in place of `1` below.
+
+1. `measure 1 d/2026-09-12 t/weight v/72.4` records a weight measurement.
+2. `deletemeasure 1 d/2026-09-12 t/weight` deletes that measurement.
+
+For a client named Alex Tan, the deletion produces:
+
+```text
+Deleted measurement for Alex Tan: weight = 72.4 kg on 2026-09-12.
+```
+
+Repeating the deletion produces `No measurement record for weight on 2026-09-12 was found for Alex Tan.`
+and leaves the data unchanged.
+
+| Input problem | Message |
+| --- | --- |
+| Missing or repeated prefix, missing or non-numeric index | `Invalid command format. Use: deletemeasure INDEX d/DATE t/TYPE` |
+| Zero, negative, overflowing or out-of-range index | `The client index provided is invalid.` |
+| Date not in `yyyy-MM-dd` format | `The date must use the format yyyy-MM-dd.` |
+| Date in the right format that does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.` |
+| Unsupported or empty type | `Measurement type must be weight, bodyfat, or waist.` |
+
+Validation errors include the expected command format. A missing-record error does not include usage.
+Errors leave data unchanged. If saving fails, Spotter shows `Unable to save Spotter data.` and restores
+the previous records and displayed list.
+
 ### Recording a gym performance: `performance`
 
 Records a client's result for one exercise on a given date, so that you can track their training progress.
@@ -469,5 +512,7 @@ Action     | Format, Examples
 **Sessions on date** | `sessions d/DATE`<br> e.g., `sessions d/2026-12-15`
 **Measure** | `measure INDEX d/DATE t/TYPE v/VALUE`<br> e.g., `measure 1 d/2026-09-12 t/weight v/72.4`
 **Performance** | `performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`<br> e.g., `performance 2 d/2026-09-18 e/Bench Press s/3 r/8 w/60`
+**Delete measurement** | `deletemeasure INDEX d/DATE t/TYPE`<br> e.g., `deletemeasure 1 d/2026-09-12 t/weight`
+
 **Delete performance** | `deleteperformance INDEX d/DATE e/EXERCISE`<br> e.g., `deleteperformance 2 d/2026-09-18 e/Bench Press`
 **Help**   | `help`
