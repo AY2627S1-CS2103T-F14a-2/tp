@@ -17,6 +17,7 @@
   and documenting the v1.3 next-session feature, including parsing, client integration, JSON storage, sorting,
   and the client card row.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #64 changes (the `list` command messages, undoing changes when saving fails, the damaged data file warning, the client card phone and email rows, and the related tests and User Guide wording) on 2026-10-15. The changes were reviewed and tested by the author.
+* AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #79 changes (the tests for data files with invalid values, the `view` sequence diagram and "View client history" section, and the related manual testing steps) on 2026-10-22. The changes were reviewed and tested by the author.
 * Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the client `add`/`delete` changes for v1.3 (removing address, optional email, name and phone limits, Spotter messages). All generated code was reviewed and tested before committing.
 
 --------------------------------------------------------------------------------------------------------------------
@@ -932,6 +933,8 @@ editing the file. Keep the backup until all tests are complete.
    1. Enter `list`, then `exit`.<br>
       Expected: The data file still contains phone number `12`. Other invalid values, such as an email without
       `@`, a measurement outside its range, or two measurements of the same type on the same date, behave the same.
+      Exception: a measurement or performance dated in the future is not invalid. Spotter loads it normally,
+      because future dates are only rejected when a record is entered with a command.
 
 1. Restoring a valid backup
 
