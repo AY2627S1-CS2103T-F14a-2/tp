@@ -2,6 +2,7 @@ package seedu.address.model.person;
 
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -71,6 +72,18 @@ public class Person {
 
     public List<Measurement> getMeasurements() {
         return measurements;
+    }
+
+    /**
+     * Returns a copy without measurements matching the given date and type, preserving all other client data.
+     * A missing record leaves the measurement contents unchanged.
+     */
+    public Person withoutMeasurement(LocalDate date, MeasurementType type) {
+        requireAllNonNull(date, type);
+        List<Measurement> remaining = measurements.stream()
+                .filter(record -> !record.getDate().equals(date) || record.getType() != type)
+                .toList();
+        return new Person(name, phone, email, tags, nextSession, remaining, performanceHistory);
     }
 
     /**
