@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.testutil.TypicalGymPerformances.SQUAT;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -67,6 +68,31 @@ public class PersonMeasurementTest {
                 new BigDecimal("72.4"))));
         assertFalse(WEIGHT.isSameMeasurement(new Measurement(DATE, MeasurementType.WAIST,
                 new BigDecimal("72.4"))));
+    }
+
+    @Test
+    public void withoutMeasurement_removesOnlyMatchingDateAndTypeAndPreservesOtherData() {
+        Measurement older = new Measurement(DATE.minusDays(1), MeasurementType.WEIGHT, new BigDecimal("73"));
+        Measurement waist = new Measurement(DATE, MeasurementType.WAIST, new BigDecimal("81"));
+        Person original = new PersonBuilder().withNextSession("2026-10-23 17:00")
+                .withGymPerformances(SQUAT)
+                .withMeasurements(older, WEIGHT, waist).build();
+        Person updated = original.withoutMeasurement(DATE, MeasurementType.WEIGHT);
+
+        assertEquals(new PersonBuilder(original).withMeasurements(older, waist).build(), updated);
+        assertEquals(List.of(older, WEIGHT, waist), original.getMeasurements());
+        assertThrows(UnsupportedOperationException.class, () -> updated.getMeasurements().clear());
+    }
+
+    @Test
+    public void withoutMeasurement_onlyOrMissingRecord_handlesEmptyHistory() {
+        Person original = new PersonBuilder().withMeasurements(WEIGHT).build();
+        assertEquals(original, original.withoutMeasurement(DATE.minusDays(1), MeasurementType.WEIGHT));
+        Person empty = original.withoutMeasurement(DATE, MeasurementType.WEIGHT);
+        assertEquals(new PersonBuilder(original).withMeasurements().build(), empty);
+        assertEquals(empty, empty.withoutMeasurement(DATE, MeasurementType.WEIGHT));
+        assertThrows(NullPointerException.class, () -> original.withoutMeasurement(null, MeasurementType.WEIGHT));
+        assertThrows(NullPointerException.class, () -> original.withoutMeasurement(DATE, null));
     }
 
     @Test

@@ -209,7 +209,8 @@ Common errors:
 | --- | --- |
 | Missing or repeated prefix | `Invalid command format. Use: measure INDEX d/DATE t/TYPE v/VALUE` |
 | Invalid client index | `The client index provided is invalid.` |
-| Invalid date or date format | `The date must use the format yyyy-MM-dd.` |
+| Date not in `yyyy-MM-dd` format | `The date must use the format yyyy-MM-dd.` |
+| Date in the right format that does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.` |
 | Future date | `The measurement date cannot be in the future.` |
 | Unsupported type | `Measurement type must be weight, bodyfat, or waist.` |
 | Non-numeric value | `Measurement value must be numeric.` |
@@ -222,6 +223,49 @@ If saving fails, Spotter displays `Unable to save Spotter data` and restores the
 and displayed list. The failed measurement is not retained in memory.
 
 <!-- AI assistance: OpenAI Codex helped draft the measurement command documentation. -->
+
+### Deleting a body measurement: `deletemeasure`
+
+Removes one measurement recorded for the wrong date or type.
+
+Format: `deletemeasure INDEX d/DATE t/TYPE`
+
+* `INDEX` is the positive index in the currently displayed client list, including filtered results.
+* `DATE` must be a real date in `yyyy-MM-dd` format, with a year from 0001 to 9999.
+  Future dates are accepted so that records loaded from a manually edited data file can still be removed.
+* `TYPE` is case-insensitive: `weight`, `bodyfat` or `waist`. No measurement value is needed.
+* Each prefix must appear exactly once; prefixes may appear in any order. Surrounding whitespace is ignored.
+* Only the measurement matching both date and type is deleted. Other measurements, contact details, tags,
+  the next session and gym-performance records are kept. The active client filter is kept.
+* The client card immediately shows the remaining record count and latest measurement, using the same
+  same-date type order as `measure`. Deleting the final measurement shows `Latest measurement: -`.
+* Deletions are saved automatically and remain deleted after restarting Spotter.
+
+Example: run `list`, identify your intended client's index, and use that index in place of `1` below.
+
+1. `measure 1 d/2026-09-12 t/weight v/72.4` records a weight measurement.
+2. `deletemeasure 1 d/2026-09-12 t/weight` deletes that measurement.
+
+For a client named Alex Tan, the deletion produces:
+
+```text
+Deleted measurement for Alex Tan: weight = 72.4 kg on 2026-09-12.
+```
+
+Repeating the deletion produces `No measurement record for weight on 2026-09-12 was found for Alex Tan.`
+and leaves the data unchanged.
+
+| Input problem | Message |
+| --- | --- |
+| Missing or repeated prefix, missing or non-numeric index | `Invalid command format. Use: deletemeasure INDEX d/DATE t/TYPE` |
+| Zero, negative, overflowing or out-of-range index | `The client index provided is invalid.` |
+| Date not in `yyyy-MM-dd` format | `The date must use the format yyyy-MM-dd.` |
+| Date in the right format that does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.` |
+| Unsupported or empty type | `Measurement type must be weight, bodyfat, or waist.` |
+
+Validation errors include the expected command format. A missing-record error does not include usage.
+Errors leave data unchanged. If saving fails, Spotter shows `Unable to save Spotter data.` and restores
+the previous records and displayed list.
 
 ### Recording a gym performance: `performance`
 
@@ -259,7 +303,8 @@ Problem | Message
 --------|--------
 A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invalid command format. Use: performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`
 `INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
-`DATE` is not a real date in `yyyy-MM-dd` format | `The date must use the format yyyy-MM-dd.`
+`DATE` is not in `yyyy-MM-dd` format | `The date must use the format yyyy-MM-dd.`
+`DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
 `DATE` is in the future | `The performance date cannot be in the future.`
 `EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only letters, numbers, spaces, hyphens, and apostrophes.`
 `SETS` is invalid | `The number of sets must be a whole number between 1 and 100.`
@@ -267,6 +312,98 @@ A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invali
 `LOAD` is not a number | `Exercise load must be numeric.`
 `LOAD` is outside 0 to 1000 | `Exercise load must be between 0 and 1000 kg.`
 `LOAD` has more than two decimal places | `Exercise load may have at most two decimal places.`
+
+### Deleting a gym performance: `deleteperformance`
+
+Deletes one of a client's gym-performance records, for example a record entered by mistake.
+
+Format: `deleteperformance INDEX d/DATE e/EXERCISE`
+
+* Deletes the record for `EXERCISE` on `DATE` for the client at the specified `INDEX`, as shown in the displayed
+  client list.
+* Each prefix must appear exactly once. The prefixes can be in any order.
+* `EXERCISE` is matched ignoring letter case and extra spaces, so `bench press` matches a record for `Bench Press`.
+* `DATE` uses the `yyyy-MM-dd` format. Unlike `performance`, a future date is accepted, so that a future-dated
+  record in an edited data file can still be deleted.
+* The client's other records, next session and body measurements are not changed.
+* The client's card is updated straight away: the latest performance and the record count are recalculated from
+  the remaining records. If no records remain, the card shows `Latest performance: -`.
+
+Examples:
+* `deleteperformance 2 d/2026-09-18 e/Bench Press` deletes the bench press record of 18 Sep 2026 and shows
+  `Deleted performance for <client name>: Bench Press, 3 sets of 8 reps at 60 kg on 2026-09-18.`
+* `deleteperformance 1 d/2026-09-15 e/squat` deletes the squat record of 15 Sep 2026.
+
+To change a record instead of deleting it, use `performance` with the same date and exercise to replace it.
+
+If the command is not accepted, Spotter shows the reason and no record is deleted. Except when no matching record
+is found, the reason is followed by the expected format:
+
+Problem | Message
+--------|--------
+A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invalid command format. Use: deleteperformance INDEX d/DATE e/EXERCISE`
+`INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
+`DATE` is not in `yyyy-MM-dd` format | `The date must use the format yyyy-MM-dd.`
+`DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
+`EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only letters, numbers, spaces, hyphens, and apostrophes.`
+The client has no record for that exercise on that date | `No performance record for <exercise> on <date> was found for <client name>.`
+
+### Viewing a client's history: `view`
+
+Shows one client's details together with all of their measurements and gym performances, so that you can review
+their progress before a session.
+
+Format: `view INDEX`
+
+* Shows the client at the specified `INDEX`, as shown in the displayed client list.
+* The index **must be a positive integer** 1, 2, 3, ...
+* The details appear in the result box below the command box. The client list and cards do not change, and no data is changed.
+* The result box shows only a few lines at a time and does not get taller when you enlarge the window.
+  For a client with a long history, scroll inside the result box to see all of their records.
+* Records are listed with the newest date first.
+  * Measurements on the same date are listed in the order weight, body fat, waist.
+  * Performances on the same date are listed with the one recorded last first, so the first performance line
+    always matches the card's `Latest performance`.
+* `Next session` shows the same text as the client's card.
+* Tags are listed alphabetically. A client with no email or no tags shows `-`.
+
+Examples:
+* `list` followed by `view 2` shows the history of the 2nd client in Spotter.
+* `find Alex` followed by `view 1` shows the history of the 1st client in the results of the `find` command.
+
+For a client named Alex Tan with three measurements and two performances, `view 1` shows:
+
+```text
+Alex Tan
+Phone: 9123 4567
+Email: alex@example.com
+Next session: Fri 23 Oct, 6:00pm
+Tags: knee, rehab
+
+Measurements (3 records, newest first):
+2026-10-12  weight 72.4 kg
+2026-10-12  waist 81 cm
+2026-09-30  weight 73 kg
+
+Performance (2 records, newest first):
+2026-10-15  Squat, 3 sets of 5 reps at 100 kg
+2026-10-01  Bench Press, 3 sets of 8 reps at 60 kg
+```
+
+A client with no records of a kind shows `Measurements: none recorded yet.` or `Performance: none recorded yet.`
+instead of that list. A single record is shown as `(1 record, newest first)`.
+
+Problem | Message
+--------|--------
+`INDEX` is missing or not a whole number, or there is extra text after it | `Invalid command format!` followed by the expected format
+`INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
+
+<box type="tip" seamless>
+
+**Tip:** `view` shows the client's records at the moment you run it. Re-run `view` after changing that client's records to see the latest history.
+</box>
+
+<!-- AI assistance: Claude Code helped draft the view command documentation. -->
 
 ### Clearing all entries: `clear`
 
@@ -432,4 +569,8 @@ Action     | Format, Examples
 **Sessions on date** | `sessions d/DATE`<br> e.g., `sessions d/2026-12-15`
 **Measure** | `measure INDEX d/DATE t/TYPE v/VALUE`<br> e.g., `measure 1 d/2026-09-12 t/weight v/72.4`
 **Performance** | `performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`<br> e.g., `performance 2 d/2026-09-18 e/Bench Press s/3 r/8 w/60`
+**Delete measurement** | `deletemeasure INDEX d/DATE t/TYPE`<br> e.g., `deletemeasure 1 d/2026-09-12 t/weight`
+
+**Delete performance** | `deleteperformance INDEX d/DATE e/EXERCISE`<br> e.g., `deleteperformance 2 d/2026-09-18 e/Bench Press`
+**View** | `view INDEX`<br> e.g., `view 1`
 **Help**   | `help`

@@ -13,6 +13,8 @@ import seedu.address.logic.commands.CancelSessionCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.DeleteCommand;
+import seedu.address.logic.commands.DeleteMeasureCommand;
+import seedu.address.logic.commands.DeletePerformanceCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FilterCommand;
@@ -23,6 +25,7 @@ import seedu.address.logic.commands.MeasureCommand;
 import seedu.address.logic.commands.PerformanceCommand;
 import seedu.address.logic.commands.SessionCommand;
 import seedu.address.logic.commands.SessionsCommand;
+import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
 /**
@@ -61,7 +64,10 @@ public class AddressBookParser {
             case AddCommand.COMMAND_WORD -> new AddCommandParser().parse(arguments);
             case EditCommand.COMMAND_WORD -> new EditCommandParser().parse(arguments);
             case DeleteCommand.COMMAND_WORD -> new DeleteCommandParser().parse(arguments);
+            case DeletePerformanceCommand.COMMAND_WORD -> new DeletePerformanceCommandParser().parse(arguments);
+            case ViewCommand.COMMAND_WORD -> new ViewCommandParser().parse(arguments);
             case MeasureCommand.COMMAND_WORD -> new MeasureCommandParser().parse(arguments);
+            case DeleteMeasureCommand.COMMAND_WORD -> new DeleteMeasureCommandParser().parse(arguments);
             case ClearCommand.COMMAND_WORD -> new ClearCommand();
             case FindCommand.COMMAND_WORD -> new FindCommandParser().parse(arguments);
             case FilterCommand.COMMAND_WORD -> new FilterCommandParser().parse(arguments);

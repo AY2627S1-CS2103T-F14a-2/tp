@@ -25,14 +25,14 @@ public class CancelSessionCommandParserTest {
 
     @Test
     public void parse_missingOrExtraArguments_failure() {
-        for (String input : List.of("", " ", "Sarah", "1 2", "1.0", "1 n/Sarah", "n/Sarah", "1 d/2026-10-22")) {
+        for (String input : List.of("", " ", "Sarah", "1 2", "1.0", "+1", "1 n/Sarah", "n/Sarah", "1 d/2026-10-22")) {
             assertParseFailure(parser, input, CancelSessionCommand.MESSAGE_INVALID_FORMAT);
         }
     }
 
     @Test
     public void parse_invalidIndex_failure() {
-        for (String input : List.of("0", "-1", "+1", "2147483648", "999999999999999999999")) {
+        for (String input : List.of("0", "-1", "2147483648", "999999999999999999999")) {
             assertParseFailure(parser, input, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         }
     }

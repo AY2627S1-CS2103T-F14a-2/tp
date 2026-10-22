@@ -21,4 +21,10 @@ public class MessagesTest {
                 Messages.format(new PersonBuilder().withName("Sarah Lim").withPhone("91234567")
                         .withoutEmail().build()));
     }
+
+    @Test
+    public void withUsage_appendsUsageOnNewLine() {
+        assertEquals("The client index provided is invalid.\nUse: view INDEX",
+                Messages.withUsage("The client index provided is invalid.", "view INDEX"));
+    }
 }

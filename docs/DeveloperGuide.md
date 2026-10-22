@@ -13,6 +13,10 @@
 
 ## **Acknowledgements**
 
+* Helen (He Jingqi) used OpenAI Codex to assist with implementing, testing and documenting
+  the v1.4 measurement deletion feature for issue #84, including its model operation, command, parser,
+  persistence tests and sequence diagram.
+
 * Gabriel Wan used [OpenAI Codex](https://openai.com/codex/) to assist with implementing, testing,
   and documenting the v1.3 next-session feature, including parsing, client integration, JSON storage, sorting,
   and the client card row, and the v1.4 session cancellation/date-filter commands, tests and documentation.
@@ -198,6 +202,29 @@ Design notes:
     when the client is edited or deleted.
 
 <!-- AI assistance: Claude Code helped draft this section and its sequence diagram. -->
+
+### Deleting body measurements
+
+`deletemeasure INDEX d/DATE t/TYPE` removes one measurement from the client at the displayed index.
+`DeleteMeasureCommandParser` validates the index, date and measurement type. The shared
+`ParserUtil#parseExistingRecordDate` accepts future dates because human-edited storage can contain them;
+`parseRecordDate` adds the existing future-date restriction for recording measurements and performances.
+
+`DeleteMeasureCommand` looks up the client through `Model#getFilteredPersonList()` and finds the record
+by date and type. A missing record raises a `CommandException` before any state changes.
+`Person#withoutMeasurement` creates an immutable copy with that record removed, preserving all contact,
+session and performance data. `Model#setPerson` replaces the original client without changing the filter.
+The card derives its latest measurement and count from the updated list, including same-date type ties
+and the empty state. History consumers read `Person#getMeasurements()` from the updated client; a
+previously formatted history result is a snapshot and must be requested again after deletion.
+
+<puml src="diagrams/DeleteMeasureSequenceDiagram.puml" alt="Measurement deletion sequence" />
+
+`LogicManager` saves the changed address book using the existing storage format. If saving fails,
+it restores the previous address book and filter and reports `Unable to save Spotter data.`
+No storage schema change or separate cached record count is needed. Keeping counts derived from the
+measurement list avoids stale summary data after deletion.
+
 ### Session cancellation and date filtering
 
 `cancelsession INDEX` removes the current displayed client's single recorded session.
@@ -919,6 +946,93 @@ run `list` and substitute that client's displayed index for `1` below.
    Expected: The measurement row remains readable and does not overlap neighbouring cards.
 
 <!-- AI assistance: OpenAI Codex helped draft measurement acceptance tests. -->
+
+### Deleting body measurements
+
+Use fictional data in a disposable test folder. Run `list`, choose a client, and substitute that client's
+displayed index for `1` below. Start with no measurements for that client and retain a session and a
+performance record to check that unrelated data survives deletion.
+
+1. Run `measure 1 d/2026-09-11 t/weight v/73`, `measure 1 d/2026-09-12 t/waist v/81`,
+   and `measure 1 d/2026-09-12 t/weight v/72.4`.
+   Expected: latest weight 72.4 kg with three records.
+2. Run `deletemeasure 1 d/2026-09-12 t/weight`.
+   Expected: a deletion message; the card shows waist 81 cm with two records.
+3. Run `deletemeasure 1 d/2026-09-12 t/waist`.
+   Expected: the card shows weight 73 kg on 11 Sep with one record.
+4. Restart Spotter, run `list` and locate the same client again.
+   Expected: only the 11 Sep measurement remains; contact details, session and performance are unchanged.
+5. Filter to the client using `find`, then use its displayed index to delete the remaining measurement.
+   Expected: the filter is preserved and the card shows `Latest measurement: -`.
+6. Repeat that deletion, then try `deletemeasure 1 d/2026-02-30 t/weight`,
+   `deletemeasure 0 d/2026-09-12 t/weight`, and `deletemeasure 1 d/2026-09-12 t/height`.
+   Expected: missing-record, date, index and type errors respectively; no data changes.
+7. Run `measure 1 d/2026-09-12 t/weight v/70`, then repeat it with `v/71`.
+   Expected: recorded then updated messages; one measurement remains after restart.
+
+The automated `DeleteMeasurePersistenceTest` additionally checks deletion of future-dated records loaded
+from storage and rollback of records, the active filter and the saved file after an I/O or permission failure.
+`PersonCardTest` checks latest-record fallback, same-date ties, singular/plural counts and the final empty state.
+
+### Recording and deleting gym performances
+
+Use fictional data in a disposable test folder. Start with a client without performance records,
+run `list` and substitute that client's displayed index for `1` below. `NAME` is that client's name.
+
+1. Recording and replacing records
+
+   1. Enter `performance 1 d/2026-09-18 e/Bench Press s/3 r/8 w/60`.<br>
+      Expected: `Recorded performance for NAME: Bench Press, 3 sets of 8 reps at 60 kg on 2026-09-18.`
+      The card shows `Latest performance: 18 Sep - Bench Press, 3 sets of 8 reps at 60 kg (1 record)`.
+   1. Enter `performance 1 d/2026-09-15 e/Squat s/3 r/5 w/100`.<br>
+      Expected: A new record is added. The card still shows the 18 Sep bench press, now with `(2 records)`.
+   1. Enter `performance 1 d/2026-09-18 e/bench press s/4 r/6 w/62.5`.<br>
+      Expected: `Updated performance for NAME: bench press, 4 sets of 6 reps at 62.5 kg on 2026-09-18.`
+      The card shows the new values and the count stays at two.
+
+1. Deleting the latest record while keeping other data
+
+   1. Enter `session 1 d/DATE t/1800`, using any future date, then `measure 1 d/2026-09-12 t/weight v/72.4`.<br>
+      Expected: The card shows the next session and `Latest measurement: 12 Sep - weight 72.4 kg (1 record)`.
+   1. Enter `deleteperformance 1 d/2026-09-18 e/Bench Press`.<br>
+      Expected: `Deleted performance for NAME: bench press, 4 sets of 6 reps at 62.5 kg on 2026-09-18.`
+      The card shows `Latest performance: 15 Sep - Squat, 3 sets of 5 reps at 100 kg (1 record)`.
+      The next session and latest measurement rows are unchanged.
+
+1. Rejected deletions
+
+   1. Enter `deleteperformance 1 d/2026-09-18 e/Squat`, then `deleteperformance 1 d/2026-09-14 e/Squat`.<br>
+      Expected: `No performance record for Squat on 2026-09-18 was found for NAME.`, then the same message for
+      2026-09-14. The expected command format is not shown, and the card is unchanged.
+   1. Enter `deleteperformance 1 d/15-09-2026 e/Squat`, then `deleteperformance 1 d/2026-02-30 e/Squat`.<br>
+      Expected: `The date must use the format yyyy-MM-dd.`, then `2026-02-30 is not a real date.`,
+      each followed by the expected command format. The card is unchanged.
+   1. Try a missing `e/` prefix, a repeated `d/` prefix, and an index outside the displayed list.<br>
+      Expected: Each command is rejected with an error and the expected command format, without changing records.
+
+1. Persistence after restarting
+
+   1. Enter `exit` and relaunch Spotter.<br>
+      Expected: The card still shows the 15 Sep squat with `(1 record)`, together with the session and measurement.
+
+1. Recovering from a failed save
+
+   1. Enter `exit`. Make `data/spotter.json` read-only (on Windows, tick *Read-only* in the file's *Properties*;
+      on macOS or Linux, run `chmod 444 data/spotter.json`), then relaunch Spotter.
+   1. Enter `deleteperformance 1 d/2026-09-15 e/Squat`.<br>
+      Expected: `Unable to save Spotter data.` The card still shows the 15 Sep squat with `(1 record)`.
+   1. Enter `exit`, make the data file writable again, and relaunch Spotter.<br>
+      Expected: The squat record is still present.
+
+1. Deleting the final record
+
+   1. Enter `deleteperformance 1 d/2026-09-15 e/squat`.<br>
+      Expected: `Deleted performance for NAME: Squat, 3 sets of 5 reps at 100 kg on 2026-09-15.`
+      The card shows `Latest performance: -`.
+   1. Enter `exit` and relaunch Spotter.<br>
+      Expected: The card still shows `Latest performance: -`, while the session and measurement remain.
+
+<!-- AI assistance: Claude (Anthropic) helped draft these gym-performance manual tests. -->
 
 ### Cancelling and listing sessions
 

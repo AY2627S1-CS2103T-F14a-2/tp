@@ -4,7 +4,10 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -73,6 +76,29 @@ public final class PerformanceHistory {
     }
 
     /**
+     * Returns the record for {@code exerciseName} on {@code date}, if any.
+     * Exercise names are matched ignoring letter case and extra spaces, as in {@link ExerciseName}.
+     */
+    public Optional<GymPerformance> find(LocalDate date, ExerciseName exerciseName) {
+        requireAllNonNull(date, exerciseName);
+        return records.stream()
+                .filter(record -> record.getDate().equals(date) && record.getExerciseName().equals(exerciseName))
+                .findFirst();
+    }
+
+    /**
+     * Returns a copy of this history without the record for the same exercise on the same date as {@code record}.
+     * The other records keep their recording order, so the latest record and the count are recalculated
+     * from what remains.
+     */
+    public PerformanceHistory withoutRecord(GymPerformance record) {
+        requireNonNull(record);
+        List<GymPerformance> updatedRecords = new ArrayList<>(records);
+        updatedRecords.removeIf(record::isSameEntry);
+        return new PerformanceHistory(updatedRecords);
+    }
+
+    /**
      * Returns a copy of this history with {@code record} added as the most recently recorded entry.
      * Any existing record for the same exercise on the same date is removed, so a replacement
      * also counts as a new recording.
@@ -90,13 +116,20 @@ public final class PerformanceHistory {
      * the one recorded last is returned.
      */
     public Optional<GymPerformance> getLatest() {
-        GymPerformance latest = null;
-        for (GymPerformance record : records) {
-            if (latest == null || !record.getDate().isBefore(latest.getDate())) {
-                latest = record;
-            }
-        }
-        return Optional.ofNullable(latest);
+        return getNewestFirst().stream().findFirst();
+    }
+
+    /**
+     * Returns the records as an unmodifiable list sorted from the newest date to the oldest.
+     * Records on the same date are ordered from the most recently recorded, so the first record is always
+     * the one returned by {@link #getLatest()}. This keeps a client's card and full history consistent.
+     */
+    public List<GymPerformance> getNewestFirst() {
+        List<GymPerformance> newestFirst = new ArrayList<>(records);
+        // Reversing puts later recordings first; the stable sort then keeps that order within each date.
+        Collections.reverse(newestFirst);
+        newestFirst.sort(Comparator.comparing(GymPerformance::getDate).reversed());
+        return List.copyOf(newestFirst);
     }
 
     public int size() {

@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.util.stream.Stream;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.PerformanceCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.progress.ExerciseName;
@@ -29,9 +30,6 @@ public class PerformanceCommandParser implements Parser<PerformanceCommand> {
 
     private static final Prefix[] PREFIXES = {PREFIX_DATE, PREFIX_EXERCISE, PREFIX_SETS, PREFIX_REPS, PREFIX_LOAD};
 
-    // An index that looks like an integer is reported as an invalid index rather than an invalid format.
-    private static final String INTEGER_REGEX = "[+-]?\\d+";
-
     /**
      * Parses the given {@code String} of arguments in the context of the {@code PerformanceCommand}
      * and returns a {@code PerformanceCommand} object for execution.
@@ -46,38 +44,22 @@ public class PerformanceCommandParser implements Parser<PerformanceCommand> {
         String preamble = argMultimap.getPreamble();
         boolean hasEachPrefixOnce = Stream.of(PREFIXES)
                 .allMatch(prefix -> argMultimap.getAllValues(prefix).size() == 1);
-        if (!hasEachPrefixOnce || !preamble.matches(INTEGER_REGEX)) {
+        if (!hasEachPrefixOnce || !preamble.matches(ParserUtil.INTEGER_REGEX)) {
             throw new ParseException(PerformanceCommand.MESSAGE_INVALID_FORMAT);
         }
 
         try {
-            Index index = parseIndex(preamble);
+            Index index = ParserUtil.parseClientIndex(preamble);
             LocalDate date = ParserUtil.parseRecordDate(argMultimap.getValue(PREFIX_DATE).get(),
                     PerformanceCommand.MESSAGE_FUTURE_DATE);
-            ExerciseName exerciseName = parseExerciseName(argMultimap.getValue(PREFIX_EXERCISE).get());
+            ExerciseName exerciseName = ParserUtil.parseExerciseName(argMultimap.getValue(PREFIX_EXERCISE).get());
             int sets = parseSets(argMultimap.getValue(PREFIX_SETS).get());
             int reps = parseReps(argMultimap.getValue(PREFIX_REPS).get());
             Load load = parseLoad(argMultimap.getValue(PREFIX_LOAD).get());
             return new PerformanceCommand(index, new GymPerformance(date, exerciseName, sets, reps, load));
         } catch (ParseException pe) {
-            throw new ParseException(PerformanceCommand.withUsage(pe.getMessage()), pe);
+            throw new ParseException(Messages.withUsage(pe.getMessage(), PerformanceCommand.MESSAGE_USAGE), pe);
         }
-    }
-
-    private static Index parseIndex(String index) throws ParseException {
-        try {
-            return ParserUtil.parseIndex(index);
-        } catch (ParseException pe) {
-            // Zero, negative and overflowing indexes
-            throw new ParseException(PerformanceCommand.MESSAGE_INVALID_INDEX, pe);
-        }
-    }
-
-    private static ExerciseName parseExerciseName(String exerciseName) throws ParseException {
-        if (!ExerciseName.isValidExerciseName(exerciseName)) {
-            throw new ParseException(ExerciseName.MESSAGE_CONSTRAINTS);
-        }
-        return new ExerciseName(exerciseName);
     }
 
     private static int parseSets(String sets) throws ParseException {

@@ -18,6 +18,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.progress.ExerciseName;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -27,8 +28,10 @@ public class ParserUtil {
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
 
     // Numeric-looking input uses the client-index error; other input uses the caller's format error.
-    public static final String INTEGER_REGEX = "[+-]?\\d+";
+    // A leading "+" is a format error, so "+1" is not reported as an invalid index when client 1 exists.
+    public static final String INTEGER_REGEX = "-?\\d+";
     public static final String MESSAGE_INVALID_RECORD_DATE = "The date must use the format yyyy-MM-dd.";
+    public static final String MESSAGE_NONEXISTENT_RECORD_DATE = "%s is not a real date.";
 
     public static final String MESSAGE_SESSION_DATE_FORMAT =
             "Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).";
@@ -134,6 +137,20 @@ public class ParserUtil {
     }
 
     /**
+     * Parses a {@code String exerciseName} into an {@code ExerciseName}.
+     * Leading, trailing and repeated spaces are normalised by {@code ExerciseName}.
+     *
+     * @throws ParseException if the given {@code exerciseName} is invalid.
+     */
+    public static ExerciseName parseExerciseName(String exerciseName) throws ParseException {
+        requireNonNull(exerciseName);
+        if (!ExerciseName.isValidExerciseName(exerciseName)) {
+            throw new ParseException(ExerciseName.MESSAGE_CONSTRAINTS);
+        }
+        return new ExerciseName(exerciseName);
+    }
+
+    /**
      * Parses the date of a progress record, such as a body measurement or a gym performance,
      * ignoring surrounding whitespace.
      * The date must be a real calendar date in yyyy-MM-dd format with a year from 0001, and must not be
@@ -143,23 +160,38 @@ public class ParserUtil {
      * @throws ParseException if the date is malformed, does not exist, or is in the future.
      */
     public static LocalDate parseRecordDate(String date, String futureDateMessage) throws ParseException {
-        requireNonNull(date);
         requireNonNull(futureDateMessage);
+        LocalDate parsedDate = parseExistingRecordDate(date);
+        if (parsedDate.isAfter(LocalDate.now())) {
+            throw new ParseException(futureDateMessage);
+        }
+        return parsedDate;
+    }
+
+    /**
+     * Parses the date that identifies an existing progress record, ignoring surrounding whitespace.
+     * The date must be a real calendar date in yyyy-MM-dd format with a year from 0001.
+     * Unlike {@link #parseRecordDate(String, String)}, future dates are accepted, because a record with a
+     * future date may have been loaded from an edited data file and must still be removable.
+     *
+     * @throws ParseException if the date is malformed or does not exist.
+     */
+    public static LocalDate parseExistingRecordDate(String date) throws ParseException {
+        requireNonNull(date);
         String trimmedDate = date.trim();
         if (!trimmedDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
             throw new ParseException(MESSAGE_INVALID_RECORD_DATE);
         }
+        // The format is right from here on, so any remaining problem is a date that does not exist
+        String nonexistentDateMessage = String.format(MESSAGE_NONEXISTENT_RECORD_DATE, trimmedDate);
         final LocalDate parsedDate;
         try {
             parsedDate = LocalDate.parse(trimmedDate, DATE_FORMATTER);
         } catch (DateTimeParseException e) {
-            throw new ParseException(MESSAGE_INVALID_RECORD_DATE, e);
+            throw new ParseException(nonexistentDateMessage, e);
         }
         if (parsedDate.getYear() == 0) {
-            throw new ParseException(MESSAGE_INVALID_RECORD_DATE);
-        }
-        if (parsedDate.isAfter(LocalDate.now())) {
-            throw new ParseException(futureDateMessage);
+            throw new ParseException(nonexistentDateMessage);
         }
         return parsedDate;
     }

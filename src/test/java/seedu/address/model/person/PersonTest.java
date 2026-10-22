@@ -9,9 +9,12 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalGymPerformances.BENCH_PRESS;
+import static seedu.address.testutil.TypicalGymPerformances.SQUAT;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -160,6 +163,21 @@ public class PersonTest {
                 4, 6, new Load("65"));
 
         assertEquals(List.of(correctedBench), alice.withGymPerformance(correctedBench).getGymPerformances());
+    }
+
+    @Test
+    public void withoutGymPerformance_preservesSessionMeasurementsAndOtherRecords() {
+        Measurement weight = new Measurement(LocalDate.of(2026, 9, 12), MeasurementType.WEIGHT,
+                new BigDecimal("72.4"));
+        Person alice = new PersonBuilder(ALICE).withNextSession("2026-10-12 17:00").withMeasurements(weight)
+                .withGymPerformances(BENCH_PRESS, SQUAT).build();
+
+        Person updatedAlice = alice.withoutGymPerformance(BENCH_PRESS);
+
+        Person expected = new PersonBuilder(ALICE).withNextSession("2026-10-12 17:00").withMeasurements(weight)
+                .withGymPerformances(SQUAT).build();
+        assertEquals(expected, updatedAlice);
+        assertEquals(List.of(BENCH_PRESS, SQUAT), alice.getGymPerformances()); // original unchanged
     }
 
     @Test

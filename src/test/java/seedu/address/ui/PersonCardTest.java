@@ -72,6 +72,29 @@ public class PersonCardTest {
     }
 
     @Test
+    public void formatLatestMeasurement_deletion_recalculatesLatestTieCountAndEmptyState() {
+        Person original = new PersonBuilder().withMeasurements(
+                record(DATE.minusDays(1), MeasurementType.WEIGHT, "73"),
+                record(DATE, MeasurementType.WAIST, "81"),
+                record(DATE, MeasurementType.BODYFAT, "18.4"),
+                record(DATE, MeasurementType.WEIGHT, "72.4")).build();
+        Person withoutOlder = original.withoutMeasurement(DATE.minusDays(1), MeasurementType.WEIGHT);
+        assertEquals("Latest measurement: 12 Sep - weight 72.4 kg (3 records)",
+                PersonCard.formatLatestMeasurement(withoutOlder.getMeasurements()));
+        Person withoutWeight = original.withoutMeasurement(DATE, MeasurementType.WEIGHT);
+        assertEquals("Latest measurement: 12 Sep - bodyfat 18.4 % (3 records)",
+                PersonCard.formatLatestMeasurement(withoutWeight.getMeasurements()));
+        Person withoutBodyfat = withoutWeight.withoutMeasurement(DATE, MeasurementType.BODYFAT);
+        assertEquals("Latest measurement: 12 Sep - waist 81 cm (2 records)",
+                PersonCard.formatLatestMeasurement(withoutBodyfat.getMeasurements()));
+        Person olderOnly = withoutBodyfat.withoutMeasurement(DATE, MeasurementType.WAIST);
+        assertEquals("Latest measurement: 11 Sep - weight 73 kg (1 record)",
+                PersonCard.formatLatestMeasurement(olderOnly.getMeasurements()));
+        assertEquals("Latest measurement: -", PersonCard.formatLatestMeasurement(
+                olderOnly.withoutMeasurement(DATE.minusDays(1), MeasurementType.WEIGHT).getMeasurements()));
+    }
+
+    @Test
     public void formatLatestPerformance_oneRecord_usesSingularCount() {
         assertEquals("Latest performance: 15 Sep - Squat, 3 sets of 5 reps at 100 kg (1 record)",
                 PersonCard.formatLatestPerformance(new PerformanceHistory(List.of(SQUAT))));
