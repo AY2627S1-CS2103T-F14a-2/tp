@@ -23,8 +23,9 @@ import seedu.address.model.progress.GymPerformance;
  */
 public final class ClientHistoryFormatter {
 
-    static final String NO_EMAIL = "-";
-    static final String NO_SESSION = "- (none booked)";
+    // Also used by the client card, so that the card and view show the same placeholders.
+    public static final String NO_EMAIL = "-";
+    public static final String NO_SESSION = "- (none booked)";
     static final String NO_TAGS = "-";
     static final String NO_MEASUREMENTS = "Measurements: none recorded yet.";
     static final String NO_PERFORMANCES = "Performance: none recorded yet.";

@@ -1,5 +1,8 @@
 package seedu.address.ui;
 
+import static seedu.address.logic.commands.ClientHistoryFormatter.NO_EMAIL;
+import static seedu.address.logic.commands.ClientHistoryFormatter.NO_SESSION;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
@@ -24,7 +27,6 @@ public class PersonCard extends UiPart<Region> {
     private static final String FXML = "PersonListCard.fxml";
     private static final String PHONE_LABEL = "Phone: ";
     private static final String EMAIL_LABEL = "Email: ";
-    private static final String NO_EMAIL = "-";
     private static final String PERFORMANCE_ROW_PREFIX = "Latest performance: ";
 
     // Shared by the measurement and performance rows. An English locale keeps month names,
@@ -71,7 +73,7 @@ public class PersonCard extends UiPart<Region> {
         phone.setText(PHONE_LABEL + PhoneDisplayFormatter.format(person.getPhone().value));
         email.setText(EMAIL_LABEL + getEmailDisplay(person));
         nextSession.setText("Next session: " + person.getNextSession()
-                .map(session -> session.toDisplayString(LocalDateTime.now())).orElse("- (none booked)"));
+                .map(session -> session.toDisplayString(LocalDateTime.now())).orElse(NO_SESSION));
         latestMeasurement.setText(formatLatestMeasurement(person.getMeasurements()));
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
