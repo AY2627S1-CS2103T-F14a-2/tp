@@ -12,6 +12,8 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.index.Index;
+import seedu.address.logic.Messages;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
@@ -51,6 +53,39 @@ public class ParserUtilTest {
 
         // Leading and trailing whitespaces
         assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex("  1  "));
+    }
+
+    @Test
+    public void parseClientIndex_validInput_success() throws Exception {
+        assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseClientIndex(" 1 "));
+        assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseClientIndex(" 1 ", "Expected command format"));
+        assertEquals(Index.fromOneBased(Integer.MAX_VALUE),
+                ParserUtil.parseClientIndex(Integer.toString(Integer.MAX_VALUE), "Expected command format"));
+    }
+
+    @Test
+    public void parseClientIndex_invalidNumber_usesCommonClientIndexError() {
+        for (String index : List.of("0", "-1", "+1", "2147483648", "99999999999999999999")) {
+            assertThrows(ParseException.class, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, () ->
+                    ParserUtil.parseClientIndex(index));
+            assertThrows(ParseException.class, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, () ->
+                    ParserUtil.parseClientIndex(index, "Expected command format"));
+        }
+    }
+
+    @Test
+    public void parseClientIndex_malformedInput_usesCallerFormatError() {
+        for (String input : List.of("", " ", "Sarah", "1 2", "1.5", "1 d/2026-10-22")) {
+            assertThrows(ParseException.class, "Expected command format", () ->
+                    ParserUtil.parseClientIndex(input, "Expected command format"));
+        }
+    }
+
+    @Test
+    public void parseClientIndex_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseClientIndex(null));
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseClientIndex(null, "Expected command format"));
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseClientIndex("1", null));
     }
 
     @Test
