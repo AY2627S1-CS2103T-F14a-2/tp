@@ -168,6 +168,56 @@ public class PerformanceHistoryTest {
     }
 
     @Test
+    public void getNewestFirst() {
+        // empty history
+        assertEquals(List.of(), new PerformanceHistory().getNewestFirst());
+
+        // different dates: newest date first, regardless of recording order
+        assertEquals(List.of(BENCH_DAY_TWO, BENCH_DAY_ONE),
+                new PerformanceHistory(List.of(BENCH_DAY_ONE, BENCH_DAY_TWO)).getNewestFirst());
+        assertEquals(List.of(BENCH_DAY_TWO, BENCH_DAY_ONE),
+                new PerformanceHistory(List.of(BENCH_DAY_TWO, BENCH_DAY_ONE)).getNewestFirst());
+
+        // same date: the most recently recorded first
+        GymPerformance deadliftDayOne = performance(DAY_ONE, "Deadlift", 1, 5, "140");
+        assertEquals(List.of(BENCH_DAY_TWO, deadliftDayOne, SQUAT_DAY_ONE, BENCH_DAY_ONE),
+                new PerformanceHistory(List.of(BENCH_DAY_ONE, SQUAT_DAY_ONE, BENCH_DAY_TWO, deadliftDayOne))
+                        .getNewestFirst());
+    }
+
+    @Test
+    public void getNewestFirst_firstRecord_isLatest() {
+        // the card's latest performance and the first line of the full history must always agree
+        List<PerformanceHistory> histories = List.of(
+                new PerformanceHistory(List.of(BENCH_DAY_ONE, SQUAT_DAY_ONE)),
+                new PerformanceHistory(List.of(SQUAT_DAY_ONE, BENCH_DAY_ONE)),
+                new PerformanceHistory(List.of(BENCH_DAY_TWO, SQUAT_DAY_ONE, BENCH_DAY_ONE)),
+                new PerformanceHistory(List.of(BENCH_DAY_ONE, SQUAT_DAY_ONE)).withRecord(BENCH_DAY_ONE));
+        for (PerformanceHistory history : histories) {
+            assertEquals(Optional.of(history.getNewestFirst().get(0)), history.getLatest());
+        }
+    }
+
+    @Test
+    public void getNewestFirst_afterReplacementAndDeletion_staysSorted() {
+        PerformanceHistory history = new PerformanceHistory(List.of(BENCH_DAY_ONE, SQUAT_DAY_ONE, BENCH_DAY_TWO));
+
+        // a replacement counts as recorded again, so it moves ahead of other records on its date
+        GymPerformance correctedBench = performance(DAY_ONE, "Bench Press", 4, 6, "65");
+        assertEquals(List.of(BENCH_DAY_TWO, correctedBench, SQUAT_DAY_ONE),
+                history.withRecord(correctedBench).getNewestFirst());
+
+        // after a deletion the remaining records keep their order
+        assertEquals(List.of(SQUAT_DAY_ONE, BENCH_DAY_ONE), history.withoutRecord(BENCH_DAY_TWO).getNewestFirst());
+    }
+
+    @Test
+    public void getNewestFirst_modifyList_throwsUnsupportedOperationException() {
+        PerformanceHistory history = new PerformanceHistory(List.of(BENCH_DAY_ONE));
+        assertThrows(UnsupportedOperationException.class, () -> history.getNewestFirst().add(SQUAT_DAY_ONE));
+    }
+
+    @Test
     public void size() {
         assertEquals(0, new PerformanceHistory().size());
         assertEquals(2, new PerformanceHistory(List.of(BENCH_DAY_ONE, SQUAT_DAY_ONE)).size());

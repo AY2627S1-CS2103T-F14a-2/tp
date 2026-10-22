@@ -282,6 +282,7 @@ Format: `deleteperformance INDEX d/DATE e/EXERCISE`
 * The client's other records, next session and body measurements are not changed.
 * The client's card is updated straight away: the latest performance and the record count are recalculated from
   the remaining records. If no records remain, the card shows `Latest performance: -`.
+* If you are viewing the client's full history with `view`, run `view` again to see the updated history.
 
 Examples:
 * `deleteperformance 2 d/2026-09-18 e/Bench Press` deletes the bench press record of 18 Sep 2026 and shows

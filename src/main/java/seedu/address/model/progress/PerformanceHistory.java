@@ -6,6 +6,8 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -114,13 +116,20 @@ public final class PerformanceHistory {
      * the one recorded last is returned.
      */
     public Optional<GymPerformance> getLatest() {
-        GymPerformance latest = null;
-        for (GymPerformance record : records) {
-            if (latest == null || !record.getDate().isBefore(latest.getDate())) {
-                latest = record;
-            }
-        }
-        return Optional.ofNullable(latest);
+        return getNewestFirst().stream().findFirst();
+    }
+
+    /**
+     * Returns the records as an unmodifiable list sorted from the newest date to the oldest.
+     * Records on the same date are ordered from the most recently recorded, so the first record is always
+     * the one returned by {@link #getLatest()}. This keeps a client's card and full history consistent.
+     */
+    public List<GymPerformance> getNewestFirst() {
+        List<GymPerformance> newestFirst = new ArrayList<>(records);
+        // Reversing puts later recordings first; the stable sort then keeps that order within each date.
+        Collections.reverse(newestFirst);
+        newestFirst.sort(Comparator.comparing(GymPerformance::getDate).reversed());
+        return List.copyOf(newestFirst);
     }
 
     public int size() {
