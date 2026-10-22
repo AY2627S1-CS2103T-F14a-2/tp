@@ -94,7 +94,9 @@ public class EditCommand extends Command {
 
         Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
         Phone updatedPhone = editPersonDescriptor.getPhone().orElse(personToEdit.getPhone());
-        Email updatedEmail = editPersonDescriptor.getEmail().or(personToEdit::getEmail).orElse(null);
+        Email updatedEmail = editPersonDescriptor.isEmailRemoved()
+                ? null
+                : editPersonDescriptor.getEmail().or(personToEdit::getEmail).orElse(null);
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
 
         // The session and training records cannot be edited here, so they are carried over unchanged.
@@ -134,6 +136,7 @@ public class EditCommand extends Command {
         private Name name;
         private Phone phone;
         private Email email;
+        private boolean isEmailRemoved;
         private Set<Tag> tags;
 
         public EditPersonDescriptor() {}
@@ -146,6 +149,7 @@ public class EditCommand extends Command {
             setName(toCopy.name);
             setPhone(toCopy.phone);
             setEmail(toCopy.email);
+            isEmailRemoved = toCopy.isEmailRemoved;
             setTags(toCopy.tags);
         }
 
@@ -153,7 +157,7 @@ public class EditCommand extends Command {
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, tags);
+            return isEmailRemoved || CollectionUtil.isAnyNonNull(name, phone, email, tags);
         }
 
         public void setName(Name name) {
@@ -172,12 +176,28 @@ public class EditCommand extends Command {
             return Optional.ofNullable(phone);
         }
 
+        /**
+         * Sets the email to replace the person's email with, cancelling any email removal.
+         */
         public void setEmail(Email email) {
             this.email = email;
+            isEmailRemoved = false;
         }
 
         public Optional<Email> getEmail() {
             return Optional.ofNullable(email);
+        }
+
+        /**
+         * Marks the person's email for removal, discarding any replacement email.
+         */
+        public void removeEmail() {
+            email = null;
+            isEmailRemoved = true;
+        }
+
+        public boolean isEmailRemoved() {
+            return isEmailRemoved;
         }
 
         /**
@@ -211,6 +231,7 @@ public class EditCommand extends Command {
             return Objects.equals(name, otherEditPersonDescriptor.name)
                     && Objects.equals(phone, otherEditPersonDescriptor.phone)
                     && Objects.equals(email, otherEditPersonDescriptor.email)
+                    && isEmailRemoved == otherEditPersonDescriptor.isEmailRemoved
                     && Objects.equals(tags, otherEditPersonDescriptor.tags);
         }
 
@@ -220,6 +241,7 @@ public class EditCommand extends Command {
                     .add("name", name)
                     .add("phone", phone)
                     .add("email", email)
+                    .add("isEmailRemoved", isEmailRemoved)
                     .add("tags", tags)
                     .toString();
         }

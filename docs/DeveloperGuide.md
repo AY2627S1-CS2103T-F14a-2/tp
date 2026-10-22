@@ -15,7 +15,7 @@
 
 * Gabriel Wan used [OpenAI Codex](https://openai.com/codex/) to assist with implementing, testing,
   and documenting the v1.3 next-session feature, including parsing, client integration, JSON storage, sorting,
-  and the client card row.
+  and the client card row, and the v1.4 session cancellation/date-filter commands, tests and documentation.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #64 changes (the `list` command messages, undoing changes when saving fails, the damaged data file warning, the client card phone and email rows, and the related tests and User Guide wording) on 2026-10-15. The changes were reviewed and tested by the author.
 * Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the client `add`/`delete` changes for v1.3 (removing address, optional email, name and phone limits, Spotter messages). All generated code was reviewed and tested before committing.
 
@@ -162,6 +162,38 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 ## **Implementation**
 
 This section describes some noteworthy details on how certain features are implemented.
+
+### Session cancellation and date filtering
+
+`cancelsession INDEX` removes the current displayed client's single recorded session.
+`CancelSessionCommandParser` accepts exactly one index and `CancelSessionCommand` resolves it against
+`Model#getFilteredPersonList()`, so indices refer to the sorted/filtered UI rather than JSON order.
+It rejects an invalid index or a client without a recorded session before changing the model.
+
+The following partial model diagram shows the session field, the date predicate and the progress data that must survive
+cancellation. Contact fields are omitted to keep the diagram focused.
+
+<puml src="diagrams/SessionModelClassDiagram.puml" alt="Session date filtering and the client data preserved during cancellation" />
+
+`Person#withNextSession(null)` returns a new immutable client with the session removed, carrying forward contact details,
+tags, measurements and performance history. The command replaces the client and reapplies the current predicate to
+refresh sorting. A session-date predicate no longer matches the cancelled client, so that card disappears from that view;
+search/tag filters remain active. The observable list updates the UI and `CommandResult` requests scrolling to the top.
+
+`LogicManager` handles saving. If storage throws an `IOException`, its existing transaction restores both the original
+address book and the predicate captured before cancellation. This restores the booking and the date-filtered view.
+No constructor, JSON schema or UI-specific cancellation path is needed.
+
+`sessions d/DATE` uses `SessionsCommandParser` and `ParserUtil#parseCalendarDate` to validate one real calendar date.
+Unlike booking a session, filtering permits past dates so retained expired bookings can be found. The shared calendar
+validator preserves the existing booking errors; `parseSessionDate` adds the separate no-past-date rule for bookings.
+`SessionsCommand` replaces the current predicate with `SessionOnDatePredicate` and reuses the normal session comparator.
+It returns a count or a no-matches message. As no client data changes, `LogicManager` does not save the file.
+
+**Design choices:** Reusing the current view avoids a second schedule panel or a separate session collection.
+Retaining the predicate during cancellation lets a trainer cancel several bookings in the same date view.
+The trade-off is that the date view contains only each client's currently recorded booking; it is not a session history.
+The main list's upcoming-before-expired ordering also applies to date results, including today's elapsed sessions.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -852,6 +884,97 @@ run `list` and substitute that client's displayed index for `1` below.
    Expected: The measurement row remains readable and does not overlap neighbouring cards.
 
 <!-- AI assistance: OpenAI Codex helped draft measurement acceptance tests. -->
+
+### Recording and deleting gym performances
+
+Use fictional data in a disposable test folder. Start with a client without performance records,
+run `list` and substitute that client's displayed index for `1` below. `NAME` is that client's name.
+
+1. Recording and replacing records
+
+   1. Enter `performance 1 d/2026-09-18 e/Bench Press s/3 r/8 w/60`.<br>
+      Expected: `Recorded performance for NAME: Bench Press, 3 sets of 8 reps at 60 kg on 2026-09-18.`
+      The card shows `Latest performance: 18 Sep - Bench Press, 3 sets of 8 reps at 60 kg (1 record)`.
+   1. Enter `performance 1 d/2026-09-15 e/Squat s/3 r/5 w/100`.<br>
+      Expected: A new record is added. The card still shows the 18 Sep bench press, now with `(2 records)`.
+   1. Enter `performance 1 d/2026-09-18 e/bench press s/4 r/6 w/62.5`.<br>
+      Expected: `Updated performance for NAME: bench press, 4 sets of 6 reps at 62.5 kg on 2026-09-18.`
+      The card shows the new values and the count stays at two.
+
+1. Deleting the latest record while keeping other data
+
+   1. Enter `session 1 d/DATE t/1800`, using any future date, then `measure 1 d/2026-09-12 t/weight v/72.4`.<br>
+      Expected: The card shows the next session and `Latest measurement: 12 Sep - weight 72.4 kg (1 record)`.
+   1. Enter `deleteperformance 1 d/2026-09-18 e/Bench Press`.<br>
+      Expected: `Deleted performance for NAME: bench press, 4 sets of 6 reps at 62.5 kg on 2026-09-18.`
+      The card shows `Latest performance: 15 Sep - Squat, 3 sets of 5 reps at 100 kg (1 record)`.
+      The next session and latest measurement rows are unchanged.
+
+1. Rejected deletions
+
+   1. Enter `deleteperformance 1 d/2026-09-18 e/Squat`, then `deleteperformance 1 d/2026-09-14 e/Squat`.<br>
+      Expected: `No performance record for Squat on 2026-09-18 was found for NAME.`, then the same message for
+      2026-09-14. The expected command format is not shown, and the card is unchanged.
+   1. Enter `deleteperformance 1 d/15-09-2026 e/Squat`, then `deleteperformance 1 d/2026-02-30 e/Squat`.<br>
+      Expected: `The date must use the format yyyy-MM-dd.`, then `2026-02-30 is not a real date.`,
+      each followed by the expected command format. The card is unchanged.
+   1. Try a missing `e/` prefix, a repeated `d/` prefix, and an index outside the displayed list.<br>
+      Expected: Each command is rejected with an error and the expected command format, without changing records.
+
+1. Persistence after restarting
+
+   1. Enter `exit` and relaunch Spotter.<br>
+      Expected: The card still shows the 15 Sep squat with `(1 record)`, together with the session and measurement.
+
+1. Recovering from a failed save
+
+   1. Enter `exit`. Make `data/spotter.json` read-only (on Windows, tick *Read-only* in the file's *Properties*;
+      on macOS or Linux, run `chmod 444 data/spotter.json`), then relaunch Spotter.
+   1. Enter `deleteperformance 1 d/2026-09-15 e/Squat`.<br>
+      Expected: `Unable to save Spotter data.` The card still shows the 15 Sep squat with `(1 record)`.
+   1. Enter `exit`, make the data file writable again, and relaunch Spotter.<br>
+      Expected: The squat record is still present.
+
+1. Deleting the final record
+
+   1. Enter `deleteperformance 1 d/2026-09-15 e/squat`.<br>
+      Expected: `Deleted performance for NAME: Squat, 3 sets of 5 reps at 100 kg on 2026-09-15.`
+      The card shows `Latest performance: -`.
+   1. Enter `exit` and relaunch Spotter.<br>
+      Expected: The card still shows `Latest performance: -`, while the session and measurement remain.
+
+<!-- AI assistance: Claude (Anthropic) helped draft these gym-performance manual tests. -->
+
+### Cancelling and listing sessions
+
+Use a disposable folder containing the JAR and fictional data. Let `DATE` be tomorrow in `YYYY-MM-DD` format;
+replace `DATE` in every command below, and `TODAY` with today's date. Add unique test clients if the names already exist.
+
+1. Enter `add n/SessionCancelAda p/91234567`, then `add n/SessionCancelZoe p/92345678`.
+   Book them with `session n/SessionCancelAda d/DATE t/0900` and `session n/SessionCancelZoe d/DATE t/1700`.
+1. Enter `find Nobody`, then `sessions d/DATE`.<br>
+   Expected: Both test clients are visible, Ada before Zoe, with consecutive indices. The date command searches all
+   clients, replacing the empty search. If other clients already have bookings that day, they also appear.
+1. Enter `find SessionCancelAda`, then `measure 1 d/TODAY t/weight v/72.4`.
+   Enter `find SessionCancelAda` again, then `performance 1 d/TODAY e/Squat s/3 r/5 w/100`.
+   Re-enter `sessions d/DATE` and note Ada's current index `INDEX` before continuing.
+1. Enter `cancelsession INDEX` for Ada.<br>
+   Expected: `Cancelled session on DATE 09:00 for SessionCancelAda.` (with tomorrow's date).
+   Ada disappears from the date view; Zoe remains.
+   Enter `list` and locate Ada. The card shows `Next session: - (none booked)` while both progress rows remain populated.
+   Close and restart Spotter. Ada remains unbooked and the contact/progress data are unchanged.
+1. Enter `find SessionCancelAda`, then try `cancelsession 1`.<br>
+   Expected: `No session is recorded for SessionCancelAda.` No client data or displayed results change.
+1. Try `cancelsession 0`, `cancelsession 999999`, `cancelsession 1 2`, `sessions d/2026-02-30`,
+   `sessions d/DATE d/DATE` and `sessions d/DATE x/foo`.<br>
+   Expected: Invalid index, format or calendar errors, with no changes to clients, the current filter or saved data.
+1. Enter `sessions d/0001-01-01` in this test dataset.<br>
+   Expected: `No sessions recorded on 0001-01-01.` and an empty panel. `list` restores all clients.
+1. For a save-failure test, first book Ada again and display `sessions d/DATE`.
+   While Spotter is running, move `data/spotter.json` to a backup and create a directory named `data/spotter.json`.
+   Cancel Ada's current displayed index.<br>
+   Expected: `Unable to save Spotter data.` The booking and date-filtered list are restored with all progress intact.
+   Close Spotter, remove the empty blocking directory and restore the backup file before further testing.
 
 ### Saving data
 

@@ -124,11 +124,12 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [t/TAG]... `
 * Existing values will be updated to the input values.
 * When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
 * To remove all of a person's tags, enter `t/` without a tag after it.
-* A client's email can be changed but not removed yet; `e/` must be followed by a valid email.
+* To remove a client's email, enter `e/` without an email after it.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st client to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd client to be `Betsy Crower` and clears all existing tags.
+*  `edit 3 e/` Removes the email of the 3rd client.
 
 ### Locating clients by name: `find`
 
@@ -208,7 +209,8 @@ Common errors:
 | --- | --- |
 | Missing or repeated prefix | `Invalid command format. Use: measure INDEX d/DATE t/TYPE v/VALUE` |
 | Invalid client index | `The client index provided is invalid.` |
-| Invalid date or date format | `The date must use the format yyyy-MM-dd.` |
+| Date not in `yyyy-MM-dd` format | `The date must use the format yyyy-MM-dd.` |
+| Date in the right format that does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.` |
 | Future date | `The measurement date cannot be in the future.` |
 | Unsupported type | `Measurement type must be weight, bodyfat, or waist.` |
 | Non-numeric value | `Measurement value must be numeric.` |
@@ -258,7 +260,8 @@ Problem | Message
 --------|--------
 A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invalid command format. Use: performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`
 `INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
-`DATE` is not a real date in `yyyy-MM-dd` format | `The date must use the format yyyy-MM-dd.`
+`DATE` is not in `yyyy-MM-dd` format | `The date must use the format yyyy-MM-dd.`
+`DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
 `DATE` is in the future | `The performance date cannot be in the future.`
 `EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only letters, numbers, spaces, hyphens, and apostrophes.`
 `SETS` is invalid | `The number of sets must be a whole number between 1 and 100.`
@@ -266,6 +269,41 @@ A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invali
 `LOAD` is not a number | `Exercise load must be numeric.`
 `LOAD` is outside 0 to 1000 | `Exercise load must be between 0 and 1000 kg.`
 `LOAD` has more than two decimal places | `Exercise load may have at most two decimal places.`
+
+### Deleting a gym performance: `deleteperformance`
+
+Deletes one of a client's gym-performance records, for example a record entered by mistake.
+
+Format: `deleteperformance INDEX d/DATE e/EXERCISE`
+
+* Deletes the record for `EXERCISE` on `DATE` for the client at the specified `INDEX`, as shown in the displayed
+  client list.
+* Each prefix must appear exactly once. The prefixes can be in any order.
+* `EXERCISE` is matched ignoring letter case and extra spaces, so `bench press` matches a record for `Bench Press`.
+* `DATE` uses the `yyyy-MM-dd` format. Unlike `performance`, a future date is accepted, so that a future-dated
+  record in an edited data file can still be deleted.
+* The client's other records, next session and body measurements are not changed.
+* The client's card is updated straight away: the latest performance and the record count are recalculated from
+  the remaining records. If no records remain, the card shows `Latest performance: -`.
+
+Examples:
+* `deleteperformance 2 d/2026-09-18 e/Bench Press` deletes the bench press record of 18 Sep 2026 and shows
+  `Deleted performance for <client name>: Bench Press, 3 sets of 8 reps at 60 kg on 2026-09-18.`
+* `deleteperformance 1 d/2026-09-15 e/squat` deletes the squat record of 15 Sep 2026.
+
+To change a record instead of deleting it, use `performance` with the same date and exercise to replace it.
+
+If the command is not accepted, Spotter shows the reason and no record is deleted. Except when no matching record
+is found, the reason is followed by the expected format:
+
+Problem | Message
+--------|--------
+A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invalid command format. Use: deleteperformance INDEX d/DATE e/EXERCISE`
+`INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
+`DATE` is not in `yyyy-MM-dd` format | `The date must use the format yyyy-MM-dd.`
+`DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
+`EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only letters, numbers, spaces, hyphens, and apostrophes.`
+The client has no record for that exercise on that date | `No performance record for <exercise> on <date> was found for <client name>.`
 
 ### Viewing a client's history: `view`
 
@@ -340,6 +378,9 @@ Format: `exit`
 
 Records one next session for an existing client. A new booking replaces that client's previous booking.
 
+**`session` records or replaces a booking; `sessions` (with a final `s`) only lists bookings on a date.**
+Use `session INDEX d/DATE t/TIME` to book and `sessions d/DATE` to inspect the schedule.
+
 Format: `session INDEX d/DATE t/TIME` or `session n/NAME d/DATE t/TIME`
 
 * `INDEX` is the positive number shown on the **current displayed list**, including a filtered list.
@@ -369,7 +410,7 @@ filtered lists, and startup. Sorting the displayed list does not reorder the JSO
 
 The card shows `Next session: Tue 15 Dec, 7:00pm` for an upcoming booking, `Next session: - (none booked)`
 when no session has been recorded, and `Next session: - (none upcoming)` when the recorded booking has passed.
-Expired bookings are retained in the data file until replaced.
+Expired bookings are retained in the data file until replaced or cancelled.
 
 Invalid commands leave client data and list order unchanged. The relevant messages are:
 
@@ -384,6 +425,51 @@ Malformed date or component out of range | `Date must use YYYY-MM-DD format (yea
 Impossible calendar date (e.g. 30 February) | `Date must be a valid calendar date.`
 Date before today | `Date cannot be in the past.`
 Invalid time | `Time must be a valid time in HHMM or HH:MM format.`
+
+### Cancelling a recorded session: `cancelsession`
+
+Removes the recorded session for the client at the current displayed index.
+
+Format: `cancelsession INDEX`
+
+* `INDEX` must be a positive integer shown in the current list, including results from `find`, `filter` or `sessions`.
+* Both upcoming and expired recorded sessions can be cancelled.
+* Contact details, tags, measurements and performance records are preserved. The cancellation is saved automatically.
+* The current filter stays active. A cancelled client disappears from a `sessions` date view, but remains in Spotter.
+  In the full list, their card shows `Next session: - (none booked)` and moves to the unbooked group.
+* Indices may change after cancellation. Check the displayed list before entering the next index-based command.
+* A client with no recorded session is rejected with `No session is recorded for NAME.`
+  An invalid index shows `The client index provided is invalid.`
+  Missing, non-numeric or extra arguments show `Invalid command format! Use: cancelsession INDEX`.
+* If saving fails, the original session and displayed list are restored and `Unable to save Spotter data.` is shown.
+
+Example: `cancelsession 1` cancels the first displayed client's session.
+Success: `Cancelled session on 2026-12-15 09:00 for Sarah Lim.` (when that is her recorded booking).
+The confirmation includes the removed booking's date and 24-hour time, including for expired bookings.
+
+### Listing sessions on a date: `sessions`
+
+Shows clients whose recorded session is on a specified date. This searches all clients and replaces the previous filter.
+
+Format: `sessions d/DATE`
+
+* `DATE` must be a real `YYYY-MM-DD` date, with a year from `0001` to `9999`. Past dates are accepted for retained bookings.
+* Supply exactly one `d/` prefix. Missing/repeated/unknown prefixes or extra arguments show
+  `Invalid command format! Use: sessions d/DATE`. Invalid dates use the date-format/calendar errors listed under `session`.
+* Results use the normal session ordering: upcoming bookings first, then expired bookings, with time and name breaking ties.
+  For today, this puts upcoming sessions before sessions whose times have passed.
+* Spotter still stores only one session per client. Replaced or cancelled bookings cannot be retrieved using this command.
+  An expired booking's card continues to show `- (none upcoming)`.
+* The panel scrolls to the top and displayed indices start at 1. The command changes no client data and does not save the file.
+* Use `list` to show all clients again. Use the indices in the current results for `cancelsession`, `edit` or `delete`.
+
+Example: `sessions d/2026-12-15`.
+
+Result | Message
+-------|--------
+Multiple matches | `Listed 3 clients with sessions on 2026-12-15.`
+One match | `Listed 1 client with a session on 2026-12-15.`
+No matches (empty panel) | `No sessions recorded on 2026-12-15.`
 
 ### Saving the data
 
@@ -436,7 +522,10 @@ Action     | Format, Examples
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
 **Session** | `session INDEX d/DATE t/TIME` or `session n/NAME d/DATE t/TIME`<br> e.g., `session 1 d/2026-12-15 t/1900`
+**Cancel session** | `cancelsession INDEX`<br> e.g., `cancelsession 1`
+**Sessions on date** | `sessions d/DATE`<br> e.g., `sessions d/2026-12-15`
 **Measure** | `measure INDEX d/DATE t/TYPE v/VALUE`<br> e.g., `measure 1 d/2026-09-12 t/weight v/72.4`
 **Performance** | `performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`<br> e.g., `performance 2 d/2026-09-18 e/Bench Press s/3 r/8 w/60`
+**Delete performance** | `deleteperformance INDEX d/DATE e/EXERCISE`<br> e.g., `deleteperformance 2 d/2026-09-18 e/Bench Press`
 **View** | `view INDEX`<br> e.g., `view 1`
 **Help**   | `help`

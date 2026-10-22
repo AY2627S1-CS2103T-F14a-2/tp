@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.DeleteCommand;
+import seedu.address.logic.commands.DeletePerformanceCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.logic.commands.ExitCommand;
@@ -105,6 +106,15 @@ public class AddressBookParserTest {
         PerformanceCommand command = (PerformanceCommand) parser.parseCommand(PerformanceCommand.COMMAND_WORD
                 + " " + INDEX_FIRST_PERSON.getOneBased() + " d/2026-09-18 e/Bench Press s/3 r/8 w/60");
         assertEquals(new PerformanceCommand(INDEX_FIRST_PERSON, BENCH_PRESS), command);
+    }
+
+    @Test
+    public void parseCommand_deletePerformance() throws Exception {
+        DeletePerformanceCommand command = (DeletePerformanceCommand) parser.parseCommand(
+                DeletePerformanceCommand.COMMAND_WORD + " " + INDEX_FIRST_PERSON.getOneBased()
+                + " d/2026-09-18 e/Bench Press");
+        assertEquals(new DeletePerformanceCommand(INDEX_FIRST_PERSON, BENCH_PRESS.getDate(),
+                BENCH_PRESS.getExerciseName()), command);
     }
 
     @Test

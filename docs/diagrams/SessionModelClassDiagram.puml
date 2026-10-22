@@ -1,0 +1,18 @@
+@startuml
+!include style.puml
+skinparam classBackgroundColor MODEL_COLOR
+skinparam arrowColor MODEL_COLOR
+
+class Person
+class NextSession
+class Measurement
+class PerformanceHistory
+class SessionOnDatePredicate
+class "<<interface>>\nPredicate" as Predicate
+
+Person --> "0..1" NextSession : nextSession
+Person --> "*" Measurement : measurements
+Person --> "1" PerformanceHistory : performanceHistory
+SessionOnDatePredicate ..|> Predicate
+SessionOnDatePredicate ..> Person : tests
+@enduml
