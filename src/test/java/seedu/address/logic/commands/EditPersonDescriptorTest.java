@@ -47,6 +47,13 @@ public class EditPersonDescriptorTest {
         editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withEmail(VALID_EMAIL_BOB).build();
         assertFalse(DESC_AMY.equals(editedAmy));
 
+        // email removed versus email not edited -> returns false
+        EditPersonDescriptor emailRemoved = new EditPersonDescriptorBuilder().withoutEmail().build();
+        assertFalse(new EditPersonDescriptor().equals(emailRemoved));
+
+        // copy of a descriptor that removes the email -> returns true
+        assertTrue(emailRemoved.equals(new EditPersonDescriptor(emailRemoved)));
+
         // different tags -> returns false
         editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(DESC_AMY.equals(editedAmy));
@@ -58,7 +65,8 @@ public class EditPersonDescriptorTest {
         String expected = EditPersonDescriptor.class.getCanonicalName() + "{name="
                 + editPersonDescriptor.getName().orElse(null) + ", phone="
                 + editPersonDescriptor.getPhone().orElse(null) + ", email="
-                + editPersonDescriptor.getEmail().orElse(null) + ", tags="
+                + editPersonDescriptor.getEmail().orElse(null) + ", isEmailRemoved="
+                + editPersonDescriptor.isEmailRemoved() + ", tags="
                 + editPersonDescriptor.getTags().orElse(null) + "}";
         assertEquals(expected, editPersonDescriptor.toString());
     }
