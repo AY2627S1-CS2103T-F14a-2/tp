@@ -267,6 +267,61 @@ A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invali
 `LOAD` is outside 0 to 1000 | `Exercise load must be between 0 and 1000 kg.`
 `LOAD` has more than two decimal places | `Exercise load may have at most two decimal places.`
 
+### Viewing a client's history: `view`
+
+Shows one client's details together with all of their measurements and gym performances, so that you can review
+their progress before a session.
+
+Format: `view INDEX`
+
+* Shows the client at the specified `INDEX`, as shown in the displayed client list.
+* The index **must be a positive integer** 1, 2, 3, ...
+* The details appear in the result box below the command box. The client list and cards do not change, and no data is changed.
+* Records are listed with the newest date first.
+  * Measurements on the same date are listed in the order weight, body fat, waist.
+  * Performances on the same date are listed with the one recorded last first, so the first performance line
+    always matches the card's `Latest performance`.
+* `Next session` shows the same text as the client's card.
+* Tags are listed alphabetically. A client with no email or no tags shows `-`.
+
+Examples:
+* `list` followed by `view 2` shows the history of the 2nd client in Spotter.
+* `find Alex` followed by `view 1` shows the history of the 1st client in the results of the `find` command.
+
+For a client named Alex Tan with three measurements and two performances, `view 1` shows:
+
+```text
+Alex Tan
+Phone: 9123 4567
+Email: alex@example.com
+Next session: Fri 23 Oct, 6:00pm
+Tags: knee, rehab
+
+Measurements (3 records, newest first):
+2026-10-12  weight 72.4 kg
+2026-10-12  waist 81 cm
+2026-09-30  weight 73 kg
+
+Performance (2 records, newest first):
+2026-10-15  Squat, 3 sets of 5 reps at 100 kg
+2026-10-01  Bench Press, 3 sets of 8 reps at 60 kg
+```
+
+A client with no records of a kind shows `Measurements: none recorded yet.` or `Performance: none recorded yet.`
+instead of that list. A single record is shown as `(1 record, newest first)`.
+
+Problem | Message
+--------|--------
+`INDEX` is missing or not a whole number, or there is extra text after it | `Invalid command format!` followed by the expected format
+`INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
+
+<box type="tip" seamless>
+
+**Tip:** The output of `view` is not updated automatically. After you record, update or replace a measurement or performance, run `view` again to see the client's current history.
+</box>
+
+<!-- AI assistance: Claude Code helped draft the view command documentation. -->
+
 ### Clearing all entries: `clear`
 
 Clears all clients from Spotter.
@@ -381,4 +436,5 @@ Action     | Format, Examples
 **Session** | `session INDEX d/DATE t/TIME` or `session n/NAME d/DATE t/TIME`<br> e.g., `session 1 d/2026-12-15 t/1900`
 **Measure** | `measure INDEX d/DATE t/TYPE v/VALUE`<br> e.g., `measure 1 d/2026-09-12 t/weight v/72.4`
 **Performance** | `performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`<br> e.g., `performance 2 d/2026-09-18 e/Bench Press s/3 r/8 w/60`
+**View** | `view INDEX`<br> e.g., `view 1`
 **Help**   | `help`
