@@ -104,8 +104,20 @@ public class ParserUtil {
      * @throws ParseException if the date is malformed, does not exist, or is in the future.
      */
     public static LocalDate parseRecordDate(String date, String futureDateMessage) throws ParseException {
-        requireNonNull(date);
         requireNonNull(futureDateMessage);
+        LocalDate parsedDate = parseExistingRecordDate(date);
+        if (parsedDate.isAfter(LocalDate.now())) {
+            throw new ParseException(futureDateMessage);
+        }
+        return parsedDate;
+    }
+
+    /**
+     * Parses a real yyyy-MM-dd date from year 0001, allowing future dates so that manually edited
+     * records can still be deleted. Existing record commands retain their separate future-date check.
+     */
+    public static LocalDate parseExistingRecordDate(String date) throws ParseException {
+        requireNonNull(date);
         String trimmedDate = date.trim();
         if (!trimmedDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
             throw new ParseException(MESSAGE_INVALID_RECORD_DATE);
@@ -118,9 +130,6 @@ public class ParserUtil {
         }
         if (parsedDate.getYear() == 0) {
             throw new ParseException(MESSAGE_INVALID_RECORD_DATE);
-        }
-        if (parsedDate.isAfter(LocalDate.now())) {
-            throw new ParseException(futureDateMessage);
         }
         return parsedDate;
     }
