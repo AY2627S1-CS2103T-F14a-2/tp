@@ -25,6 +25,7 @@ import seedu.address.logic.commands.MeasureCommand;
 import seedu.address.logic.commands.PerformanceCommand;
 import seedu.address.logic.commands.SessionCommand;
 import seedu.address.logic.commands.SessionsCommand;
+import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
 /**
@@ -64,6 +65,7 @@ public class AddressBookParser {
             case EditCommand.COMMAND_WORD -> new EditCommandParser().parse(arguments);
             case DeleteCommand.COMMAND_WORD -> new DeleteCommandParser().parse(arguments);
             case DeletePerformanceCommand.COMMAND_WORD -> new DeletePerformanceCommandParser().parse(arguments);
+            case ViewCommand.COMMAND_WORD -> new ViewCommandParser().parse(arguments);
             case MeasureCommand.COMMAND_WORD -> new MeasureCommandParser().parse(arguments);
             case DeleteMeasureCommand.COMMAND_WORD -> new DeleteMeasureCommandParser().parse(arguments);
             case ClearCommand.COMMAND_WORD -> new ClearCommand();

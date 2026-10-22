@@ -40,7 +40,7 @@ public class SessionCommandParserTest {
     public void parse_missingDuplicateUnknownPrefixesAndIdentifiers_failure() {
         for (String input : List.of("", " 1", " 1 d/" + date, " 1 t/1700", " d/" + date + " t/1700",
                 " 1 n/Sarah Lim d/" + date + " t/1700", " Sarah d/" + date + " t/1700",
-                " 1 2 d/" + date + " t/1700", " 1 d/" + date + " d/" + date + " t/1700",
+                " 1 2 d/" + date + " t/1700", " +1 d/" + date + " t/1700", " 1 d/" + date + " d/" + date + " t/1700",
                 " 1 d/" + date + " t/1700 t/1800", " n/Sarah n/Lim d/" + date + " t/1700",
                 " 1 x/foo d/" + date + " t/1700", " 1 d/" + date + " t/1700 q/foo",
                 " n/Sarah q/foo d/" + date + " t/1700")) {
@@ -49,8 +49,8 @@ public class SessionCommandParserTest {
     }
 
     @Test
-    public void parse_zeroNegativeOverflowAndSignedIndex_failure() {
-        for (String index : List.of("0", "-1", "+1", "2147483648", "999999999999999999999")) {
+    public void parse_zeroNegativeAndOverflowIndex_failure() {
+        for (String index : List.of("0", "-1", "2147483648", "999999999999999999999")) {
             assertParseFailure(parser, " " + index + " d/" + date + " t/1700", SessionCommand.MESSAGE_INVALID_INDEX);
         }
     }

@@ -22,7 +22,7 @@ public class DeleteMeasureCommandParser implements Parser<DeleteMeasureCommand> 
         ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, PREFIX_DATE, PREFIX_MEASUREMENT_TYPE);
         if (arguments.getAllValues(PREFIX_DATE).size() != 1
                 || arguments.getAllValues(PREFIX_MEASUREMENT_TYPE).size() != 1
-                || !arguments.getPreamble().matches("[+-]?\\d+")) {
+                || !arguments.getPreamble().matches(ParserUtil.INTEGER_REGEX)) {
             throw new ParseException(DeleteMeasureCommand.MESSAGE_INVALID_FORMAT);
         }
         try {

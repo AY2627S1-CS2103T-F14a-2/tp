@@ -66,7 +66,7 @@ public class ParserUtilTest {
 
     @Test
     public void parseClientIndex_invalidNumber_usesCommonClientIndexError() {
-        for (String index : List.of("0", "-1", "+1", "2147483648", "99999999999999999999")) {
+        for (String index : List.of("0", "-1", "2147483648", "99999999999999999999")) {
             assertThrows(ParseException.class, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, () ->
                     ParserUtil.parseClientIndex(index));
             assertThrows(ParseException.class, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, () ->
@@ -76,7 +76,7 @@ public class ParserUtilTest {
 
     @Test
     public void parseClientIndex_malformedInput_usesCallerFormatError() {
-        for (String input : List.of("", " ", "Sarah", "1 2", "1.5", "1 d/2026-10-22")) {
+        for (String input : List.of("", " ", "Sarah", "1 2", "1.5", "+1", "1 d/2026-10-22")) {
             assertThrows(ParseException.class, "Expected command format", () ->
                     ParserUtil.parseClientIndex(input, "Expected command format"));
         }

@@ -1,4 +1,4 @@
-package seedu.address.ui;
+package seedu.address.commons.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.testutil.Assert.assertThrows;
