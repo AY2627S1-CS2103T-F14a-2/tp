@@ -42,6 +42,7 @@ import seedu.address.testutil.EditPersonDescriptorBuilder;
 public class EditCommandParserTest {
 
     private static final String TAG_EMPTY = " " + PREFIX_TAG;
+    private static final String EMAIL_EMPTY = " " + PREFIX_EMAIL;
 
     private static final String MESSAGE_INVALID_FORMAT =
             String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE);
@@ -191,5 +192,23 @@ public class EditCommandParserTest {
         EditCommand expectedCommand = new EditCommand(targetIndex, descriptor);
 
         assertParseSuccess(parser, userInput, expectedCommand);
+    }
+
+    @Test
+    public void parse_emptyEmail_removesEmail() {
+        Index targetIndex = INDEX_THIRD_PERSON;
+        EditCommand expectedCommand = new EditCommand(targetIndex,
+                new EditPersonDescriptorBuilder().withoutEmail().build());
+
+        // email prefix alone
+        assertParseSuccess(parser, targetIndex.getOneBased() + EMAIL_EMPTY, expectedCommand);
+
+        // email prefix followed by whitespace only
+        assertParseSuccess(parser, targetIndex.getOneBased() + EMAIL_EMPTY + "   ", expectedCommand);
+
+        // email removal together with another field
+        expectedCommand = new EditCommand(targetIndex,
+                new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).withoutEmail().build());
+        assertParseSuccess(parser, targetIndex.getOneBased() + EMAIL_EMPTY + PHONE_DESC_BOB, expectedCommand);
     }
 }
