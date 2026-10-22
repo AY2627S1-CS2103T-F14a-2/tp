@@ -34,7 +34,7 @@ public class DeleteMeasureCommandParserTest {
     @Test
     public void parse_missingRepeatedOrExtraArguments_rejectsInput() {
         for (String args : new String[] {"", "1", "d/2026-09-12 t/weight", "one d/2026-09-12 t/weight",
-            "1 extra d/2026-09-12 t/weight", "1 d/2026-09-12", "1 t/weight",
+            "1 extra d/2026-09-12 t/weight", "+1 d/2026-09-12 t/weight", "1 d/2026-09-12", "1 t/weight",
             "1 d/2026-09-12 d/2026-09-13 t/weight", "1 d/2026-09-12 t/weight t/waist"}) {
             assertEquals(DeleteMeasureCommand.MESSAGE_INVALID_FORMAT,
                     assertThrows(ParseException.class, () -> parser.parse(args)).getMessage());
@@ -45,7 +45,7 @@ public class DeleteMeasureCommandParserTest {
 
     @Test
     public void parse_invalidIndex_showsClientIndexErrorWithUsage() {
-        for (String index : new String[] {"0", "-1", "+1", "2147483648", "999999999999999999999"}) {
+        for (String index : new String[] {"0", "-1", "2147483648", "999999999999999999999"}) {
             assertError(index + " d/2026-09-12 t/weight", DeleteMeasureCommand.MESSAGE_INVALID_INDEX);
         }
     }
