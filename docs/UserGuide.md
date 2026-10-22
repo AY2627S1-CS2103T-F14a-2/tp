@@ -277,6 +277,8 @@ Format: `view INDEX`
 * Shows the client at the specified `INDEX`, as shown in the displayed client list.
 * The index **must be a positive integer** 1, 2, 3, ...
 * The details appear in the result box below the command box. The client list and cards do not change, and no data is changed.
+* The result box shows only a few lines at a time and does not get taller when you enlarge the window.
+  For a client with a long history, scroll inside the result box to see all of their records.
 * Records are listed with the newest date first.
   * Measurements on the same date are listed in the order weight, body fat, waist.
   * Performances on the same date are listed with the one recorded last first, so the first performance line
