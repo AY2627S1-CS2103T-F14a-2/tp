@@ -29,6 +29,7 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.PerformanceCommand;
+import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
@@ -94,6 +95,14 @@ public class LogicManagerTest {
     public void execute_readOnlyCommand_doesNotSaveDataFile() throws Exception {
         Path dataFile = temporaryFolder.resolve("addressBook.json");
         logic.execute(ListCommand.COMMAND_WORD);
+        assertFalse(Files.exists(dataFile));
+    }
+
+    @Test
+    public void execute_viewCommand_doesNotSaveDataFile() throws Exception {
+        model.addPerson(ALICE);
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        logic.execute(ViewCommand.COMMAND_WORD + " 1");
         assertFalse(Files.exists(dataFile));
     }
 
