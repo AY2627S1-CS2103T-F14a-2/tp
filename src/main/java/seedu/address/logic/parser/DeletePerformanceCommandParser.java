@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.util.stream.Stream;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.DeletePerformanceCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.progress.ExerciseName;
@@ -38,18 +39,17 @@ public class DeletePerformanceCommandParser implements Parser<DeletePerformanceC
         String preamble = argMultimap.getPreamble();
         boolean hasEachPrefixOnce = Stream.of(PREFIXES)
                 .allMatch(prefix -> argMultimap.getAllValues(prefix).size() == 1);
-        if (!hasEachPrefixOnce || !preamble.matches(PerformanceCommandParser.INTEGER_REGEX)) {
+        if (!hasEachPrefixOnce || !preamble.matches(ParserUtil.INTEGER_REGEX)) {
             throw new ParseException(DeletePerformanceCommand.MESSAGE_INVALID_FORMAT);
         }
 
         try {
-            Index index = PerformanceCommandParser.parseIndex(preamble);
+            Index index = ParserUtil.parseClientIndex(preamble);
             LocalDate date = ParserUtil.parseExistingRecordDate(argMultimap.getValue(PREFIX_DATE).get());
-            ExerciseName exerciseName = PerformanceCommandParser.parseExerciseName(
-                    argMultimap.getValue(PREFIX_EXERCISE).get());
+            ExerciseName exerciseName = ParserUtil.parseExerciseName(argMultimap.getValue(PREFIX_EXERCISE).get());
             return new DeletePerformanceCommand(index, date, exerciseName);
         } catch (ParseException pe) {
-            throw new ParseException(DeletePerformanceCommand.withUsage(pe.getMessage()), pe);
+            throw new ParseException(Messages.withUsage(pe.getMessage(), DeletePerformanceCommand.MESSAGE_USAGE), pe);
         }
     }
 }

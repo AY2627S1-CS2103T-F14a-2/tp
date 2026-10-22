@@ -46,27 +46,22 @@ public class DeletePerformanceCommand extends Command {
         this.exerciseName = exerciseName;
     }
 
-    /**
-     * Returns {@code message} followed by the expected command format.
-     */
-    public static String withUsage(String message) {
-        return message + "\nUse: " + MESSAGE_USAGE;
-    }
-
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
         List<Person> displayedClients = model.getFilteredPersonList();
 
         if (index.getZeroBased() >= displayedClients.size()) {
-            throw new CommandException(withUsage(MESSAGE_INVALID_INDEX));
+            // Same as a zero or negative index, which is reported with the format during parsing
+            throw new CommandException(Messages.withUsage(MESSAGE_INVALID_INDEX, MESSAGE_USAGE));
         }
 
         Person client = displayedClients.get(index.getZeroBased());
         String formattedDate = date.format(GymPerformance.DATE_FORMATTER);
+        // The command was typed correctly, so the format is not shown when no record matches
         GymPerformance record = client.getPerformanceHistory().find(date, exerciseName)
-                .orElseThrow(() -> new CommandException(withUsage(String.format(MESSAGE_RECORD_NOT_FOUND,
-                        exerciseName, formattedDate, client.getName()))));
+                .orElseThrow(() -> new CommandException(String.format(MESSAGE_RECORD_NOT_FOUND,
+                        exerciseName, formattedDate, client.getName())));
 
         model.setPerson(client, client.withoutGymPerformance(record));
 

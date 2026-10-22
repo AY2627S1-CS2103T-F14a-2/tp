@@ -12,10 +12,12 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.Messages;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.progress.ExerciseName;
 import seedu.address.model.tag.Tag;
 
 public class ParserUtilTest {
@@ -60,12 +62,26 @@ public class ParserUtilTest {
     }
 
     @Test
-    public void parseRecordDate_invalidDate_throwsParseException() {
-        for (String invalidDate : List.of("", "18-09-2026", "2026/09/18", "2026-9-18", "2026-02-30",
-                "2026-13-01", "0000-01-01", "12026-09-18", "+2026-09-18", "today")) {
+    public void parseRecordDate_wrongFormat_throwsParseException() {
+        for (String wrongFormat : List.of("", "18-09-2026", "2026/09/18", "2026-9-18", "12026-09-18",
+                "+2026-09-18", "today")) {
             assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_RECORD_DATE, ()
-                -> ParserUtil.parseRecordDate(invalidDate, FUTURE_DATE_MESSAGE));
+                -> ParserUtil.parseRecordDate(wrongFormat, FUTURE_DATE_MESSAGE));
         }
+    }
+
+    @Test
+    public void parseRecordDate_nonexistentDate_throwsParseException() {
+        // the format is right but the date does not exist, so the message names the date instead of the format
+        for (String nonexistentDate : List.of("2026-02-30", "2027-02-29", "2026-13-01", "2026-00-10", "2026-04-31",
+                "0000-01-01")) {
+            assertThrows(ParseException.class, String.format(ParserUtil.MESSAGE_NONEXISTENT_RECORD_DATE,
+                    nonexistentDate), () -> ParserUtil.parseRecordDate(nonexistentDate, FUTURE_DATE_MESSAGE));
+        }
+
+        // surrounding whitespace is not repeated in the message
+        assertThrows(ParseException.class, "2026-02-30 is not a real date.", ()
+            -> ParserUtil.parseRecordDate("  2026-02-30 ", FUTURE_DATE_MESSAGE));
     }
 
     @Test
@@ -78,10 +94,34 @@ public class ParserUtilTest {
     @Test
     public void parseExistingRecordDate_invalidDate_throwsParseException() {
         assertThrows(NullPointerException.class, () -> ParserUtil.parseExistingRecordDate(null));
-        for (String invalidDate : List.of("", "18-09-2026", "2026-02-30", "0000-01-01", "12026-09-18")) {
+        for (String wrongFormat : List.of("", "18-09-2026", "12026-09-18")) {
             assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_RECORD_DATE, ()
-                -> ParserUtil.parseExistingRecordDate(invalidDate));
+                -> ParserUtil.parseExistingRecordDate(wrongFormat));
         }
+        for (String nonexistentDate : List.of("2026-02-30", "0000-01-01")) {
+            assertThrows(ParseException.class, String.format(ParserUtil.MESSAGE_NONEXISTENT_RECORD_DATE,
+                    nonexistentDate), () -> ParserUtil.parseExistingRecordDate(nonexistentDate));
+        }
+    }
+
+    @Test
+    public void parseClientIndex() throws Exception {
+        assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseClientIndex(" 1 "));
+
+        // zero, negative and overflowing indexes are invalid client indexes, not format errors
+        for (String invalidIndex : List.of("0", "-1", "+1", "99999999999")) {
+            assertThrows(ParseException.class, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, ()
+                -> ParserUtil.parseClientIndex(invalidIndex));
+        }
+    }
+
+    @Test
+    public void parseExerciseName() throws Exception {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseExerciseName(null));
+        assertThrows(ParseException.class, ExerciseName.MESSAGE_CONSTRAINTS, ()
+            -> ParserUtil.parseExerciseName("Bench@Press"));
+        assertEquals(new ExerciseName("Bench Press"), ParserUtil.parseExerciseName("  Bench   Press "));
+        assertEquals("Bench Press", ParserUtil.parseExerciseName("  Bench   Press ").value);
     }
 
     @Test

@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
-import static seedu.address.logic.commands.PerformanceCommand.withUsage;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalGymPerformances.BENCH_PRESS;
 import static seedu.address.testutil.TypicalGymPerformances.PULL_UP;
@@ -17,6 +16,7 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.logic.Messages;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -139,5 +139,9 @@ public class PerformanceCommandTest {
         String expected = PerformanceCommand.class.getCanonicalName() + "{index=" + INDEX_FIRST_PERSON
                 + ", performance=" + BENCH_PRESS + "}";
         assertEquals(expected, command.toString());
+    }
+
+    private static String withUsage(String message) {
+        return Messages.withUsage(message, PerformanceCommand.MESSAGE_USAGE);
     }
 }

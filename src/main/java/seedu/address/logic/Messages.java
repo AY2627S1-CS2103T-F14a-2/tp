@@ -20,6 +20,14 @@ public class Messages {
                 "Multiple values specified for the following single-valued field(s): ";
 
     /**
+     * Returns {@code message} followed by the expected command format {@code usage} on a new line,
+     * e.g. "The client index provided is invalid.\nUse: performance INDEX d/DATE ...".
+     */
+    public static String withUsage(String message, String usage) {
+        return message + "\nUse: " + usage;
+    }
+
+    /**
      * Returns an error message indicating the duplicate prefixes.
      */
     public static String getErrorMessageForDuplicatePrefixes(Prefix... duplicatePrefixes) {

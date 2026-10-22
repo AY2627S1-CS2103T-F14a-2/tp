@@ -42,20 +42,13 @@ public class PerformanceCommand extends Command {
         this.performance = performance;
     }
 
-    /**
-     * Returns {@code message} followed by the expected command format.
-     */
-    public static String withUsage(String message) {
-        return message + "\nUse: " + MESSAGE_USAGE;
-    }
-
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
         List<Person> displayedClients = model.getFilteredPersonList();
 
         if (index.getZeroBased() >= displayedClients.size()) {
-            throw new CommandException(withUsage(MESSAGE_INVALID_INDEX));
+            throw new CommandException(Messages.withUsage(MESSAGE_INVALID_INDEX, MESSAGE_USAGE));
         }
 
         Person client = displayedClients.get(index.getZeroBased());

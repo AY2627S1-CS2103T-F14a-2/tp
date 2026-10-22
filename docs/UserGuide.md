@@ -208,7 +208,8 @@ Common errors:
 | --- | --- |
 | Missing or repeated prefix | `Invalid command format. Use: measure INDEX d/DATE t/TYPE v/VALUE` |
 | Invalid client index | `The client index provided is invalid.` |
-| Invalid date or date format | `The date must use the format yyyy-MM-dd.` |
+| Date not in `yyyy-MM-dd` format | `The date must use the format yyyy-MM-dd.` |
+| Date in the right format that does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.` |
 | Future date | `The measurement date cannot be in the future.` |
 | Unsupported type | `Measurement type must be weight, bodyfat, or waist.` |
 | Non-numeric value | `Measurement value must be numeric.` |
@@ -258,7 +259,8 @@ Problem | Message
 --------|--------
 A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invalid command format. Use: performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`
 `INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
-`DATE` is not a real date in `yyyy-MM-dd` format | `The date must use the format yyyy-MM-dd.`
+`DATE` is not in `yyyy-MM-dd` format | `The date must use the format yyyy-MM-dd.`
+`DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
 `DATE` is in the future | `The performance date cannot be in the future.`
 `EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only letters, numbers, spaces, hyphens, and apostrophes.`
 `SETS` is invalid | `The number of sets must be a whole number between 1 and 100.`
@@ -282,7 +284,6 @@ Format: `deleteperformance INDEX d/DATE e/EXERCISE`
 * The client's other records, next session and body measurements are not changed.
 * The client's card is updated straight away: the latest performance and the record count are recalculated from
   the remaining records. If no records remain, the card shows `Latest performance: -`.
-* If you are viewing the client's full history with `view`, run `view` again to see the updated history.
 
 Examples:
 * `deleteperformance 2 d/2026-09-18 e/Bench Press` deletes the bench press record of 18 Sep 2026 and shows
@@ -291,13 +292,15 @@ Examples:
 
 To change a record instead of deleting it, use `performance` with the same date and exercise to replace it.
 
-If the command is not accepted, Spotter shows the reason followed by the expected format, and no record is deleted:
+If the command is not accepted, Spotter shows the reason and no record is deleted. Except when no matching record
+is found, the reason is followed by the expected format:
 
 Problem | Message
 --------|--------
 A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invalid command format. Use: deleteperformance INDEX d/DATE e/EXERCISE`
 `INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
-`DATE` is not a real date in `yyyy-MM-dd` format | `The date must use the format yyyy-MM-dd.`
+`DATE` is not in `yyyy-MM-dd` format | `The date must use the format yyyy-MM-dd.`
+`DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
 `EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only letters, numbers, spaces, hyphens, and apostrophes.`
 The client has no record for that exercise on that date | `No performance record for <exercise> on <date> was found for <client name>.`
 

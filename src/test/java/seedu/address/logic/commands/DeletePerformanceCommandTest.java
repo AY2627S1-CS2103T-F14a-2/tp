@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
-import static seedu.address.logic.commands.DeletePerformanceCommand.withUsage;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalGymPerformances.BENCH_PRESS;
 import static seedu.address.testutil.TypicalGymPerformances.SQUAT;
@@ -21,6 +20,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.logic.Messages;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -132,22 +132,22 @@ public class DeletePerformanceCommandTest {
         // the exercise was not recorded on that date
         LocalDate otherDate = LocalDate.of(2026, 9, 17);
         assertCommandFailure(new DeletePerformanceCommand(INDEX_FIRST_PERSON, otherDate, BENCH_PRESS_NAME), model,
-                withUsage(String.format(DeletePerformanceCommand.MESSAGE_RECORD_NOT_FOUND, "Bench Press",
-                        "2026-09-17", client.getName())));
+                String.format(DeletePerformanceCommand.MESSAGE_RECORD_NOT_FOUND, "Bench Press",
+                        "2026-09-17", client.getName()));
 
         // another exercise was recorded on that date
         assertCommandFailure(new DeletePerformanceCommand(INDEX_FIRST_PERSON, BENCH_PRESS.getDate(),
                 new ExerciseName("Deadlift")), model,
-                withUsage(String.format(DeletePerformanceCommand.MESSAGE_RECORD_NOT_FOUND, "Deadlift",
-                        "2026-09-18", client.getName())));
+                String.format(DeletePerformanceCommand.MESSAGE_RECORD_NOT_FOUND, "Deadlift",
+                        "2026-09-18", client.getName()));
     }
 
     @Test
     public void execute_clientWithoutRecords_failure() {
         Person client = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         assertCommandFailure(new DeletePerformanceCommand(INDEX_FIRST_PERSON, BENCH_PRESS.getDate(),
-                BENCH_PRESS_NAME), model, withUsage(String.format(DeletePerformanceCommand.MESSAGE_RECORD_NOT_FOUND,
-                "Bench Press", "2026-09-18", client.getName())));
+                BENCH_PRESS_NAME), model, String.format(DeletePerformanceCommand.MESSAGE_RECORD_NOT_FOUND,
+                "Bench Press", "2026-09-18", client.getName()));
     }
 
     @Test
@@ -200,5 +200,9 @@ public class DeletePerformanceCommandTest {
         String expected = DeletePerformanceCommand.class.getCanonicalName() + "{index=" + INDEX_FIRST_PERSON
                 + ", date=2026-09-18, exerciseName=Bench Press}";
         assertEquals(expected, command.toString());
+    }
+
+    private static String withUsage(String message) {
+        return Messages.withUsage(message, DeletePerformanceCommand.MESSAGE_USAGE);
     }
 }

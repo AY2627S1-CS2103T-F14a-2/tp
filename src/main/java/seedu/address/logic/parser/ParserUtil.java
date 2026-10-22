@@ -13,10 +13,12 @@ import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
+import seedu.address.logic.Messages;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.progress.ExerciseName;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -25,6 +27,10 @@ import seedu.address.model.tag.Tag;
 public class ParserUtil {
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
     public static final String MESSAGE_INVALID_RECORD_DATE = "The date must use the format yyyy-MM-dd.";
+    public static final String MESSAGE_NONEXISTENT_RECORD_DATE = "%s is not a real date.";
+
+    // An index that looks like an integer is reported as an invalid index rather than an invalid format.
+    public static final String INTEGER_REGEX = "[+-]?\\d+";
 
     public static final String MESSAGE_SESSION_DATE_FORMAT =
             "Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).";
@@ -95,6 +101,34 @@ public class ParserUtil {
     }
 
     /**
+     * Parses the displayed index of a client, which callers have already checked to match {@link #INTEGER_REGEX}.
+     * A zero, negative or overflowing index is reported as an invalid client index rather than a format error.
+     *
+     * @throws ParseException if the index is not a positive integer that fits in an int.
+     */
+    public static Index parseClientIndex(String oneBasedIndex) throws ParseException {
+        try {
+            return parseIndex(oneBasedIndex);
+        } catch (ParseException pe) {
+            throw new ParseException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, pe);
+        }
+    }
+
+    /**
+     * Parses a {@code String exerciseName} into an {@code ExerciseName}.
+     * Leading, trailing and repeated spaces are normalised by {@code ExerciseName}.
+     *
+     * @throws ParseException if the given {@code exerciseName} is invalid.
+     */
+    public static ExerciseName parseExerciseName(String exerciseName) throws ParseException {
+        requireNonNull(exerciseName);
+        if (!ExerciseName.isValidExerciseName(exerciseName)) {
+            throw new ParseException(ExerciseName.MESSAGE_CONSTRAINTS);
+        }
+        return new ExerciseName(exerciseName);
+    }
+
+    /**
      * Parses the date of a progress record, such as a body measurement or a gym performance,
      * ignoring surrounding whitespace.
      * The date must be a real calendar date in yyyy-MM-dd format with a year from 0001, and must not be
@@ -126,14 +160,16 @@ public class ParserUtil {
         if (!trimmedDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
             throw new ParseException(MESSAGE_INVALID_RECORD_DATE);
         }
+        // The format is right from here on, so any remaining problem is a date that does not exist
+        String nonexistentDateMessage = String.format(MESSAGE_NONEXISTENT_RECORD_DATE, trimmedDate);
         final LocalDate parsedDate;
         try {
             parsedDate = LocalDate.parse(trimmedDate, DATE_FORMATTER);
         } catch (DateTimeParseException e) {
-            throw new ParseException(MESSAGE_INVALID_RECORD_DATE, e);
+            throw new ParseException(nonexistentDateMessage, e);
         }
         if (parsedDate.getYear() == 0) {
-            throw new ParseException(MESSAGE_INVALID_RECORD_DATE);
+            throw new ParseException(nonexistentDateMessage);
         }
         return parsedDate;
     }
