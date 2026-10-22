@@ -28,7 +28,8 @@ public class ParserUtil {
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
 
     // Numeric-looking input uses the client-index error; other input uses the caller's format error.
-    public static final String INTEGER_REGEX = "[+-]?\\d+";
+    // A leading "+" is a format error, so "+1" is not reported as an invalid index when client 1 exists.
+    public static final String INTEGER_REGEX = "-?\\d+";
     public static final String MESSAGE_INVALID_RECORD_DATE = "The date must use the format yyyy-MM-dd.";
     public static final String MESSAGE_NONEXISTENT_RECORD_DATE = "%s is not a real date.";
 

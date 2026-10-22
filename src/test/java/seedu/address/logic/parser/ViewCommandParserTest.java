@@ -27,6 +27,7 @@ public class ViewCommandParserTest {
         assertParseFailure(parser, "   ", expectedMessage); // blank index
         assertParseFailure(parser, "a", expectedMessage); // non-numeric
         assertParseFailure(parser, "1.5", expectedMessage); // not a whole number
+        assertParseFailure(parser, "+1", expectedMessage); // signed, so not the documented 1, 2, 3, ...
         assertParseFailure(parser, "1 abc", expectedMessage); // extra text
         assertParseFailure(parser, "2 10", expectedMessage); // more than one index
     }
