@@ -11,6 +11,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import seedu.address.commons.util.PhoneDisplayFormatter;
 import seedu.address.model.person.Measurement;
 import seedu.address.model.person.Person;
 import seedu.address.model.progress.PerformanceHistory;
