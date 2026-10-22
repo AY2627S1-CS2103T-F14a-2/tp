@@ -3,8 +3,6 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -12,7 +10,7 @@ import java.util.stream.Collectors;
 import seedu.address.commons.util.PhoneDisplayFormatter;
 import seedu.address.model.person.Measurement;
 import seedu.address.model.person.Person;
-import seedu.address.model.progress.GymPerformance;
+import seedu.address.model.progress.PerformanceHistory;
 
 /**
  * Builds the text shown by {@code view}: a client's details followed by their full measurement
@@ -45,7 +43,7 @@ public final class ClientHistoryFormatter {
         requireNonNull(now);
         return formatDetails(person, now)
                 + "\n\n" + formatMeasurements(person.getMeasurements())
-                + "\n\n" + formatPerformances(person.getPerformanceHistory().asUnmodifiableList());
+                + "\n\n" + formatPerformances(person.getPerformanceHistory());
     }
 
     private static String formatDetails(Person person, LocalDateTime now) {
@@ -86,16 +84,13 @@ public final class ClientHistoryFormatter {
      *
      * @param performances Records in the order they were recorded, oldest recorded first.
      */
-    static String formatPerformances(List<GymPerformance> performances) {
-        requireNonNull(performances);
-        if (performances.isEmpty()) {
+    static String formatPerformances(PerformanceHistory history) {
+        requireNonNull(history);
+        if (history.size() == 0) {
             return NO_PERFORMANCES;
         }
-        // Reversing first puts later recordings ahead; the stable sort keeps that order within a date.
-        List<GymPerformance> newestFirst = new ArrayList<>(performances);
-        Collections.reverse(newestFirst);
-        newestFirst.sort(Comparator.comparing(GymPerformance::getDate).reversed());
-        List<String> lines = newestFirst.stream()
+        // Same order as the card's latest performance, so the first line always matches it.
+        List<String> lines = history.getNewestFirst().stream()
                 .map(p -> p.getDate() + DATE_SEPARATOR + p.getSummary())
                 .toList();
         return "Performance " + countHeader(lines.size()) + "\n" + String.join("\n", lines);

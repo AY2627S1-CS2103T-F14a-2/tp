@@ -18,6 +18,7 @@ import seedu.address.model.person.Person;
 import seedu.address.model.progress.ExerciseName;
 import seedu.address.model.progress.GymPerformance;
 import seedu.address.model.progress.Load;
+import seedu.address.model.progress.PerformanceHistory;
 import seedu.address.testutil.PersonBuilder;
 
 public class ClientHistoryFormatterTest {
@@ -118,13 +119,14 @@ public class ClientHistoryFormatterTest {
 
     @Test
     public void formatPerformances_noRecords_showsEmptyState() {
-        assertEquals(NO_PERFORMANCES, ClientHistoryFormatter.formatPerformances(List.of()));
+        assertEquals(NO_PERFORMANCES, ClientHistoryFormatter.formatPerformances(new PerformanceHistory()));
     }
 
     @Test
     public void formatPerformances_oneRecord_usesSingularHeader() {
         assertEquals("Performance (1 record, newest first):\n2026-10-01  Pull-up, 1 set of 1 rep at 0 kg",
-                ClientHistoryFormatter.formatPerformances(List.of(performance(OCT_01, "Pull-up", 1, 1, "0"))));
+                ClientHistoryFormatter.formatPerformances(
+                        new PerformanceHistory(List.of(performance(OCT_01, "Pull-up", 1, 1, "0")))));
     }
 
     @Test
@@ -138,7 +140,8 @@ public class ClientHistoryFormatterTest {
                 + "2026-10-15  Squat, 3 sets of 5 reps at 100 kg\n"
                 + "2026-10-12  Deadlift, 1 set of 5 reps at 140 kg\n"
                 + "2026-10-01  Bench Press, 3 sets of 8 reps at 60 kg\n"
-                + "2026-09-30  Row, 3 sets of 10 reps at 40 kg", ClientHistoryFormatter.formatPerformances(records));
+                + "2026-09-30  Row, 3 sets of 10 reps at 40 kg",
+                ClientHistoryFormatter.formatPerformances(new PerformanceHistory(records)));
     }
 
     @Test
@@ -153,7 +156,8 @@ public class ClientHistoryFormatterTest {
                 + "2026-10-15  Arm Curl, 3 sets of 12 reps at 10 kg\n"
                 + "2026-10-15  squat, 3 sets of 5 reps at 100 kg\n"
                 + "2026-10-15  Bench Press, 3 sets of 8 reps at 60 kg\n"
-                + "2026-10-01  Row, 3 sets of 10 reps at 40 kg", ClientHistoryFormatter.formatPerformances(records));
+                + "2026-10-01  Row, 3 sets of 10 reps at 40 kg",
+                ClientHistoryFormatter.formatPerformances(new PerformanceHistory(records)));
     }
 
     @Test
@@ -163,7 +167,7 @@ public class ClientHistoryFormatterTest {
         GymPerformance latest = person.getPerformanceHistory().getLatest().orElseThrow();
 
         String firstLine = ClientHistoryFormatter.formatPerformances(
-                person.getPerformanceHistory().asUnmodifiableList()).split("\n")[1];
+                person.getPerformanceHistory()).split("\n")[1];
         assertEquals(latest.getDate() + "  " + latest.getSummary(), firstLine);
     }
 
