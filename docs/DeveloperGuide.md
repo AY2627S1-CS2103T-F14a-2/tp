@@ -21,6 +21,7 @@
   and documenting the v1.3 next-session feature, including parsing, client integration, JSON storage, sorting,
   and the client card row, and the v1.4 session cancellation/date-filter commands, tests and documentation.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #64 changes (the `list` command messages, undoing changes when saving fails, the damaged data file warning, the client card phone and email rows, and the related tests and User Guide wording) on 2026-10-15. The changes were reviewed and tested by the author.
+* AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #79 changes (the tests for data files with invalid values, the `view` sequence diagram and "View client history" section, and the related manual testing steps) on 2026-10-22. The changes were reviewed and tested by the author.
 * Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the client `add`/`delete` changes for v1.3 (removing address, optional email, name and phone limits, Spotter messages). All generated code was reviewed and tested before committing.
 
 --------------------------------------------------------------------------------------------------------------------
@@ -166,6 +167,41 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 ## **Implementation**
 
 This section describes some noteworthy details on how certain features are implemented.
+
+### View client history
+
+`view INDEX` shows one client's details followed by their full measurement and gym-performance history.
+It follows the usual `Logic` flow: `ViewCommandParser` parses the index and `ViewCommand` looks the client up in
+`Model#getFilteredPersonList()`. `ClientHistoryFormatter` then builds the text, which is returned in the
+`CommandResult` and shown in the result display.
+
+<puml src="diagrams/ViewSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `view 1` Command" />
+
+`view` is read-only. As `LogicManager` only saves when a command changes the address book, executing `view`
+never writes the data file.
+
+Design notes:
+
+* **Non-UI formatter:** `ClientHistoryFormatter` is a plain class in `logic.commands` with no JavaFX dependency,
+  so the output can be checked in unit tests without starting the GUI.
+* **Testable "now":** `ViewCommand` takes a `java.time.Clock` (the system clock by default). The current time
+  decides whether the next session is shown as passed, so tests pass a fixed clock instead of depending on
+  when they run.
+* **Ordering:** both histories are listed newest first. Measurements on the same date follow the type order
+  weight, body fat, waist. Performance records on the same date are listed most recently recorded first, so the
+  first line always matches the client card's "Latest performance".
+
+**Aspect: where to show the history**
+
+* **Alternative 1 (current choice):** Show it as text in the result display.
+  * Pros: Needs no UI changes, works entirely from the keyboard, and the output is easy to test.
+  * Cons: A long history must be scrolled in the result display, and it is replaced by the next command's result.
+* **Alternative 2:** Show it in a separate detail panel next to the client list.
+  * Pros: Has room for a richer layout, and the history can stay visible while other commands run.
+  * Cons: Needs new UI components and layout changes that are harder to test, and the panel must be kept in sync
+    when the client is edited or deleted.
+
+<!-- AI assistance: Claude Code helped draft this section and its sequence diagram. -->
 
 ### Deleting body measurements
 
@@ -1063,6 +1099,18 @@ editing the file. Keep the backup until all tests are complete.
    1. Relaunch Spotter.<br>
       Expected: The recovery test client is present with phone number `92345678`, and no load warning appears.
       Enter `exit`.
+
+1. Starting with a data file containing invalid values
+
+   1. With Spotter closed, replace `data/spotter.json` with a copy of `data/spotter-backup.json`. Open it in a
+      text editor and change the phone number `91234567` to `12`, keeping the JSON valid. Relaunch Spotter.<br>
+      Expected: No clients are shown, not even those with valid values. Spotter displays the same
+      load warning as for a corrupted file.
+   1. Enter `list`, then `exit`.<br>
+      Expected: The data file still contains phone number `12`. Other invalid values, such as an email without
+      `@`, a measurement outside its range, or two measurements of the same type on the same date, behave the same.
+      Exception: a measurement or performance dated in the future is not invalid. Spotter loads it normally,
+      because future dates are only rejected when a record is entered with a command.
 
 1. Restoring a valid backup
 
