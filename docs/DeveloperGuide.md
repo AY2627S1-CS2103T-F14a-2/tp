@@ -13,6 +13,10 @@
 
 ## **Acknowledgements**
 
+* Helen (He Jingqi) used OpenAI Codex to assist with implementing, testing and documenting
+  the v1.4 measurement deletion feature for issue #84, including its model operation, command, parser,
+  persistence tests and sequence diagram.
+
 * Gabriel Wan used [OpenAI Codex](https://openai.com/codex/) to assist with implementing, testing,
   and documenting the v1.3 next-session feature, including parsing, client integration, JSON storage, sorting,
   and the client card row, and the v1.4 session cancellation/date-filter commands, tests and documentation.
@@ -162,6 +166,28 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 ## **Implementation**
 
 This section describes some noteworthy details on how certain features are implemented.
+
+### Deleting body measurements
+
+`deletemeasure INDEX d/DATE t/TYPE` removes one measurement from the client at the displayed index.
+`DeleteMeasureCommandParser` validates the index, date and measurement type. The shared
+`ParserUtil#parseExistingRecordDate` accepts future dates because human-edited storage can contain them;
+`parseRecordDate` adds the existing future-date restriction for recording measurements and performances.
+
+`DeleteMeasureCommand` looks up the client through `Model#getFilteredPersonList()` and finds the record
+by date and type. A missing record raises a `CommandException` before any state changes.
+`Person#withoutMeasurement` creates an immutable copy with that record removed, preserving all contact,
+session and performance data. `Model#setPerson` replaces the original client without changing the filter.
+The card derives its latest measurement and count from the updated list, including same-date type ties
+and the empty state. History consumers read `Person#getMeasurements()` from the updated client; a
+previously formatted history result is a snapshot and must be requested again after deletion.
+
+<puml src="diagrams/DeleteMeasureSequenceDiagram.puml" alt="Measurement deletion sequence" />
+
+`LogicManager` saves the changed address book using the existing storage format. If saving fails,
+it restores the previous address book and filter and reports `Unable to save Spotter data.`
+No storage schema change or separate cached record count is needed. Keeping counts derived from the
+measurement list avoids stale summary data after deletion.
 
 ### Session cancellation and date filtering
 
@@ -884,6 +910,33 @@ run `list` and substitute that client's displayed index for `1` below.
    Expected: The measurement row remains readable and does not overlap neighbouring cards.
 
 <!-- AI assistance: OpenAI Codex helped draft measurement acceptance tests. -->
+
+### Deleting body measurements
+
+Use fictional data in a disposable test folder. Run `list`, choose a client, and substitute that client's
+displayed index for `1` below. Start with no measurements for that client and retain a session and a
+performance record to check that unrelated data survives deletion.
+
+1. Run `measure 1 d/2026-09-11 t/weight v/73`, `measure 1 d/2026-09-12 t/waist v/81`,
+   and `measure 1 d/2026-09-12 t/weight v/72.4`.
+   Expected: latest weight 72.4 kg with three records.
+2. Run `deletemeasure 1 d/2026-09-12 t/weight`.
+   Expected: a deletion message; the card shows waist 81 cm with two records.
+3. Run `deletemeasure 1 d/2026-09-12 t/waist`.
+   Expected: the card shows weight 73 kg on 11 Sep with one record.
+4. Restart Spotter, run `list` and locate the same client again.
+   Expected: only the 11 Sep measurement remains; contact details, session and performance are unchanged.
+5. Filter to the client using `find`, then use its displayed index to delete the remaining measurement.
+   Expected: the filter is preserved and the card shows `Latest measurement: -`.
+6. Repeat that deletion, then try `deletemeasure 1 d/2026-02-30 t/weight`,
+   `deletemeasure 0 d/2026-09-12 t/weight`, and `deletemeasure 1 d/2026-09-12 t/height`.
+   Expected: missing-record, date, index and type errors respectively; no data changes.
+7. Run `measure 1 d/2026-09-12 t/weight v/70`, then repeat it with `v/71`.
+   Expected: recorded then updated messages; one measurement remains after restart.
+
+The automated `DeleteMeasurePersistenceTest` additionally checks deletion of future-dated records loaded
+from storage and rollback of records, the active filter and the saved file after an I/O or permission failure.
+`PersonCardTest` checks latest-record fallback, same-date ties, singular/plural counts and the final empty state.
 
 ### Recording and deleting gym performances
 
