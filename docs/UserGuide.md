@@ -283,6 +283,9 @@ Format: `exit`
 
 Records one next session for an existing client. A new booking replaces that client's previous booking.
 
+**`session` records or replaces a booking; `sessions` (with a final `s`) only lists bookings on a date.**
+Use `session INDEX d/DATE t/TIME` to book and `sessions d/DATE` to inspect the schedule.
+
 Format: `session INDEX d/DATE t/TIME` or `session n/NAME d/DATE t/TIME`
 
 * `INDEX` is the positive number shown on the **current displayed list**, including a filtered list.
@@ -346,7 +349,8 @@ Format: `cancelsession INDEX`
 * If saving fails, the original session and displayed list are restored and `Unable to save Spotter data.` is shown.
 
 Example: `cancelsession 1` cancels the first displayed client's session.
-Success: `Cancelled next session for Sarah Lim.` (when Sarah Lim is the first displayed client).
+Success: `Cancelled session on 2026-12-15 09:00 for Sarah Lim.` (when that is her recorded booking).
+The confirmation includes the removed booking's date and 24-hour time, including for expired bookings.
 
 ### Listing sessions on a date: `sessions`
 

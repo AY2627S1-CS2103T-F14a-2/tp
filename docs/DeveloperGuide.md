@@ -899,7 +899,8 @@ replace `DATE` in every command below, and `TODAY` with today's date. Add unique
    Enter `find SessionCancelAda` again, then `performance 1 d/TODAY e/Squat s/3 r/5 w/100`.
    Re-enter `sessions d/DATE` and note Ada's current index `INDEX` before continuing.
 1. Enter `cancelsession INDEX` for Ada.<br>
-   Expected: `Cancelled next session for SessionCancelAda.` Ada disappears from the date view; Zoe remains.
+   Expected: `Cancelled session on DATE 09:00 for SessionCancelAda.` (with tomorrow's date).
+   Ada disappears from the date view; Zoe remains.
    Enter `list` and locate Ada. The card shows `Next session: - (none booked)` while both progress rows remain populated.
    Close and restart Spotter. Ada remains unbooked and the contact/progress data are unchanged.
 1. Enter `find SessionCancelAda`, then try `cancelsession 1`.<br>

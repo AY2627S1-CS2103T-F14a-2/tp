@@ -50,7 +50,8 @@ public class CancelSessionCommandTest {
         assertEquals(List.of(booked, other), model.getFilteredPersonList());
         CommandResult result = new CancelSessionCommand(Index.fromOneBased(1)).execute(model);
         Person cancelled = new PersonBuilder(booked).withNextSession(null).build();
-        assertEquals(new CommandResult("Cancelled next session for Zoe Review.", false, false, true), result);
+        assertEquals(new CommandResult("Cancelled session on " + date + " 09:00 for Zoe Review.",
+                false, false, true), result);
         assertEquals(List.of(other, cancelled), model.getFilteredPersonList());
         assertEquals(List.of(other, cancelled), model.getAddressBook().getPersonList());
     }
@@ -80,7 +81,9 @@ public class CancelSessionCommandTest {
         Person expired = new PersonBuilder(booked).withNextSession(LocalDate.now().minusDays(1) + " 09:00").build();
         model.setPerson(booked, expired);
         model.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of("Zoe")));
-        new CancelSessionCommand(Index.fromOneBased(1)).execute(model);
+        CommandResult result = new CancelSessionCommand(Index.fromOneBased(1)).execute(model);
+        assertEquals("Cancelled session on " + LocalDate.now().minusDays(1) + " 09:00 for Zoe Review.",
+                result.getFeedbackToUser());
         assertEquals(List.of(expired.withNextSession(null)), model.getFilteredPersonList());
     }
 
