@@ -26,11 +26,11 @@ import seedu.address.model.tag.Tag;
  */
 public class ParserUtil {
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+
+    // Numeric-looking input uses the client-index error; other input uses the caller's format error.
+    public static final String INTEGER_REGEX = "[+-]?\\d+";
     public static final String MESSAGE_INVALID_RECORD_DATE = "The date must use the format yyyy-MM-dd.";
     public static final String MESSAGE_NONEXISTENT_RECORD_DATE = "%s is not a real date.";
-
-    // An index that looks like an integer is reported as an invalid index rather than an invalid format.
-    public static final String INTEGER_REGEX = "[+-]?\\d+";
 
     public static final String MESSAGE_SESSION_DATE_FORMAT =
             "Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).";
@@ -47,6 +47,18 @@ public class ParserUtil {
      * Parses a session date, allowing today but rejecting past dates.
      */
     public static LocalDate parseSessionDate(String date) throws ParseException {
+        LocalDate parsed = parseCalendarDate(date);
+        if (parsed.isBefore(LocalDate.now())) {
+            throw new ParseException(MESSAGE_PAST_SESSION_DATE);
+        }
+        return parsed;
+    }
+
+    /**
+     * Parses a real YYYY-MM-DD date in years 0001-9999 without restricting it relative to today.
+     * Booking commands separately reject past dates; date filters may inspect retained past bookings.
+     */
+    public static LocalDate parseCalendarDate(String date) throws ParseException {
         requireNonNull(date);
         String trimmed = date.trim();
         if (!trimmed.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}")) {
@@ -63,9 +75,6 @@ public class ParserUtil {
             parsed = LocalDate.parse(trimmed, DATE_FORMATTER);
         } catch (DateTimeParseException exception) {
             throw new ParseException(MESSAGE_INVALID_SESSION_DATE);
-        }
-        if (parsed.isBefore(LocalDate.now())) {
-            throw new ParseException(MESSAGE_PAST_SESSION_DATE);
         }
         return parsed;
     }
@@ -101,17 +110,29 @@ public class ParserUtil {
     }
 
     /**
-     * Parses the displayed index of a client, which callers have already checked to match {@link #INTEGER_REGEX}.
-     * A zero, negative or overflowing index is reported as an invalid client index rather than a format error.
-     *
-     * @throws ParseException if the index is not a positive integer that fits in an int.
+     * Parses a displayed client index after the caller has checked the numeric syntax.
+     * Zero, negative, signed-positive and overflowing values use the common invalid-client-index error.
      */
     public static Index parseClientIndex(String oneBasedIndex) throws ParseException {
+        requireNonNull(oneBasedIndex);
         try {
             return parseIndex(oneBasedIndex);
-        } catch (ParseException pe) {
-            throw new ParseException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, pe);
+        } catch (ParseException exception) {
+            throw new ParseException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, exception);
         }
+    }
+
+    /**
+     * Parses a displayed client index, distinguishing malformed command input from an invalid numeric index.
+     * The caller supplies its existing format message so command-specific usage text is preserved.
+     */
+    public static Index parseClientIndex(String oneBasedIndex, String invalidFormatMessage) throws ParseException {
+        requireNonNull(oneBasedIndex);
+        requireNonNull(invalidFormatMessage);
+        if (!oneBasedIndex.trim().matches(INTEGER_REGEX)) {
+            throw new ParseException(invalidFormatMessage);
+        }
+        return parseClientIndex(oneBasedIndex);
     }
 
     /**
