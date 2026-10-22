@@ -9,6 +9,7 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +23,7 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Person;
 import seedu.address.model.util.SampleDataUtil;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
@@ -30,6 +32,14 @@ import seedu.address.storage.StorageManager;
 import seedu.address.ui.Ui;
 
 public class MainAppTest {
+
+    // Every field and record type that the invalid-value tests change. The control test checks that all of
+    // them load, so a misspelt key, which Jackson ignores, cannot make an invalid-value test pass.
+    private static final String VALID_CLIENT = "{ \"name\": \"Bob Tan\", \"phone\": \"91234567\", "
+            + "\"email\": \"bob@example.com\", "
+            + "\"measurements\": [ { \"date\": \"2026-10-01\", \"type\": \"weight\", \"value\": \"70\" } ], "
+            + "\"performances\": [ { \"date\": \"2026-10-01\", \"exercise\": \"Squat\", "
+            + "\"sets\": \"3\", \"reps\": \"5\", \"load\": \"60\" } ] }";
 
     @TempDir
     public Path temporaryFolder;
@@ -66,87 +76,66 @@ public class MainAppTest {
 
     @Test
     public void initModelManager_damagedFile_startsEmptyWithWarningAndKeepsFile() throws Exception {
-        Path dataFile = temporaryFolder.resolve("spotter.json");
-        byte[] damagedContent = "{ \"persons\": [ not valid json".getBytes();
-        Files.write(dataFile, damagedContent);
-        Storage storage = createStorage(dataFile);
-        MainApp app = new MainApp();
-
-        Model model = app.initModelManager(storage, new UserPrefs());
-
-        assertEquals(new AddressBook(), model.getAddressBook());
-        assertEquals(Optional.of(MainApp.MESSAGE_DATA_LOAD_FAILURE), app.getStartupWarning());
         assertEquals("Unable to load saved Spotter data. The existing data file has not been modified.",
                 MainApp.MESSAGE_DATA_LOAD_FAILURE);
-
-        // A read-only command must not overwrite the damaged file
-        new LogicManager(model, storage).execute(ListCommand.COMMAND_WORD);
-        assertArrayEquals(damagedContent, Files.readAllBytes(dataFile));
+        assertStartsEmptyWithWarningAndKeepsFile("{ \"persons\": [ not valid json");
     }
 
     // Valid JSON whose values break model constraints must be treated like a damaged file.
     // Each file also holds a valid client, so a partial load would be detected.
+    // AI assistance: Claude Code helped write the tests for data files with invalid values (#79).
 
     @Test
     public void initModelManager_invalidPhone_startsEmptyWithWarningAndKeepsFile() throws Exception {
-        assertInvalidValuesStartEmptyAndKeepFile(
-                "{ \"name\": \"Bob Tan\", \"phone\": \"12\" }");
+        assertInvalidClientStartsEmpty(validClientWith("\"phone\": \"91234567\"", "\"phone\": \"12\""));
     }
 
     @Test
     public void initModelManager_invalidEmail_startsEmptyWithWarningAndKeepsFile() throws Exception {
-        assertInvalidValuesStartEmptyAndKeepFile(
-                "{ \"name\": \"Bob Tan\", \"phone\": \"91234567\", \"email\": \"bob-at-example\" }");
+        assertInvalidClientStartsEmpty(validClientWith("bob@example.com", "bob-at-example"));
     }
 
     @Test
     public void initModelManager_invalidMeasurementValue_startsEmptyWithWarningAndKeepsFile() throws Exception {
-        assertInvalidValuesStartEmptyAndKeepFile(
-                "{ \"name\": \"Bob Tan\", \"phone\": \"91234567\", \"measurements\": ["
-                + "{ \"date\": \"2026-10-01\", \"type\": \"weight\", \"value\": \"999\" } ] }");
+        assertInvalidClientStartsEmpty(validClientWith("\"value\": \"70\"", "\"value\": \"999\""));
     }
 
     @Test
     public void initModelManager_invalidMeasurementType_startsEmptyWithWarningAndKeepsFile() throws Exception {
-        assertInvalidValuesStartEmptyAndKeepFile(
-                "{ \"name\": \"Bob Tan\", \"phone\": \"91234567\", \"measurements\": ["
-                + "{ \"date\": \"2026-10-01\", \"type\": \"height\", \"value\": \"170\" } ] }");
+        assertInvalidClientStartsEmpty(validClientWith("\"weight\"", "\"height\""));
     }
 
     @Test
     public void initModelManager_duplicateMeasurement_startsEmptyWithWarningAndKeepsFile() throws Exception {
-        assertInvalidValuesStartEmptyAndKeepFile(
-                "{ \"name\": \"Bob Tan\", \"phone\": \"91234567\", \"measurements\": ["
-                + "{ \"date\": \"2026-10-01\", \"type\": \"weight\", \"value\": \"70\" }, "
-                + "{ \"date\": \"2026-10-01\", \"type\": \"weight\", \"value\": \"71\" } ] }");
+        assertInvalidClientStartsEmpty(validClientWith("\"value\": \"70\" }",
+                "\"value\": \"70\" }, { \"date\": \"2026-10-01\", \"type\": \"weight\", \"value\": \"71\" }"));
     }
 
     @Test
     public void initModelManager_invalidPerformanceSets_startsEmptyWithWarningAndKeepsFile() throws Exception {
-        assertInvalidValuesStartEmptyAndKeepFile(createClientWithPerformance("0", "5", "60"));
+        assertInvalidClientStartsEmpty(validClientWith("\"sets\": \"3\"", "\"sets\": \"0\""));
     }
 
     @Test
     public void initModelManager_invalidPerformanceReps_startsEmptyWithWarningAndKeepsFile() throws Exception {
-        assertInvalidValuesStartEmptyAndKeepFile(createClientWithPerformance("3", "1001", "60"));
+        assertInvalidClientStartsEmpty(validClientWith("\"reps\": \"5\"", "\"reps\": \"1001\""));
     }
 
     @Test
     public void initModelManager_invalidPerformanceLoad_startsEmptyWithWarningAndKeepsFile() throws Exception {
-        assertInvalidValuesStartEmptyAndKeepFile(createClientWithPerformance("3", "5", "-1"));
+        assertInvalidClientStartsEmpty(validClientWith("\"load\": \"60\"", "\"load\": \"-1\""));
     }
 
     @Test
-    public void initModelManager_validClientsInSameFormat_loadsAllClients() throws Exception {
-        // Control for the cases above: the same file layout with valid values loads normally
-        Path dataFile = temporaryFolder.resolve("spotter.json");
-        Files.writeString(dataFile, createDataFile(createClientWithPerformance("3", "5", "60")));
-        MainApp app = new MainApp();
+    public void initModelManager_validClient_loadsEveryFieldAndRecord() throws Exception {
+        // Control for the cases above
+        assertLoadsBothClients(VALID_CLIENT);
+    }
 
-        Model model = app.initModelManager(createStorage(dataFile), new UserPrefs());
-
-        assertEquals(2, model.getAddressBook().getPersonList().size());
-        assertEquals(Optional.empty(), app.getStartupWarning());
+    @Test
+    public void initModelManager_futureDatedRecords_loadsWithoutWarning() throws Exception {
+        // Only commands reject future dates, so that saved records stay loadable however the clock is set
+        assertLoadsBothClients(validClientWith("2026-10-01", LocalDate.now().plusDays(1).toString()));
     }
 
     private static String createDataFile(String secondClientJson) {
@@ -155,21 +144,45 @@ public class MainAppTest {
                 + secondClientJson + " ] }";
     }
 
-    private static String createClientWithPerformance(String sets, String reps, String load) {
-        return "{ \"name\": \"Bob Tan\", \"phone\": \"91234567\", \"performances\": [ "
-                + "{ \"date\": \"2026-10-01\", \"exercise\": \"Squat\", \"sets\": \"" + sets
-                + "\", \"reps\": \"" + reps + "\", \"load\": \"" + load + "\" } ] }";
+    /**
+     * Returns {@link #VALID_CLIENT} with every occurrence of {@code validPart} replaced by {@code newPart}.
+     */
+    private static String validClientWith(String validPart, String newPart) {
+        assertTrue(VALID_CLIENT.contains(validPart), "Not found in VALID_CLIENT: " + validPart);
+        return VALID_CLIENT.replace(validPart, newPart);
     }
 
     /**
-     * Writes a data file containing one valid client followed by {@code invalidClientJson}, then checks that
-     * Spotter starts with no clients, records the load warning, and leaves the file unchanged after a
-     * read-only command.
+     * Checks that a data file holding a valid client and {@code clientJson} loads both clients, with
+     * Bob's email, measurement and performance, and no warning.
      */
-    private void assertInvalidValuesStartEmptyAndKeepFile(String invalidClientJson) throws Exception {
+    private void assertLoadsBothClients(String clientJson) throws Exception {
         Path dataFile = temporaryFolder.resolve("spotter.json");
-        byte[] content = createDataFile(invalidClientJson).getBytes(StandardCharsets.UTF_8);
-        Files.write(dataFile, content);
+        Files.writeString(dataFile, createDataFile(clientJson));
+        MainApp app = new MainApp();
+
+        Model model = app.initModelManager(createStorage(dataFile), new UserPrefs());
+
+        List<Person> clients = model.getAddressBook().getPersonList();
+        assertEquals(2, clients.size());
+        assertTrue(clients.get(1).getEmail().isPresent());
+        assertEquals(1, clients.get(1).getMeasurements().size());
+        assertEquals(1, clients.get(1).getGymPerformances().size());
+        assertEquals(Optional.empty(), app.getStartupWarning());
+    }
+
+    private void assertInvalidClientStartsEmpty(String invalidClientJson) throws Exception {
+        assertStartsEmptyWithWarningAndKeepsFile(createDataFile(invalidClientJson));
+    }
+
+    /**
+     * Writes {@code content} as the data file, then checks that Spotter starts with no clients, records the
+     * load warning, and leaves the file unchanged after a read-only command.
+     */
+    private void assertStartsEmptyWithWarningAndKeepsFile(String content) throws Exception {
+        Path dataFile = temporaryFolder.resolve("spotter.json");
+        byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
+        Files.write(dataFile, bytes);
         Storage storage = createStorage(dataFile);
         MainApp app = new MainApp();
 
@@ -179,7 +192,7 @@ public class MainAppTest {
         assertEquals(Optional.of(MainApp.MESSAGE_DATA_LOAD_FAILURE), app.getStartupWarning());
 
         new LogicManager(model, storage).execute(ListCommand.COMMAND_WORD);
-        assertArrayEquals(content, Files.readAllBytes(dataFile));
+        assertArrayEquals(bytes, Files.readAllBytes(dataFile));
     }
 
     @Test
