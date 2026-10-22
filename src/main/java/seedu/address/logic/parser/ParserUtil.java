@@ -13,10 +13,12 @@ import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
+import seedu.address.logic.Messages;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.progress.ExerciseName;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -24,6 +26,9 @@ import seedu.address.model.tag.Tag;
  */
 public class ParserUtil {
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+
+    // Numeric-looking input uses the client-index error; other input uses the caller's format error.
+    public static final String INTEGER_REGEX = "[+-]?\\d+";
     public static final String MESSAGE_INVALID_RECORD_DATE = "The date must use the format yyyy-MM-dd.";
     public static final String MESSAGE_NONEXISTENT_RECORD_DATE = "%s is not a real date.";
 
@@ -42,6 +47,18 @@ public class ParserUtil {
      * Parses a session date, allowing today but rejecting past dates.
      */
     public static LocalDate parseSessionDate(String date) throws ParseException {
+        LocalDate parsed = parseCalendarDate(date);
+        if (parsed.isBefore(LocalDate.now())) {
+            throw new ParseException(MESSAGE_PAST_SESSION_DATE);
+        }
+        return parsed;
+    }
+
+    /**
+     * Parses a real YYYY-MM-DD date in years 0001-9999 without restricting it relative to today.
+     * Booking commands separately reject past dates; date filters may inspect retained past bookings.
+     */
+    public static LocalDate parseCalendarDate(String date) throws ParseException {
         requireNonNull(date);
         String trimmed = date.trim();
         if (!trimmed.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}")) {
@@ -58,9 +75,6 @@ public class ParserUtil {
             parsed = LocalDate.parse(trimmed, DATE_FORMATTER);
         } catch (DateTimeParseException exception) {
             throw new ParseException(MESSAGE_INVALID_SESSION_DATE);
-        }
-        if (parsed.isBefore(LocalDate.now())) {
-            throw new ParseException(MESSAGE_PAST_SESSION_DATE);
         }
         return parsed;
     }
@@ -96,6 +110,46 @@ public class ParserUtil {
     }
 
     /**
+     * Parses a displayed client index after the caller has checked the numeric syntax.
+     * Zero, negative, signed-positive and overflowing values use the common invalid-client-index error.
+     */
+    public static Index parseClientIndex(String oneBasedIndex) throws ParseException {
+        requireNonNull(oneBasedIndex);
+        try {
+            return parseIndex(oneBasedIndex);
+        } catch (ParseException exception) {
+            throw new ParseException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, exception);
+        }
+    }
+
+    /**
+     * Parses a displayed client index, distinguishing malformed command input from an invalid numeric index.
+     * The caller supplies its existing format message so command-specific usage text is preserved.
+     */
+    public static Index parseClientIndex(String oneBasedIndex, String invalidFormatMessage) throws ParseException {
+        requireNonNull(oneBasedIndex);
+        requireNonNull(invalidFormatMessage);
+        if (!oneBasedIndex.trim().matches(INTEGER_REGEX)) {
+            throw new ParseException(invalidFormatMessage);
+        }
+        return parseClientIndex(oneBasedIndex);
+    }
+
+    /**
+     * Parses a {@code String exerciseName} into an {@code ExerciseName}.
+     * Leading, trailing and repeated spaces are normalised by {@code ExerciseName}.
+     *
+     * @throws ParseException if the given {@code exerciseName} is invalid.
+     */
+    public static ExerciseName parseExerciseName(String exerciseName) throws ParseException {
+        requireNonNull(exerciseName);
+        if (!ExerciseName.isValidExerciseName(exerciseName)) {
+            throw new ParseException(ExerciseName.MESSAGE_CONSTRAINTS);
+        }
+        return new ExerciseName(exerciseName);
+    }
+
+    /**
      * Parses the date of a progress record, such as a body measurement or a gym performance,
      * ignoring surrounding whitespace.
      * The date must be a real calendar date in yyyy-MM-dd format with a year from 0001, and must not be
@@ -114,8 +168,12 @@ public class ParserUtil {
     }
 
     /**
-     * Parses a real yyyy-MM-dd date from year 0001, allowing future dates so that manually edited
-     * records can still be deleted. Existing record commands retain their separate future-date check.
+     * Parses the date that identifies an existing progress record, ignoring surrounding whitespace.
+     * The date must be a real calendar date in yyyy-MM-dd format with a year from 0001.
+     * Unlike {@link #parseRecordDate(String, String)}, future dates are accepted, because a record with a
+     * future date may have been loaded from an edited data file and must still be removable.
+     *
+     * @throws ParseException if the date is malformed or does not exist.
      */
     public static LocalDate parseExistingRecordDate(String date) throws ParseException {
         requireNonNull(date);
@@ -123,6 +181,7 @@ public class ParserUtil {
         if (!trimmedDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
             throw new ParseException(MESSAGE_INVALID_RECORD_DATE);
         }
+        // The format is right from here on, so any remaining problem is a date that does not exist
         String nonexistentDateMessage = String.format(MESSAGE_NONEXISTENT_RECORD_DATE, trimmedDate);
         final LocalDate parsedDate;
         try {

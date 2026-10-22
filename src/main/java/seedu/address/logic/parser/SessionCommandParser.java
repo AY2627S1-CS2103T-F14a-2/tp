@@ -56,14 +56,7 @@ public class SessionCommandParser implements Parser<SessionCommand> {
                 throw new ParseException(SessionCommand.MESSAGE_NAME_SLASH);
             }
         } else {
-            if (!arguments.getPreamble().matches("[+-]?[0-9]+")) {
-                throw new ParseException(SessionCommand.MESSAGE_INVALID_FORMAT);
-            }
-            try {
-                index = ParserUtil.parseIndex(arguments.getPreamble());
-            } catch (ParseException exception) {
-                throw new ParseException(SessionCommand.MESSAGE_INVALID_INDEX);
-            }
+            index = ParserUtil.parseClientIndex(arguments.getPreamble(), SessionCommand.MESSAGE_INVALID_FORMAT);
         }
         LocalDate date = ParserUtil.parseSessionDate(arguments.getValue(PREFIX_DATE).orElseThrow());
         LocalTime time = ParserUtil.parseSessionTime(arguments.getValue(PREFIX_TIME).orElseThrow());
