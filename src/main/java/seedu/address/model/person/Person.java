@@ -158,6 +158,15 @@ public class Person {
     }
 
     /**
+     * Returns a copy of this client without the record for the same exercise on the same date as
+     * {@code performance}. All other client information, including the session and measurements, is preserved.
+     */
+    public Person withoutGymPerformance(GymPerformance performance) {
+        return new Person(name, phone, email, tags, nextSession, measurements,
+                performanceHistory.withoutRecord(performance));
+    }
+
+    /**
      * Returns true if both persons have the same name, ignoring case and extra spaces.
      * This defines a weaker notion of equality between two persons.
      */
