@@ -317,7 +317,7 @@ Problem | Message
 
 <box type="tip" seamless>
 
-**Tip:** The output of `view` is not updated automatically. After you record, update or replace a measurement or performance, run `view` again to see the client's current history.
+**Tip:** `view` shows the client's records at the moment you run it. Re-run `view` after changing that client's records to see the latest history.
 </box>
 
 <!-- AI assistance: Claude Code helped draft the view command documentation. -->
