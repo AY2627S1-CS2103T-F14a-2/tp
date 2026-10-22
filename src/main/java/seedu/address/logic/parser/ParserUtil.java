@@ -25,6 +25,7 @@ import seedu.address.model.tag.Tag;
 public class ParserUtil {
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
     public static final String MESSAGE_INVALID_RECORD_DATE = "The date must use the format yyyy-MM-dd.";
+    public static final String MESSAGE_NONEXISTENT_RECORD_DATE = "%s is not a real date.";
 
     public static final String MESSAGE_SESSION_DATE_FORMAT =
             "Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).";
@@ -122,14 +123,15 @@ public class ParserUtil {
         if (!trimmedDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
             throw new ParseException(MESSAGE_INVALID_RECORD_DATE);
         }
+        String nonexistentDateMessage = String.format(MESSAGE_NONEXISTENT_RECORD_DATE, trimmedDate);
         final LocalDate parsedDate;
         try {
             parsedDate = LocalDate.parse(trimmedDate, DATE_FORMATTER);
         } catch (DateTimeParseException e) {
-            throw new ParseException(MESSAGE_INVALID_RECORD_DATE, e);
+            throw new ParseException(nonexistentDateMessage, e);
         }
         if (parsedDate.getYear() == 0) {
-            throw new ParseException(MESSAGE_INVALID_RECORD_DATE);
+            throw new ParseException(nonexistentDateMessage);
         }
         return parsedDate;
     }

@@ -104,7 +104,8 @@ public class PerformanceCommandParserTest {
         String formatMessage = withUsage(ParserUtil.MESSAGE_INVALID_RECORD_DATE);
 
         assertParseFailure(parser, "1 d/18-09-2026" + EXERCISE + SETS + REPS + LOAD, formatMessage);
-        assertParseFailure(parser, "1 d/2026-02-30" + EXERCISE + SETS + REPS + LOAD, formatMessage);
+        assertParseFailure(parser, "1 d/2026-02-30" + EXERCISE + SETS + REPS + LOAD,
+                withUsage("2026-02-30 is not a real date."));
         assertParseFailure(parser, "1 d/" + EXERCISE + SETS + REPS + LOAD, formatMessage); // empty
 
         // tomorrow is in the future
@@ -150,6 +151,6 @@ public class PerformanceCommandParserTest {
     public void parse_severalInvalidValues_reportsFirstInCommandOrder() {
         // invalid date and load: the date is reported first
         assertParseFailure(parser, "1 d/2026-13-01" + EXERCISE + SETS + REPS + " w/abc",
-                withUsage(ParserUtil.MESSAGE_INVALID_RECORD_DATE));
+                withUsage("2026-13-01 is not a real date."));
     }
 }

@@ -80,7 +80,7 @@ public class MeasureCommandParserTest {
 
     @Test
     public void parse_specificValidationMessages_matchSpecification() {
-        assertError("1 d/2026-02-30 t/weight v/72", ParserUtil.MESSAGE_INVALID_RECORD_DATE);
+        assertError("1 d/2026-02-30 t/weight v/72", "2026-02-30 is not a real date.");
         assertError("1 d/" + LocalDate.now().plusDays(1) + " t/weight v/72", Measurement.MESSAGE_FUTURE_DATE);
         assertError("1 d/2026-09-12 t/height v/72", MeasurementType.MESSAGE_CONSTRAINTS);
         assertError("1 d/2026-09-12 t/weight v/501", MeasurementType.WEIGHT.getValueConstraints());

@@ -61,11 +61,22 @@ public class ParserUtilTest {
 
     @Test
     public void parseRecordDate_invalidDate_throwsParseException() {
-        for (String invalidDate : List.of("", "18-09-2026", "2026/09/18", "2026-9-18", "2026-02-30",
-                "2026-13-01", "0000-01-01", "12026-09-18", "+2026-09-18", "today")) {
+        for (String invalidDate : List.of("", "18-09-2026", "2026/09/18", "2026-9-18",
+                "12026-09-18", "+2026-09-18", "today")) {
             assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_RECORD_DATE, ()
                 -> ParserUtil.parseRecordDate(invalidDate, FUTURE_DATE_MESSAGE));
         }
+    }
+
+    @Test
+    public void parseRecordDate_nonexistentDate_reportsCalendarError() {
+        for (String date : List.of("2026-02-30", "2026-13-01", "0000-01-01", "2027-02-29", "2026-04-31")) {
+            String message = date + " is not a real date.";
+            assertThrows(ParseException.class, message, () -> ParserUtil.parseExistingRecordDate(date));
+            assertThrows(ParseException.class, message, () -> ParserUtil.parseRecordDate(date, FUTURE_DATE_MESSAGE));
+        }
+        assertThrows(ParseException.class, "2026-02-30 is not a real date.", () ->
+                ParserUtil.parseExistingRecordDate(" 2026-02-30 "));
     }
 
     @Test
