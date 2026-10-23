@@ -31,7 +31,7 @@ Spotter is a **desktop application for freelance personal trainers to manage the
 
    * `list` : Lists all clients.
 
-   * `add n/John Doe p/98765432 e/johnd@example.com` : Adds a contact named `John Doe` to the Address Book.
+   * `add n/John Doe p/98765432 e/johnd@example.com` : Adds a client named `John Doe` to Spotter.
 
    * `delete 3` : Deletes the 3rd client shown in the current list.
 
@@ -147,6 +147,31 @@ Examples:
 * `find John` returns `john` and `John Doe`
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
+
+### Filtering clients by tags: `filter`
+
+Shows clients who have at least one of the specified tags.
+
+Format: `filter t/TAG [t/MORE_TAGS]...`
+
+* Supply at least one non-empty tag, with a separate `t/` prefix for each tag.
+* Matching is case-insensitive and requires the whole tag name: `REHAB` matches `rehab`, but `reh` does not.
+* Multiple tags use an `OR` search. `filter t/rehab t/strength` shows clients with either tag or both.
+* The command searches all clients and replaces any previous `find`, `filter` or `sessions` results.
+  Clients without tags do not match. If no clients match, the displayed list is empty.
+* Filtering does not change client data. Use the indices in the filtered list for subsequent commands,
+  and run `list` to show all clients again.
+
+Examples:
+* `filter t/rehab` shows clients with the `rehab` tag.
+* `filter t/REHAB t/strength` shows clients with either tag, ignoring case.
+
+| Input problem | Message |
+| --- | --- |
+| No `t/` prefix, or text before the first prefix, e.g. `filter rehab` | `Invalid command format!` followed by the expected format |
+| An empty tag, e.g. `filter t/` or `filter t/rehab t/` | `Tags to filter by cannot be empty.` followed by the expected format |
+
+<!-- AI assistance: Helen used OpenAI Codex to draft the filter documentation and update UG terminology and the command summary. -->
 
 ### Deleting a client: `delete`
 
@@ -560,9 +585,11 @@ Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add**    | `add n/NAME p/PHONE [e/EMAIL] [t/TAG]...` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com t/rehab`
 **Clear**  | `clear`
+**Exit**   | `exit`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**Filter** | `filter t/TAG [t/MORE_TAGS]...`<br> e.g., `filter t/rehab t/strength`
 **List**   | `list`
 **Session** | `session INDEX d/DATE t/TIME` or `session n/NAME d/DATE t/TIME`<br> e.g., `session 1 d/2026-12-15 t/1900`
 **Cancel session** | `cancelsession INDEX`<br> e.g., `cancelsession 1`
@@ -570,7 +597,6 @@ Action     | Format, Examples
 **Measure** | `measure INDEX d/DATE t/TYPE v/VALUE`<br> e.g., `measure 1 d/2026-09-12 t/weight v/72.4`
 **Performance** | `performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`<br> e.g., `performance 2 d/2026-09-18 e/Bench Press s/3 r/8 w/60`
 **Delete measurement** | `deletemeasure INDEX d/DATE t/TYPE`<br> e.g., `deletemeasure 1 d/2026-09-12 t/weight`
-
 **Delete performance** | `deleteperformance INDEX d/DATE e/EXERCISE`<br> e.g., `deleteperformance 2 d/2026-09-18 e/Bench Press`
 **View** | `view INDEX`<br> e.g., `view 1`
 **Help**   | `help`
