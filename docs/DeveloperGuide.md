@@ -258,6 +258,22 @@ Retaining the predicate during cancellation lets a trainer cancel several bookin
 The trade-off is that the date view contains only each client's currently recorded booking; it is not a session history.
 The main list's upcoming-before-expired ordering also applies to date results, including today's elapsed sessions.
 
+### Removing a client's email
+
+`edit INDEX e/` with nothing after `e/` removes the client's optional email, the same way `t/` clears tags.
+`EditCommandParser` calls `EditPersonDescriptor#removeEmail()` for an empty `e/` value and parses any other value as
+before. `EditCommand` then builds a client without an email, carrying over the other details, the session, measurements
+and performance history, and replaces the original through `Model#setPerson`.
+
+<puml src="diagrams/EditRemoveEmailSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `edit 1 e/` Command" />
+
+**Design choice:** `EditPersonDescriptor` stores a plain `Email` plus an `isEmailRemoved` flag. `setEmail` and
+`removeEmail` reset each other, so an edit can never both replace and remove the email; `EditCommand` asserts this.
+The alternative, an `Optional<Email>` field that is null when unchanged, made `getEmail()` return
+`Optional<Optional<Email>>`, which reviewers found hard to read.
+
+<!-- AI assistance: Claude Code helped draft this section and its sequence diagram. -->
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
