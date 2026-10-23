@@ -41,6 +41,16 @@ The following commands perform common Gradle tasks.
 
 This project uses GitHub Actions for CI. The necessary workflow configuration files are in `.github/workflows`. No further setup is required.
 
+### Documentation deployment
+
+The **MarkBind Action** workflow builds and publishes the team website after a push or merge to the team repository's
+`master` branch. Pushes to personal forks or feature branches do not publish the team website.
+
+To deploy the latest merged documentation manually, open **Actions → MarkBind Action → Run workflow**, select
+`master`, and run the workflow. Check that both the MarkBind run and the subsequent GitHub Pages deployment succeed,
+then verify the changed page on the live website. Re-running an old workflow run builds its original revision,
+so use **Run workflow** on `master` when recovering a stale website.
+
 ### Code coverage
 
 As part of CI, Gradle generates JaCoCo coverage reports from the tests, and CI uploads the coverage data to Codecov. Codecov then provides information about test coverage.
