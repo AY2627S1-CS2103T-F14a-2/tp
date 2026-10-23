@@ -53,6 +53,7 @@
         "common-classes": "Common classes",
         "implementation": "Implementation",
         "view-client-history": "View client history",
+        "recording-and-deleting-gym-performances": "Recording and deleting gym performances",
         "deleting-body-measurements": "Deleting body measurements",
         "session-cancellation-and-date-filtering": "Session cancellation and date filtering",
         "removing-a-client-s-email": "Removing a client's email",
@@ -70,7 +71,7 @@
         "deleting-a-person": "Deleting a person",
         "recording-body-measurements": "Recording body measurements",
         "deleting-body-measurements-2": "Deleting body measurements",
-        "recording-and-deleting-gym-performances": "Recording and deleting gym performances",
+        "recording-and-deleting-gym-performances-2": "Recording and deleting gym performances",
         "cancelling-and-listing-sessions": "Cancelling and listing sessions",
         "saving-data": "Saving data"
       },
