@@ -124,6 +124,7 @@
         "listing-all-clients-list": "Listing all clients: list",
         "editing-a-client-edit": "Editing a client: edit",
         "locating-clients-by-name-find": "Locating clients by name: find",
+        "filtering-clients-by-tags-filter": "Filtering clients by tags: filter",
         "deleting-a-client-delete": "Deleting a client: delete",
         "recording-body-measurements-measure": "Recording body measurements: measure",
         "deleting-a-body-measurement-deletemeasure": "Deleting a body measurement: deletemeasure",
