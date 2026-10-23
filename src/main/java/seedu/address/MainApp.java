@@ -32,7 +32,7 @@ import seedu.address.ui.UiManager;
  */
 public class MainApp extends Application {
 
-    public static final String VERSION = "V1.3.0";
+    public static final String VERSION = "V1.4.0";
 
     public static final String MESSAGE_DATA_LOAD_FAILURE =
             "Unable to load saved Spotter data. The existing data file has not been modified.";
