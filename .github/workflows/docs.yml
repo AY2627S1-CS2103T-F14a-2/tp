@@ -4,9 +4,18 @@ on:
   push:
     branches:
       - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: documentation-deployment
+  cancel-in-progress: true
 
 jobs:
   build_and_deploy:
+    if: github.repository == 'AY2627S1-CS2103T-F14a-2/tp' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - name: Install Graphviz
