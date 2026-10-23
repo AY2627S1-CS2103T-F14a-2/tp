@@ -1,0 +1,28 @@
+@startuml
+!include style.puml
+skinparam arrowThickness 1.1
+skinparam arrowColor MODEL_COLOR
+skinparam classBackgroundColor MODEL_COLOR
+
+Package Progress as ProgressPackage <<Rectangle>>{
+Class PerformanceHistory
+Class GymPerformance
+Class ExerciseName
+Class Load
+}
+
+Class Person
+Class "{abstract}\nCommand" as Command LOGIC_COLOR
+Class PerformanceCommand LOGIC_COLOR
+Class DeletePerformanceCommand LOGIC_COLOR
+
+Person *--> "1" PerformanceHistory : performanceHistory
+PerformanceHistory *--> "*" GymPerformance : records
+GymPerformance *--> "1" ExerciseName
+GymPerformance *--> "1" Load
+
+PerformanceCommand -up-|> Command
+DeletePerformanceCommand -up-|> Command
+PerformanceCommand ..> Person : withGymPerformance
+DeletePerformanceCommand ..> Person : withoutGymPerformance
+@enduml

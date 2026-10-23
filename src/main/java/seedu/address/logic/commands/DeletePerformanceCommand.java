@@ -5,7 +5,10 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
@@ -31,6 +34,8 @@ public class DeletePerformanceCommand extends Command {
     public static final String MESSAGE_RECORD_NOT_FOUND = "No performance record for %1$s on %2$s was found for %3$s.";
     public static final String MESSAGE_SUCCESS = "Deleted performance for %1$s: %2$s on %3$s.";
 
+    private static final Logger logger = LogsCenter.getLogger(DeletePerformanceCommand.class);
+
     private final Index index;
     private final LocalDate date;
     private final ExerciseName exerciseName;
@@ -53,17 +58,26 @@ public class DeletePerformanceCommand extends Command {
 
         if (index.getZeroBased() >= displayedClients.size()) {
             // Same as a zero or negative index, which is reported with the format during parsing
+            logger.info("Rejected deleteperformance: index " + index.getOneBased() + " is outside the "
+                    + displayedClients.size() + " displayed clients");
             throw new CommandException(Messages.withUsage(MESSAGE_INVALID_INDEX, MESSAGE_USAGE));
         }
 
         Person client = displayedClients.get(index.getZeroBased());
         String formattedDate = date.format(GymPerformance.DATE_FORMATTER);
-        // The command was typed correctly, so the format is not shown when no record matches
-        GymPerformance record = client.getPerformanceHistory().find(date, exerciseName)
-                .orElseThrow(() -> new CommandException(String.format(MESSAGE_RECORD_NOT_FOUND,
-                        exerciseName, formattedDate, client.getName())));
+        Optional<GymPerformance> match = client.getPerformanceHistory().find(date, exerciseName);
+        if (match.isEmpty()) {
+            logger.info("Rejected deleteperformance: no " + exerciseName + " record on " + formattedDate
+                    + " for client at index " + index.getOneBased());
+            // The command was typed correctly, so the format is not shown when no record matches
+            throw new CommandException(String.format(MESSAGE_RECORD_NOT_FOUND,
+                    exerciseName, formattedDate, client.getName()));
+        }
 
+        GymPerformance record = match.get();
         model.setPerson(client, client.withoutGymPerformance(record));
+        logger.info("Deleted performance for client at index " + index.getOneBased() + ": " + exerciseName
+                + " on " + formattedDate);
 
         return new CommandResult(String.format(MESSAGE_SUCCESS, client.getName(), record.getSummary(),
                 formattedDate));
