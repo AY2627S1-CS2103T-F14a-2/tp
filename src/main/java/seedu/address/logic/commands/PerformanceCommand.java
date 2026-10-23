@@ -4,7 +4,9 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.List;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
@@ -30,6 +32,8 @@ public class PerformanceCommand extends Command {
     public static final String MESSAGE_RECORDED = "Recorded performance for %1$s: %2$s on %3$s.";
     public static final String MESSAGE_UPDATED = "Updated performance for %1$s: %2$s on %3$s.";
 
+    private static final Logger logger = LogsCenter.getLogger(PerformanceCommand.class);
+
     private final Index index;
     private final GymPerformance performance;
 
@@ -48,12 +52,16 @@ public class PerformanceCommand extends Command {
         List<Person> displayedClients = model.getFilteredPersonList();
 
         if (index.getZeroBased() >= displayedClients.size()) {
+            logger.info("Rejected performance: index " + index.getOneBased() + " is outside the "
+                    + displayedClients.size() + " displayed clients");
             throw new CommandException(Messages.withUsage(MESSAGE_INVALID_INDEX, MESSAGE_USAGE));
         }
 
         Person client = displayedClients.get(index.getZeroBased());
         boolean isReplacing = client.hasGymPerformance(performance);
         model.setPerson(client, client.withGymPerformance(performance));
+        logger.info((isReplacing ? "Replaced" : "Recorded") + " performance for client at index "
+                + index.getOneBased() + ": " + performance.getExerciseName() + " on " + performance.getDate());
 
         String message = isReplacing ? MESSAGE_UPDATED : MESSAGE_RECORDED;
         return new CommandResult(String.format(message, client.getName(), performance.getSummary(),

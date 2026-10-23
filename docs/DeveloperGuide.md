@@ -204,6 +204,33 @@ Design notes:
 
 <!-- AI assistance: Claude Code helped draft this section and its sequence diagram. -->
 
+### Recording and deleting gym performances
+
+`performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD` records one result for the client at the displayed index,
+and `deleteperformance INDEX d/DATE e/EXERCISE` removes one. Both follow the usual `Logic` flow: the parser validates
+the fields, and the command resolves the index against `Model#getFilteredPersonList()`.
+
+The following partial diagram shows how the records are stored and which classes change them. Contact fields and the
+other progress data are omitted.
+
+<puml src="diagrams/PerformanceModelClassDiagram.puml" alt="Classes used to store and change a client's gym-performance records" />
+
+Each `Person` owns one immutable `PerformanceHistory`, which keeps the records in the order they were recorded and
+never holds two records for the same exercise on the same date. `PerformanceCommand` calls
+`Person#withGymPerformance`, which replaces any record for the same exercise and date. `DeletePerformanceCommand`
+finds the record through `PerformanceHistory#find` and calls `Person#withoutGymPerformance`; a missing record raises a
+`CommandException` before any state changes. Either way, the command replaces the client through `Model#setPerson`,
+and `LogicManager` saves the address book.
+
+Both commands log rejected indices, missing records and successful changes at `INFO` level. The log records the
+displayed index, exercise and date, but not the client's name or contact details.
+
+**Design choice:** The client card's latest performance and record count are derived from `PerformanceHistory`
+rather than stored separately, so they cannot become stale after a replacement or deletion. Keeping the recording
+order means the record entered last is treated as the latest when several share a date.
+
+<!-- AI assistance: Claude Code helped draft this section and its class diagram. -->
+
 ### Deleting body measurements
 
 `deletemeasure INDEX d/DATE t/TYPE` removes one measurement from the client at the displayed index.
