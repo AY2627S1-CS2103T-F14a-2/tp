@@ -1,6 +1,7 @@
 package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,11 @@ public class UpcomingSessionCardTest {
         assertEquals("Phone: 9435 1253", labelText("#phone"));
         assertEquals("Latest measurement: -", labelText("#latestMeasurement"));
         assertEquals("Latest performance: -", labelText("#latestPerformance"));
+    }
+
+    @Test
+    public void constructor_clientWithoutSession_throwsAssertionError() {
+        assertThrows(AssertionError.class, () -> new UpcomingSessionCard(ALICE));
     }
 
     private String labelText(String selector) {

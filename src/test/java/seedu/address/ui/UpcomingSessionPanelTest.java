@@ -1,6 +1,7 @@
 package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 
 import org.junit.jupiter.api.Test;
@@ -43,5 +44,12 @@ public class UpcomingSessionPanelTest {
                 new PersonBuilder(ALICE).withNextSession("2099-12-01 18:00").build()));
 
         assertEquals("Alice Pauline", ((Label) scene.lookup("#name")).getText());
+    }
+
+    @Test
+    public void updateItem_nullItem_showsNoCard(FxRobot robot) {
+        robot.interact(() -> upcomingSessionList.add(null));
+
+        assertNull(scene.lookup("#name"));
     }
 }

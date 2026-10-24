@@ -97,6 +97,11 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void setViewedPerson_clientNotInAddressBook_throwsAssertionError() {
+        assertThrows(AssertionError.class, () -> modelManager.setViewedPerson(ALICE));
+    }
+
+    @Test
     public void setPerson_viewedClient_viewsEditedClient() {
         viewAliceWithBenson();
         Person editedAlice = new PersonBuilder(ALICE).withPhone("99998888").build();
