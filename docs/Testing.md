@@ -39,3 +39,6 @@ This project has three types of tests:
    For example: `seedu.address.storage.StorageManagerTest`
 1. *Hybrid tests* combine unit and integration testing. These tests check both the individual units and how they work together.<br>
    For example: `seedu.address.logic.LogicManagerTest`
+
+Some tests in `seedu.address.ui`, e.g. `seedu.address.ui.MainWindowTest`, use [TestFX](https://github.com/TestFX/TestFX)
+to show real JavaFX UI parts, so they need a display. On Linux CI, they run on a virtual display through `xvfb-run`.

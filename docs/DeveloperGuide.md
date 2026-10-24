@@ -29,6 +29,7 @@
   `ModelManager` and `LogicManager`, the related tests, the User Guide "The Spotter window" and `view` sections, and the
   "Upcoming sessions panel" and "View client history" sections of this guide). All generated code was reviewed and
   tested before committing.
+* The GUI tests use [TestFX](https://github.com/TestFX/TestFX) to run JavaFX UI parts in tests.
 
 --------------------------------------------------------------------------------------------------------------------
 
