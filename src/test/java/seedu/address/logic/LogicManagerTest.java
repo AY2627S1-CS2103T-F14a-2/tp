@@ -29,6 +29,7 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.PerformanceCommand;
+import seedu.address.logic.commands.SessionCommand;
 import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -155,6 +156,16 @@ public class LogicManagerTest {
 
         assertCommandFailure(PERFORMANCE_COMMAND, CommandException.class, LogicManager.MESSAGE_SAVE_FAILURE,
                 expectedModel);
+    }
+
+    @Test
+    public void execute_sessionBooked_clientInUpcomingSessions() throws Exception {
+        model.addPerson(ALICE);
+
+        logic.execute(SessionCommand.COMMAND_WORD + " 1 d/2099-12-01 t/1800");
+
+        assertEquals(List.of(ALICE.getName()),
+                logic.getUpcomingSessionList().stream().map(Person::getName).toList());
     }
 
     @Test

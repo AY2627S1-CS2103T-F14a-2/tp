@@ -25,6 +25,8 @@ public class ModelManager implements Model {
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
     private final SortedList<Person> sortedPersons;
+    private final FilteredList<Person> upcomingSessionPersons;
+    private final SortedList<Person> sortedUpcomingSessionPersons;
     private Predicate<Person> filteredPersonListPredicate = PREDICATE_SHOW_ALL_PERSONS;
 
     /**
@@ -39,6 +41,10 @@ public class ModelManager implements Model {
         this.userPrefs = new UserPrefs(userPrefs);
         filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
         sortedPersons = new SortedList<>(filteredPersons, new PersonSessionComparator(LocalDateTime.now()));
+        // Built from the whole address book, so find and filter never hide an upcoming session.
+        LocalDateTime now = LocalDateTime.now();
+        upcomingSessionPersons = new FilteredList<>(this.addressBook.getPersonList(), hasSessionFrom(now));
+        sortedUpcomingSessionPersons = new SortedList<>(upcomingSessionPersons, new PersonSessionComparator(now));
     }
 
     public ModelManager() {
@@ -121,6 +127,28 @@ public class ModelManager implements Model {
     @Override
     public Predicate<Person> getFilteredPersonListPredicate() {
         return filteredPersonListPredicate;
+    }
+
+    //=========== Upcoming Session List Accessors ===========================================================
+
+    @Override
+    public ObservableList<Person> getUpcomingSessionList() {
+        return sortedUpcomingSessionPersons;
+    }
+
+    @Override
+    public void updateUpcomingSessionList(LocalDateTime now) {
+        requireNonNull(now);
+        upcomingSessionPersons.setPredicate(hasSessionFrom(now));
+        sortedUpcomingSessionPersons.setComparator(new PersonSessionComparator(now));
+    }
+
+    /**
+     * Returns a predicate that keeps clients with a session at or after {@code now}.
+     * This is the client card's rule: a session before now has passed and is no longer upcoming.
+     */
+    private static Predicate<Person> hasSessionFrom(LocalDateTime now) {
+        return person -> person.getNextSession().map(session -> !session.value.isBefore(now)).orElse(false);
     }
 
     @Override

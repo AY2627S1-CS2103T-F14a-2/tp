@@ -1,6 +1,7 @@
 package seedu.address.logic;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -41,6 +42,8 @@ public class LogicManager implements Logic {
     @Override
     public CommandResult execute(String commandText) throws CommandException, ParseException {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
+        // Sessions pass with time rather than through a command, so any typed command drops finished ones.
+        model.updateUpcomingSessionList(LocalDateTime.now());
 
         Command command = addressBookParser.parseCommand(commandText);
         AddressBook addressBookBeforeCommand = new AddressBook(model.getAddressBook());
@@ -75,6 +78,11 @@ public class LogicManager implements Logic {
     @Override
     public ObservableList<Person> getFilteredPersonList() {
         return model.getFilteredPersonList();
+    }
+
+    @Override
+    public ObservableList<Person> getUpcomingSessionList() {
+        return model.getUpcomingSessionList();
     }
 
     @Override

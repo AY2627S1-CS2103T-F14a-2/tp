@@ -7,16 +7,23 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
+import static seedu.address.testutil.TypicalPersons.CARL;
+import static seedu.address.testutil.TypicalPersons.DANIEL;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.Person;
 import seedu.address.testutil.AddressBookBuilder;
+import seedu.address.testutil.PersonBuilder;
 
 public class ModelManagerTest {
+
+    private static final LocalDateTime NOW = LocalDateTime.of(2026, 10, 25, 10, 0);
 
     private ModelManager modelManager = new ModelManager();
 
@@ -71,6 +78,64 @@ public class ModelManagerTest {
     @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPersonList().remove(0));
+    }
+
+    @Test
+    public void getUpcomingSessionList_mixedBookings_onlyUpcomingSoonestFirst() {
+        Person later = new PersonBuilder(ALICE).withNextSession("2026-11-02 09:00").build();
+        Person sooner = new PersonBuilder(BENSON).withNextSession("2026-11-01 18:00").build();
+        Person passed = new PersonBuilder(CARL).withNextSession("2026-10-01 09:00").build();
+        modelManager.addPerson(later);
+        modelManager.addPerson(sooner);
+        modelManager.addPerson(passed);
+        modelManager.addPerson(DANIEL); // no booking
+
+        modelManager.updateUpcomingSessionList(NOW);
+
+        assertEquals(List.of(sooner, later), modelManager.getUpcomingSessionList());
+    }
+
+    @Test
+    public void getUpcomingSessionList_sessionAtNow_included() {
+        Person atNow = new PersonBuilder(ALICE).withNextSession("2026-10-25 10:00").build();
+        modelManager.addPerson(atNow);
+
+        modelManager.updateUpcomingSessionList(NOW);
+
+        assertEquals(List.of(atNow), modelManager.getUpcomingSessionList());
+    }
+
+    @Test
+    public void getUpcomingSessionList_bookAndCancel_updatesWithoutRefresh() {
+        modelManager.addPerson(ALICE);
+        modelManager.updateUpcomingSessionList(NOW);
+        Person booked = new PersonBuilder(ALICE).withNextSession("2026-11-01 18:00").build();
+
+        modelManager.setPerson(ALICE, booked);
+        assertEquals(List.of(booked), modelManager.getUpcomingSessionList());
+
+        modelManager.setPerson(booked, ALICE);
+        assertEquals(List.of(), modelManager.getUpcomingSessionList());
+    }
+
+    @Test
+    public void updateUpcomingSessionList_sessionHasPassed_removesClient() {
+        modelManager.addPerson(new PersonBuilder(ALICE).withNextSession("2026-11-01 18:00").build());
+        modelManager.updateUpcomingSessionList(NOW);
+
+        modelManager.updateUpcomingSessionList(LocalDateTime.of(2026, 11, 1, 18, 1));
+
+        assertEquals(List.of(), modelManager.getUpcomingSessionList());
+    }
+
+    @Test
+    public void updateUpcomingSessionList_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.updateUpcomingSessionList(null));
+    }
+
+    @Test
+    public void getUpcomingSessionList_modifyList_throwsUnsupportedOperationException() {
+        assertThrows(UnsupportedOperationException.class, () -> modelManager.getUpcomingSessionList().remove(0));
     }
 
     @Test
