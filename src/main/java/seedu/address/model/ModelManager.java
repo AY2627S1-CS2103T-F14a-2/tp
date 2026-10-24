@@ -4,9 +4,12 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
@@ -28,6 +31,8 @@ public class ModelManager implements Model {
     private final FilteredList<Person> upcomingSessionPersons;
     private final SortedList<Person> sortedUpcomingSessionPersons;
     private Predicate<Person> filteredPersonListPredicate = PREDICATE_SHOW_ALL_PERSONS;
+    // Holds null when no client is viewed, so the UI shows the upcoming sessions instead.
+    private final SimpleObjectProperty<Person> viewedPerson = new SimpleObjectProperty<>();
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -74,6 +79,9 @@ public class ModelManager implements Model {
     @Override
     public void setAddressBook(ReadOnlyAddressBook addressBook) {
         this.addressBook.resetData(addressBook);
+        if (!this.addressBook.getPersonList().contains(viewedPerson.get())) {
+            viewedPerson.set(null);
+        }
     }
 
     @Override
@@ -90,6 +98,9 @@ public class ModelManager implements Model {
     @Override
     public void deletePerson(Person target) {
         addressBook.removePerson(target);
+        if (target.equals(viewedPerson.get())) {
+            viewedPerson.set(null);
+        }
     }
 
     @Override
@@ -103,6 +114,10 @@ public class ModelManager implements Model {
         requireAllNonNull(target, editedPerson);
 
         addressBook.setPerson(target, editedPerson);
+        // Persons are immutable, so the viewed client must follow the replacement to stay up to date.
+        if (target.equals(viewedPerson.get())) {
+            viewedPerson.set(editedPerson);
+        }
     }
 
     //=========== Filtered Person List Accessors =============================================================
@@ -151,6 +166,21 @@ public class ModelManager implements Model {
         return person -> person.getNextSession().map(session -> !session.value.isBefore(now)).orElse(false);
     }
 
+    //=========== Viewed Person =============================================================================
+
+    @Override
+    public ObservableValue<Person> getViewedPerson() {
+        return viewedPerson;
+    }
+
+    @Override
+    public void setViewedPerson(Person person) {
+        assert person == null || addressBook.getPersonList().contains(person)
+                : "The viewed client must exist in the address book";
+        logger.fine(person == null ? "Clearing the viewed client" : "Viewing a client");
+        viewedPerson.set(person);
+    }
+
     @Override
     public boolean equals(Object other) {
         if (other == this) {
@@ -164,7 +194,8 @@ public class ModelManager implements Model {
 
         return addressBook.equals(otherModelManager.addressBook)
                 && userPrefs.equals(otherModelManager.userPrefs)
-                && filteredPersons.equals(otherModelManager.filteredPersons);
+                && filteredPersons.equals(otherModelManager.filteredPersons)
+                && Objects.equals(viewedPerson.get(), otherModelManager.viewedPerson.get());
     }
 
 }

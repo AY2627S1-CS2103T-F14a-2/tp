@@ -3,6 +3,7 @@ package seedu.address.model;
 import java.time.LocalDateTime;
 import java.util.function.Predicate;
 
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.Person;
@@ -87,4 +88,16 @@ public interface Model {
      * @throws NullPointerException if {@code now} is null.
      */
     void updateUpcomingSessionList(LocalDateTime now);
+
+    /**
+     * Returns the client whose details and history are shown by {@code view}.
+     * Its value is null when no client is shown, and it follows the client through edits and new records.
+     */
+    ObservableValue<Person> getViewedPerson();
+
+    /**
+     * Shows the details and history of {@code person}, or no client if {@code person} is null.
+     * A non-null {@code person} must exist in the address book.
+     */
+    void setViewedPerson(Person person);
 }
