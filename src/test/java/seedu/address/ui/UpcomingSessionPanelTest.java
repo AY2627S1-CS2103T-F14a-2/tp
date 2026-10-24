@@ -2,40 +2,46 @@ package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.testutil.TypicalPersons.ALICE;
-import static seedu.address.ui.JavaFxTestUtil.layOut;
-import static seedu.address.ui.JavaFxTestUtil.runOnFxThread;
-import static seedu.address.ui.JavaFxTestUtil.textOf;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.testfx.api.FxRobot;
+import org.testfx.framework.junit5.ApplicationExtension;
+import org.testfx.framework.junit5.Start;
 
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.layout.Region;
+import javafx.stage.Stage;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 
+@ExtendWith(ApplicationExtension.class)
 public class UpcomingSessionPanelTest {
 
-    @Test
-    public void constructor_noUpcomingSessions_showsHowToBook() throws Exception {
-        runOnFxThread(() -> {
-            Region panel = new UpcomingSessionPanel(FXCollections.observableArrayList()).getRoot();
+    private final ObservableList<Person> upcomingSessionList = FXCollections.observableArrayList();
+    private Scene scene;
 
-            Label placeholder = (Label) ((ListView<?>) panel.lookup("#upcomingSessionListView")).getPlaceholder();
-            assertEquals("No upcoming sessions.\nBook one with: session INDEX d/DATE t/TIME", placeholder.getText());
-        });
+    @Start
+    public void start(Stage stage) {
+        scene = new Scene(new UpcomingSessionPanel(upcomingSessionList).getRoot(), 400, 400);
+        stage.setScene(scene);
+        stage.show();
     }
 
     @Test
-    public void constructor_upcomingSession_showsCard() throws Exception {
-        Person person = new PersonBuilder(ALICE).withNextSession("2099-12-01 18:00").build();
+    public void constructor_noUpcomingSessions_showsHowToBook() {
+        Label placeholder = (Label) scene.lookup(".placeholder .label");
 
-        runOnFxThread(() -> {
-            Region panel = new UpcomingSessionPanel(FXCollections.observableArrayList(person)).getRoot();
-            layOut(panel);
+        assertEquals("No upcoming sessions.\nBook one with: session INDEX d/DATE t/TIME", placeholder.getText());
+    }
 
-            assertEquals("Alice Pauline", textOf(panel, "#name"));
-        });
+    @Test
+    public void updateItem_upcomingSession_showsCard(FxRobot robot) {
+        robot.interact(() -> upcomingSessionList.add(
+                new PersonBuilder(ALICE).withNextSession("2099-12-01 18:00").build()));
+
+        assertEquals("Alice Pauline", ((Label) scene.lookup("#name")).getText());
     }
 }
