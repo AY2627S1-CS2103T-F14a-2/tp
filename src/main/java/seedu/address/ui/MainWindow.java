@@ -3,6 +3,9 @@ package seedu.address.ui;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.MenuItem;
@@ -17,6 +20,7 @@ import seedu.address.logic.Logic;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.Person;
 
 /**
  * The Main Window. Provides the basic application layout containing
@@ -34,6 +38,7 @@ public class MainWindow extends UiPart<Stage> {
 
     // Independent Ui parts residing in this Ui container
     private PersonListPanel personListPanel;
+    private ClientDetailPanel clientDetailPanel;
     private ResultDisplay resultDisplay;
     private HelpWindow helpWindow;
 
@@ -133,11 +138,20 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     /**
-     * Fills the right-hand side with the upcoming sessions.
+     * Fills the right-hand side with the upcoming sessions, swapped for the client's history while a client is
+     * viewed.
      */
     private void fillSidePanel() {
+        ObservableValue<Person> viewedPerson = logic.getViewedPerson();
+        BooleanBinding isClientViewed = Bindings.createBooleanBinding(() -> viewedPerson.getValue() != null,
+                viewedPerson);
+
         UpcomingSessionPanel upcomingSessionPanel = new UpcomingSessionPanel(logic.getUpcomingSessionList());
-        sidePanelPlaceholder.getChildren().add(upcomingSessionPanel.getRoot());
+        upcomingSessionPanel.getRoot().visibleProperty().bind(isClientViewed.not());
+        clientDetailPanel = new ClientDetailPanel(viewedPerson);
+        clientDetailPanel.getRoot().visibleProperty().bind(isClientViewed);
+
+        sidePanelPlaceholder.getChildren().addAll(upcomingSessionPanel.getRoot(), clientDetailPanel.getRoot());
     }
 
     /**
@@ -201,6 +215,8 @@ public class MainWindow extends UiPart<Stage> {
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
+            // The client cards may also have been redrawn, so the panel is refreshed to keep them consistent.
+            clientDetailPanel.refresh();
 
             if (commandResult.isShowHelp()) {
                 handleHelp();

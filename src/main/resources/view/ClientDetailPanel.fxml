@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            styleClass="side-panel" fitToWidth="true">
+  <VBox spacing="8">
+    <padding>
+      <Insets top="5" right="10" bottom="5" left="15" />
+    </padding>
+    <Label fx:id="name" styleClass="cell_big_label" wrapText="true" />
+    <Label fx:id="history" styleClass="cell_small_label" wrapText="true" />
+  </VBox>
+</ScrollPane>

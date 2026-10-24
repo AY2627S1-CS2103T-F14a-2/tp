@@ -13,8 +13,8 @@ import seedu.address.model.person.Person;
 import seedu.address.model.progress.PerformanceHistory;
 
 /**
- * Builds the text shown by {@code view}: a client's details followed by their full measurement
- * and gym-performance history, newest first.
+ * Builds the text shown in the detail panel opened by {@code view}: a client's details followed by their
+ * full measurement and gym-performance history, newest first.
  * Kept separate from the UI so that the output can be tested without starting JavaFX.
  *
  * <p>AI assistance: Claude Code helped implement this class and its tests.
@@ -35,6 +35,7 @@ public final class ClientHistoryFormatter {
 
     /**
      * Returns the full details and history of {@code person}.
+     * The name is left out, as the panel shows it as its title.
      *
      * @param now The current time, used to decide whether the next session has already passed.
      */
@@ -54,8 +55,7 @@ public final class ClientHistoryFormatter {
                 .map(tag -> tag.tagName)
                 .sorted()
                 .collect(Collectors.joining(", "));
-        return person.getName().fullName
-                + "\nPhone: " + PhoneDisplayFormatter.format(person.getPhone().value)
+        return "Phone: " + PhoneDisplayFormatter.format(person.getPhone().value)
                 + "\nEmail: " + email
                 + "\nNext session: " + session
                 + "\nTags: " + (tags.isEmpty() ? NO_TAGS : tags);

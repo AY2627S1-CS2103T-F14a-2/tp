@@ -159,6 +159,25 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_viewedClientChangeFailsToSave_viewedClientRestored() throws Exception {
+        viewAlice();
+        logic = new LogicManager(model, createStorageThrowing(DUMMY_IO_EXCEPTION));
+
+        assertThrows(CommandException.class, LogicManager.MESSAGE_SAVE_FAILURE, () ->
+                logic.execute(PERFORMANCE_COMMAND));
+        assertEquals(ALICE, logic.getViewedPerson().getValue());
+    }
+
+    @Test
+    public void execute_viewedClientChangeSaved_viewedClientUpdated() throws Exception {
+        viewAlice();
+
+        logic.execute(PERFORMANCE_COMMAND);
+
+        assertEquals(List.of(BENCH_PRESS), logic.getViewedPerson().getValue().getGymPerformances());
+    }
+
+    @Test
     public void execute_sessionBooked_clientInUpcomingSessions() throws Exception {
         model.addPerson(ALICE);
 
@@ -264,6 +283,14 @@ public class LogicManagerTest {
         assertThrows(CommandException.class, LogicManager.MESSAGE_SAVE_FAILURE, () -> logic.execute(inputCommand));
         assertEquals(expectedAddressBook, model.getAddressBook());
         assertEquals(List.of(BENSON), model.getFilteredPersonList());
+    }
+
+    /**
+     * Adds ALICE as the only client and views her with the {@code view} command.
+     */
+    private void viewAlice() throws Exception {
+        model.addPerson(ALICE);
+        logic.execute(ViewCommand.COMMAND_WORD + " 1");
     }
 
     /**

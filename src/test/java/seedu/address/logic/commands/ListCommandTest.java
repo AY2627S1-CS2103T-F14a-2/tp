@@ -46,6 +46,13 @@ public class ListCommandTest {
     }
 
     @Test
+    public void execute_clientViewed_showsUpcomingSessionsAgain() {
+        model.setViewedPerson(ALICE);
+        // expectedModel views no client, and ModelManager#equals compares the viewed client
+        assertListSuccess(model, expectedManyMessage, expectedModel);
+    }
+
+    @Test
     public void execute_noClients_showsEmptyMessage() {
         Model emptyModel = new ModelManager();
         assertListSuccess(emptyModel, ListCommand.MESSAGE_NO_CLIENTS, new ModelManager());

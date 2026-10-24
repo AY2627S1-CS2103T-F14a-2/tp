@@ -1,5 +1,6 @@
 package seedu.address.logic;
 
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.CommandResult;
@@ -25,6 +26,9 @@ public interface Logic {
 
     /** Returns an unmodifiable view of the clients with an upcoming session, soonest session first. */
     ObservableList<Person> getUpcomingSessionList();
+
+    /** Returns the client whose details and history are shown by {@code view}; its value is null if none is. */
+    ObservableValue<Person> getViewedPerson();
 
     /**
      * Returns the user prefs' GUI settings.

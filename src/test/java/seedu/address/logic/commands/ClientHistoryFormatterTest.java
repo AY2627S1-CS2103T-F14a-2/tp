@@ -49,8 +49,7 @@ public class ClientHistoryFormatterTest {
                         performance(OCT_15, "Squat", 3, 5, "100"))
                 .build();
 
-        String expected = "Alex Tan\n"
-                + "Phone: 9123 4567\n"
+        String expected = "Phone: 9123 4567\n"
                 + "Email: alex@example.com\n"
                 + "Next session: Fri 23 Oct, 6:00pm\n"
                 + "Tags: knee, rehab\n"
@@ -70,8 +69,7 @@ public class ClientHistoryFormatterTest {
     public void format_noEmailNoTagsNoSessionNoRecords_showsPlaceholders() {
         Person person = new PersonBuilder().withName("Bea Lim").withPhone("911").withoutEmail().build();
 
-        String expected = "Bea Lim\n"
-                + "Phone: 911\n"
+        String expected = "Phone: 911\n"
                 + "Email: -\n"
                 + "Next session: - (none booked)\n"
                 + "Tags: -"
@@ -84,8 +82,7 @@ public class ClientHistoryFormatterTest {
         Person person = new PersonBuilder().withName("Bea Lim").withPhone("911").withoutEmail()
                 .withNextSession("2026-10-01 09:00").build();
 
-        String expected = "Bea Lim\n"
-                + "Phone: 911\n"
+        String expected = "Phone: 911\n"
                 + "Email: -\n"
                 + "Next session: - (none upcoming)\n"
                 + "Tags: -"
