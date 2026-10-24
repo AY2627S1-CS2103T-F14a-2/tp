@@ -47,6 +47,9 @@ public class MainWindow extends UiPart<Stage> {
     private StackPane personListPanelPlaceholder;
 
     @FXML
+    private StackPane sidePanelPlaceholder;
+
+    @FXML
     private StackPane resultDisplayPlaceholder;
 
     @FXML
@@ -117,6 +120,8 @@ public class MainWindow extends UiPart<Stage> {
         personListPanel = new PersonListPanel(logic.getFilteredPersonList());
         personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
 
+        fillSidePanel();
+
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
 
@@ -125,6 +130,14 @@ public class MainWindow extends UiPart<Stage> {
 
         CommandBox commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
+    }
+
+    /**
+     * Fills the right-hand side with the upcoming sessions.
+     */
+    private void fillSidePanel() {
+        UpcomingSessionPanel upcomingSessionPanel = new UpcomingSessionPanel(logic.getUpcomingSessionList());
+        sidePanelPlaceholder.getChildren().add(upcomingSessionPanel.getRoot());
     }
 
     /**

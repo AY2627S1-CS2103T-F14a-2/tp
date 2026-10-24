@@ -24,8 +24,10 @@ import seedu.address.model.progress.PerformanceHistory;
  */
 public class PersonCard extends UiPart<Region> {
 
+    // Also used by the upcoming session card, so that both cards label the phone the same way.
+    static final String PHONE_LABEL = "Phone: ";
+
     private static final String FXML = "PersonListCard.fxml";
-    private static final String PHONE_LABEL = "Phone: ";
     private static final String EMAIL_LABEL = "Email: ";
     private static final String PERFORMANCE_ROW_PREFIX = "Latest performance: ";
 
