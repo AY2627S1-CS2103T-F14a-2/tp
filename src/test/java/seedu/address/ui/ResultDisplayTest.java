@@ -4,18 +4,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.concurrent.TimeUnit;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
-import org.testfx.util.WaitForAsyncUtils;
 
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
@@ -25,18 +24,21 @@ public class ResultDisplayTest {
 
     private ResultDisplay display;
     private TextArea textArea;
-    private Stage stage;
     private VBox container;
+    private StackPane host;
 
     @Start
     public void start(Stage primaryStage) {
-        stage = primaryStage;
         display = new ResultDisplay();
         container = new VBox(display.getRoot());
-        Scene scene = new Scene(container, 600, 260);
+        container.setMinWidth(0);
+        container.setPrefWidth(600);
+        container.setMaxWidth(Region.USE_PREF_SIZE);
+        host = new StackPane(container);
+        Scene scene = new Scene(host, 600, 260);
         scene.getStylesheets().add(getClass().getResource("/view/DarkTheme.css").toExternalForm());
-        stage.setScene(scene);
-        stage.show();
+        primaryStage.setScene(scene);
+        primaryStage.show();
         textArea = (TextArea) scene.lookup("#resultDisplay");
     }
 
@@ -73,22 +75,27 @@ public class ResultDisplayTest {
     }
 
     @Test
-    public void feedback_narrowerWindow_growsToFitWrappedLines(FxRobot robot) throws Exception {
+    public void feedback_narrowerAvailableWidth_growsToFitWrappedLines(FxRobot robot) {
         show(robot, "No client with that name exists. Use the full client name shown in the list.");
         double wideHeight = display.getRoot().getHeight();
 
-        robot.interact(() -> stage.setWidth(280));
-        // The native window resize reaches JavaFX asynchronously, particularly on macOS.
-        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> {
-            robot.interact(container::layout);
-            return container.getWidth() < 400 && display.getRoot().getHeight() > wideHeight;
-        });
+        // Constrain the actual layout width without relying on a desktop window manager in CI.
+        robot.interact(() -> container.setPrefWidth(260));
+        robot.interact(this::layout);
 
+        assertEquals(260, textArea.getWidth(), 1);
         assertTrue(display.getRoot().getHeight() > wideHeight);
     }
 
     private void show(FxRobot robot, String feedback) {
         robot.interact(() -> display.setFeedbackToUser(feedback));
-        robot.interact(container::layout);
+        robot.interact(this::layout);
+    }
+
+    private void layout() {
+        host.applyCss();
+        host.layout();
+        // Wrapping can change preferred height while the first layout assigns the new width.
+        container.layout();
     }
 }
