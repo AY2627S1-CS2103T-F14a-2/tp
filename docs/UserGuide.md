@@ -26,6 +26,8 @@ Spotter is a **desktop application for freelance personal trainers to manage the
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample client data.<br>
    ![Ui](images/Ui.png)
 
+   The screenshot includes example bookings and progress records.
+
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
 
@@ -70,6 +72,9 @@ Spotter is a **desktop application for freelance personal trainers to manage the
 ### The Spotter window
 
 The left side lists all your clients. Commands such as `edit`, `delete` and `view` use the index numbers shown there.
+
+The feedback box below the command input stays compact for short messages and expands for longer ones.
+Long messages wrap to the available width; scroll inside the feedback box to read any remaining lines.
 
 The right side shows **Upcoming sessions**: one card for each client with a session booked from now on, with the
 soonest session at the top. Each card shows the session's date and time, the client's name and phone, and their
@@ -408,7 +413,8 @@ Format: `view INDEX`
   record a session.
 * The history stays even if a later `find`, `filter` or `sessions` hides the client from the list.
 * Upcoming sessions comes back when you enter `list`, delete that client, or clear all data.
-* Records are listed with the newest date first, so the most recent ones are always at the top.
+* Measurements and performance have separate headings with record counts. Each section lists records with the
+  newest date first, so the most recent ones are always at the top.
   * Measurements on the same date are listed in the order weight, body fat, waist.
   * Performances on the same date are listed with the one recorded last first, so the first performance line
     always matches the card's `Latest performance`.
@@ -429,18 +435,24 @@ Email: alex@example.com
 Next session: Fri 23 Oct, 6:00pm
 Tags: knee, rehab
 
-Measurements (3 records, newest first):
+Measurements · 3 records
+Newest first
 2026-10-12  weight 72.4 kg
 2026-10-12  waist 81 cm
 2026-09-30  weight 73 kg
 
-Performance (2 records, newest first):
+Performance · 2 records
+Newest first
 2026-10-15  Squat, 3 sets of 5 reps at 100 kg
 2026-10-01  Bench Press, 3 sets of 8 reps at 60 kg
 ```
 
-A client with no records of a kind shows `Measurements: none recorded yet.` or `Performance: none recorded yet.`
-instead of that list. A single record is shown as `(1 record, newest first)`.
+A client with no records of a kind shows `None recorded yet.` under that section's heading, which shows `0 records`.
+A section with one record shows `1 record`.
+
+The history sections appear like this (with fictional example records):
+
+![Client history with separate measurement and performance sections](images/ClientHistory.png)
 
 Problem | Message
 --------|--------

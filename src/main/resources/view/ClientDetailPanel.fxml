@@ -7,11 +7,23 @@
 
 <ScrollPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
             styleClass="side-panel" fitToWidth="true">
-  <VBox spacing="8">
+  <VBox spacing="16" styleClass="history-content">
     <padding>
-      <Insets top="5" right="10" bottom="5" left="15" />
+      <Insets top="12" right="16" bottom="16" left="16" />
     </padding>
-    <Label fx:id="name" styleClass="cell_big_label" wrapText="true" />
-    <Label fx:id="history" styleClass="cell_small_label" wrapText="true" />
+    <VBox spacing="8">
+      <Label fx:id="name" styleClass="history-title" wrapText="true" />
+      <Label fx:id="details" styleClass="history-details" wrapText="true" />
+    </VBox>
+    <VBox spacing="6">
+      <Label fx:id="measurementHeading" styleClass="history-heading" wrapText="true" />
+      <Label text="Newest first" styleClass="history-hint" />
+      <Label fx:id="measurements" styleClass="history-records" wrapText="true" />
+    </VBox>
+    <VBox spacing="6">
+      <Label fx:id="performanceHeading" styleClass="history-heading" wrapText="true" />
+      <Label text="Newest first" styleClass="history-hint" />
+      <Label fx:id="performances" styleClass="history-records" wrapText="true" />
+    </VBox>
   </VBox>
 </ScrollPane>

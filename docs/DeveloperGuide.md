@@ -21,6 +21,8 @@
   and documenting the v1.3 next-session feature, including parsing, client integration, JSON storage, sorting,
   and the client card row, and the v1.4 session cancellation/date-filter commands, tests, documentation,
   and release preparation.
+* Gabriel Wan used OpenAI Codex to assist with the v1.5 UI polish: adaptive feedback sizing, card spacing and
+  styling, separate history sections, GUI tests, documentation and screenshots.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #64 changes (the `list` command messages, undoing changes when saving fails, the damaged data file warning, the client card phone and email rows, and the related tests and User Guide wording) on 2026-10-15. The changes were reviewed and tested by the author.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #79 changes (the tests for data files with invalid values, the `view` sequence diagram and "View client history" section, and the related manual testing steps) on 2026-10-22. The changes were reviewed and tested by the author.
 * Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the client `add`/`delete` changes for v1.3 (removing address, optional email, name and phone limits, Spotter messages). All generated code was reviewed and tested before committing.
@@ -97,6 +99,14 @@ The `UI` component,
 * listens for changes to `Model` data so that the UI can be updated with the modified data.
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
 * depends on some classes in the `Model` component because it displays `Person` objects from the model.
+
+`ResultDisplay` measures its wrapped text with a JavaFX `Text` using the feedback area's font and available width.
+Its preferred height ranges from 44 to 112 logical pixels, freeing space for the lists after short confirmations.
+Longer messages remain complete in a wrapping, selectable, read-only `TextArea` with scrolling. Resizing the
+window recalculates the height. The surrounding placeholder has no fixed height.
+
+Card typography, selection borders and tag contrast are defined in `DarkTheme.css`. Both card layouts use the
+same padding and line spacing. Names, email addresses and record summaries wrap within the card width.
 
 ### Logic component
 
@@ -236,8 +246,9 @@ the panel matches the restored data.
 Design notes:
 
 * **Non-UI formatter:** `ClientHistoryFormatter` is a plain class in `logic.commands` with no JavaFX dependency,
-  so the panel's text can be checked in unit tests without starting the GUI. The panel only shows the client's
-  name as its title and the formatter's text below it.
+  so the panel's text can be checked in unit tests without starting the GUI. Its detail and record formatting
+  methods supply separate labels in `ClientDetailPanel`. Measurements and performance have styled headings with
+  counts and a newest-first hint; the formatting and ordering rules are shared with the plain-text formatter.
 * **"Now" at drawing time:** whether the next session has passed is decided when the panel is drawn, as on the
   client card. `MainWindow` also redraws the panel after every successful command, so a session that passes
   while the panel is open is shown the same way as on the card.
@@ -1201,6 +1212,26 @@ list, so the indices below follow the list as it changes.
    Expected: Upcoming sessions is back and shows `No upcoming sessions.`
 1. Enter `view 0`.<br>
    Expected: `The client index provided is invalid.` The right side does not change.
+
+### UI readability and feedback sizing
+
+Use fictional clients with tags, long names and email addresses, and enough records to require scrolling.
+Check the main window at 1920x1080 with 100% and 125% scaling, and 1280x720 with 150% scaling.
+
+1. Enter `list`.<br>
+   Expected: A compact confirmation leaves room for both lists. Names and session times stand out from
+   supporting details. Tags and selected cards remain readable.
+1. Enter `edit` without parameters.<br>
+   Expected: The feedback area grows to show more of the usage message. Lines wrap; any remaining text is
+   reachable by scrolling inside the feedback area. Resizing the window keeps the message readable.
+1. Enter `list` again.<br>
+   Expected: The feedback area returns to its compact height and starts at the beginning of the new message.
+1. Enter `view 1`, then add or remove a measurement for that client.<br>
+   Expected: Distinct Measurements and Performance headings show the correct counts, with records below them
+   newest first. An empty section shows `None recorded yet.` and a single record uses `1 record`.
+1. Scroll the history, then view another client.<br>
+   Expected: The other client's history opens at the top. Updating the same client's records preserves the
+   history's scroll position.
 
 ### Saving data
 
