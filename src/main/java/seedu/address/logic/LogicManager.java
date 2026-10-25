@@ -1,9 +1,11 @@
 package seedu.address.logic;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
@@ -45,11 +47,14 @@ public class LogicManager implements Logic {
         Command command = addressBookParser.parseCommand(commandText);
         AddressBook addressBookBeforeCommand = new AddressBook(model.getAddressBook());
         Predicate<Person> predicateBeforeCommand = model.getFilteredPersonListPredicate();
+        Person viewedPersonBeforeCommand = model.getViewedPerson().getValue();
         CommandResult commandResult = command.execute(model);
+        // Re-sorts by the current time only after the command has used the displayed indices.
+        model.updateSessionLists(LocalDateTime.now());
 
         // Read-only commands leave the data unchanged, so they never write (or fail to write) the data file.
         if (!model.getAddressBook().equals(addressBookBeforeCommand)) {
-            saveOrRollBack(addressBookBeforeCommand, predicateBeforeCommand);
+            saveOrRollBack(addressBookBeforeCommand, predicateBeforeCommand, viewedPersonBeforeCommand);
         }
 
         return commandResult;
@@ -57,17 +62,19 @@ public class LogicManager implements Logic {
 
     /**
      * Saves the model's address book to storage. If saving fails (including {@code AccessDeniedException}),
-     * restores {@code addressBookBeforeCommand} and {@code predicateBeforeCommand} so that the app keeps
-     * showing the last saved state with the same displayed list.
+     * restores {@code addressBookBeforeCommand}, {@code predicateBeforeCommand} and
+     * {@code viewedPersonBeforeCommand} so that the app keeps showing the last saved state with the same
+     * displayed list and viewed client.
      */
-    private void saveOrRollBack(AddressBook addressBookBeforeCommand, Predicate<Person> predicateBeforeCommand)
-            throws CommandException {
+    private void saveOrRollBack(AddressBook addressBookBeforeCommand, Predicate<Person> predicateBeforeCommand,
+            Person viewedPersonBeforeCommand) throws CommandException {
         try {
             storage.saveAddressBook(model.getAddressBook());
         } catch (IOException ioe) {
             logger.warning("Unable to save data file, undoing the change: " + ioe);
             model.setAddressBook(addressBookBeforeCommand);
             model.updateFilteredPersonList(predicateBeforeCommand);
+            model.setViewedPerson(viewedPersonBeforeCommand);
             throw new CommandException(MESSAGE_SAVE_FAILURE, ioe);
         }
     }
@@ -75,6 +82,16 @@ public class LogicManager implements Logic {
     @Override
     public ObservableList<Person> getFilteredPersonList() {
         return model.getFilteredPersonList();
+    }
+
+    @Override
+    public ObservableList<Person> getUpcomingSessionList() {
+        return model.getUpcomingSessionList();
+    }
+
+    @Override
+    public ObservableValue<Person> getViewedPerson() {
+        return model.getViewedPerson();
     }
 
     @Override

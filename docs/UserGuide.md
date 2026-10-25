@@ -67,6 +67,23 @@ Spotter is a **desktop application for freelance personal trainers to manage the
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
 
+### The Spotter window
+
+The left side lists all your clients. Commands such as `edit`, `delete` and `view` use the index numbers shown there.
+
+The right side shows **Upcoming sessions**: one card for each client with a session booked from now on, with the
+soonest session at the top. Each card shows the session's date and time, the client's name and phone, and their
+latest measurement and performance, so that you can prepare for the session at a glance.
+
+* The cards update as soon as you book, change or cancel a session, or record a measurement or performance.
+* Once a session's time has passed, it drops off after your next successful command, and its client card then
+  shows `- (none upcoming)` as well.
+* The cards have no index numbers. To act on a client, use their index in the client list on the left.
+* `find`, `filter` and `sessions` change only the client list; Upcoming sessions still shows every booking.
+* With no bookings, it shows `No upcoming sessions.` and how to book one with [`session`](#recording-a-clients-next-session-session).
+* [`view INDEX`](#viewing-a-clients-history-view) replaces Upcoming sessions with that client's full history.
+  [`list`](#listing-all-clients-list) brings Upcoming sessions back.
+
 ### Viewing help: `help`
 
 Shows a message explaining how to access the help page.
@@ -107,6 +124,8 @@ Format: `list`
   `Example: list`
 * On success, Spotter shows `Listed N clients.` (or `Listed 1 client.` when you have exactly one client).
 * If you have no clients, Spotter shows `You have no clients yet. Use "add" to add your first client.`
+* If a client's history is shown with [`view`](#viewing-a-clients-history-view), the right side goes back to
+  Upcoming sessions.
 
 <box type="tip" seamless>
 
@@ -382,10 +401,14 @@ Format: `view INDEX`
 
 * Shows the client at the specified `INDEX`, as shown in the displayed client list.
 * The index **must be a positive integer** 1, 2, 3, ...
-* The details appear in the result box below the command box. The client list and cards do not change, and no data is changed.
-* The result box shows only a few lines at a time and does not get taller when you enlarge the window.
-  For a client with a long history, scroll inside the result box to see all of their records.
-* Records are listed with the newest date first.
+* The details replace Upcoming sessions on the right side of the window, and the result box shows
+  `Showing details and history of <client name>.` The client list and cards do not change, and no data is changed.
+* The history stays up to date: after you edit the client, or add, delete or replace their records or session,
+  it shows the change straight away. You do not need to run `view` again, so you can keep it open while you
+  record a session.
+* The history stays even if a later `find`, `filter` or `sessions` hides the client from the list.
+* Upcoming sessions comes back when you enter `list`, delete that client, or clear all data.
+* Records are listed with the newest date first, so the most recent ones are always at the top.
   * Measurements on the same date are listed in the order weight, body fat, waist.
   * Performances on the same date are listed with the one recorded last first, so the first performance line
     always matches the card's `Latest performance`.
@@ -396,7 +419,8 @@ Examples:
 * `list` followed by `view 2` shows the history of the 2nd client in Spotter.
 * `find Alex` followed by `view 1` shows the history of the 1st client in the results of the `find` command.
 
-For a client named Alex Tan with three measurements and two performances, `view 1` shows:
+For a client named Alex Tan with three measurements and two performances, `view 1` shows this in the panel,
+with the name as its title:
 
 ```text
 Alex Tan
@@ -423,10 +447,7 @@ Problem | Message
 `INDEX` is missing or not a whole number, or there is extra text after it | `Invalid command format!` followed by the expected format
 `INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
 
-<box type="tip" seamless>
-
-**Tip:** `view` shows the client's records at the moment you run it. Re-run `view` after changing that client's records to see the latest history.
-</box>
+If a command fails, the panel keeps showing the client as they were before that command.
 
 <!-- AI assistance: Claude Code helped draft the view command documentation. -->
 

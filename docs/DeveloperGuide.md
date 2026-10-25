@@ -24,6 +24,12 @@
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #64 changes (the `list` command messages, undoing changes when saving fails, the damaged data file warning, the client card phone and email rows, and the related tests and User Guide wording) on 2026-10-15. The changes were reviewed and tested by the author.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #79 changes (the tests for data files with invalid values, the `view` sequence diagram and "View client history" section, and the related manual testing steps) on 2026-10-22. The changes were reviewed and tested by the author.
 * Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the client `add`/`delete` changes for v1.3 (removing address, optional email, name and phone limits, Spotter messages). All generated code was reviewed and tested before committing.
+* Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the v1.5 split-screen window
+  (the Upcoming sessions panel and cards, showing a viewed client's history in its place, keeping both in sync in
+  `ModelManager` and `LogicManager`, the related tests, the User Guide "The Spotter window" and `view` sections, and the
+  "Upcoming sessions panel" and "View client history" sections of this guide). All generated code was reviewed and
+  tested before committing.
+* The GUI tests use [TestFX](https://github.com/TestFX/TestFX) to run JavaFX UI parts in tests.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -81,7 +87,7 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/se-
 
 <puml src="diagrams/UiClassDiagram.puml" alt="Structure of the UI Component"/>
 
-The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
+The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, `UpcomingSessionPanel`, `ClientDetailPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
@@ -136,6 +142,8 @@ The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
+* stores the clients with an upcoming session, soonest first, in a separate list built from the whole address book (so `find` and `filter` do not affect it). It is exposed as an unmodifiable `ObservableList<Person>` for the UI's Upcoming sessions panel.
+* stores the client shown by `view` (or none) and exposes it as an `ObservableValue<Person>`, so that the UI's detail panel can follow that client.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -169,40 +177,99 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Upcoming sessions panel
+
+The right side of the window shows the clients with an upcoming session, soonest first, so that a trainer can
+see who is next and prepare. It adds no new session logic. Instead, it reuses what the client list already has:
+
+* `ModelManager` keeps a `SortedList` over a `FilteredList` of the whole address book. The filter keeps clients
+  whose `NextSession` is not before "now", which is the same rule that the client card uses to show
+  `- (none upcoming)`. The sort is the existing `PersonSessionComparator`, so the panel and the client list
+  order sessions in the same way.
+* Each `UpcomingSessionCard` shows the session time from `NextSession#toDisplayString`, the phone from
+  `PhoneDisplayFormatter`, and the latest records from the static `PersonCard` formatters.
+  The cards have no index numbers, so that they cannot be mistaken for the client list's indices.
+* Booking, cancelling or recording a session replaces the client through `Model#setPerson`. The `FilteredList`
+  re-tests the replaced client, so the panel updates without any command knowing about it.
+  Only the passing of time changes nothing in the data, so after each successful command `LogicManager#execute`
+  calls `Model#updateSessionLists(now)`. Against that one time, it re-sorts the client list (which makes
+  `PersonListPanel` redraw the client cards) and drops passed sessions from this panel, so both sides agree.
+  It runs only after the command, as re-sorting first could change which client a typed index refers to.
+
+**Aspect: when to drop a passed session**
+
+* **Alternative 1 (current choice):** On the next successful command.
+  * Pros: Needs no timer, and the model logic is tested with a fixed "now".
+  * Cons: A passed session stays visible until the trainer's next successful command.
+* **Alternative 2:** On a timer.
+  * Pros: Always exact.
+  * Cons: Adds a background thread to the UI for little benefit, as the trainer types commands throughout the day.
+
+`MainWindow` shows either this panel or the `ClientDetailPanel` in the same place, by binding each panel's
+visibility to whether `Logic#getViewedPerson()` holds a client (see [View client history](#view-client-history)).
+
 ### View client history
 
-`view INDEX` shows one client's details followed by their full measurement and gym-performance history.
-It follows the usual `Logic` flow: `ViewCommandParser` parses the index and `ViewCommand` looks the client up in
-`Model#getFilteredPersonList()`. `ClientHistoryFormatter` then builds the text, which is returned in the
-`CommandResult` and shown in the result display.
+`view INDEX` shows one client's details followed by their full measurement and gym-performance history in the
+`ClientDetailPanel`, in place of the Upcoming sessions panel. It follows the usual `Logic` flow: `ViewCommandParser`
+parses the index, and `ViewCommand` looks the client up in `Model#getFilteredPersonList()` and passes it to
+`Model#setViewedPerson(Person)`. The `CommandResult` only carries a one-line confirmation for the result display.
 
 <puml src="diagrams/ViewSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `view 1` Command" />
 
 `view` is read-only. As `LogicManager` only saves when a command changes the address book, executing `view`
 never writes the data file.
 
+**Keeping the panel up to date.** `ModelManager` holds the viewed client in an `ObservableValue<Person>`, which
+`Logic#getViewedPerson()` exposes to the UI. `ClientDetailPanel` listens to it and redraws whenever it changes.
+As `Person` is immutable, a command that changes a client, e.g. `edit` or `measure`, replaces it through
+`Model#setPerson(target, editedPerson)`. If `target` is the viewed client, `ModelManager` views `editedPerson`
+instead, so the panel follows the client without any command knowing about the panel:
+
+<puml src="diagrams/ViewedClientSyncSequenceDiagram.puml" alt="How the detail panel follows the viewed client after `measure`" />
+
+In the same way, `Model#deletePerson` and `Model#setAddressBook` (used by `clear`) stop viewing a client that
+no longer exists, and `ListCommand` stops viewing any client. The Upcoming sessions panel then shows again.
+If saving fails, `LogicManager` restores the viewed client together with the address book and the filter, so
+the panel matches the restored data.
+
 Design notes:
 
 * **Non-UI formatter:** `ClientHistoryFormatter` is a plain class in `logic.commands` with no JavaFX dependency,
-  so the output can be checked in unit tests without starting the GUI.
-* **Testable "now":** `ViewCommand` takes a `java.time.Clock` (the system clock by default). The current time
-  decides whether the next session is shown as passed, so tests pass a fixed clock instead of depending on
-  when they run.
+  so the panel's text can be checked in unit tests without starting the GUI. The panel only shows the client's
+  name as its title and the formatter's text below it.
+* **"Now" at drawing time:** whether the next session has passed is decided when the panel is drawn, as on the
+  client card. `MainWindow` also redraws the panel after every successful command, so a session that passes
+  while the panel is open is shown the same way as on the card.
+* **Scroll position:** when the viewed client changes to a different client (by `Person#isSamePerson`), the
+  panel scrolls back to the top. A replacement of the same client, e.g. a new record, keeps the scroll position.
 * **Ordering:** both histories are listed newest first. Measurements on the same date follow the type order
   weight, body fat, waist. Performance records on the same date are listed most recently recorded first, so the
   first line always matches the client card's "Latest performance".
 
 **Aspect: where to show the history**
 
-* **Alternative 1 (current choice):** Show it as text in the result display.
-  * Pros: Needs no UI changes, works entirely from the keyboard, and the output is easy to test.
-  * Cons: A long history must be scrolled in the result display, and it is replaced by the next command's result.
-* **Alternative 2:** Show it in a separate detail panel next to the client list.
-  * Pros: Has room for a richer layout, and the history can stay visible while other commands run.
-  * Cons: Needs new UI components and layout changes that are harder to test, and the panel must be kept in sync
-    when the client is edited or deleted.
+* **Alternative 1:** Show it as text in the result display (used up to v1.4).
+  * Pros: Needs no UI changes, and the output is easy to test.
+  * Cons: The result display is only a few lines tall, the history is replaced by the next command's result,
+    and it goes stale when the client's records change.
+* **Alternative 2 (current choice):** Show it on the right side of the window, in place of Upcoming sessions.
+  * Pros: Has room for a long history, stays visible while records are logged during a session, and updates as
+    the client changes.
+  * Cons: Hides Upcoming sessions until `list`, and the viewed client must be kept in sync in the model.
 
-<!-- AI assistance: Claude Code helped draft this section and its sequence diagram. -->
+**Aspect: where to keep the viewed client**
+
+* **Alternative 1 (current choice):** In `ModelManager`, updated by `setPerson`, `deletePerson` and `setAddressBook`.
+  * Pros: The model is the only place that knows which new `Person` replaces which old one, and the sync logic
+    can be unit tested without JavaFX.
+  * Cons: Adds UI-related state to the model.
+* **Alternative 2:** In the UI, which would search the client list for the viewed client after every command.
+  * Pros: Leaves the model unchanged.
+  * Cons: An edited client cannot be matched reliably, e.g. after its name changes, and the logic would be in
+    GUI code that is hard to test.
+
+<!-- AI assistance: Claude Code helped draft this section and its sequence diagrams. -->
 
 ### Recording and deleting gym performances
 
@@ -1108,6 +1175,32 @@ replace `DATE` in every command below, and `TODAY` with today's date. Add unique
    Cancel Ada's current displayed index.<br>
    Expected: `Unable to save Spotter data.` The booking and date-filtered list are restored with all progress intact.
    Close Spotter, remove the empty blocking directory and restore the backup file before further testing.
+
+### Upcoming sessions and viewing a client's history
+
+Start from the sample data, which has no bookings. Booking a session moves that client to the top of the client
+list, so the indices below follow the list as it changes.
+
+1. Launch Spotter.<br>
+   Expected: The right side shows `Upcoming sessions` with `No upcoming sessions.` and how to book one.
+1. Enter `session 1 d/2099-12-01 t/1800`, then `session 2 d/2099-11-30 t/0900`.<br>
+   Expected: Two cards appear, with the 30 Nov session above the 1 Dec one. The client list shows the same
+   two clients at indices 1 and 2.
+1. Enter `view 1`.<br>
+   Expected: The result box shows `Showing details and history of <name>.` The right side shows that client's
+   details and history instead of Upcoming sessions.
+1. Enter `measure 1 d/2026-10-20 t/weight v/70.5`.<br>
+   Expected: Without running `view` again, the history lists `2026-10-20  weight 70.5 kg` under `Measurements`.
+1. Enter `find zzz`.<br>
+   Expected: The client list is empty, but the history is still shown.
+1. Enter `list`.<br>
+   Expected: Upcoming sessions is back, and the 30 Nov card shows the new measurement as its latest.
+1. Enter `cancelsession 1`.<br>
+   Expected: The 30 Nov card disappears; the 1 Dec card remains.
+1. Enter `view 1`, then `delete 1`.<br>
+   Expected: Upcoming sessions is back and shows `No upcoming sessions.`
+1. Enter `view 0`.<br>
+   Expected: `The client index provided is invalid.` The right side does not change.
 
 ### Saving data
 
