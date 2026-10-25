@@ -55,8 +55,14 @@ public class NextSessionTest {
     }
 
     @Test
+    public void toDisplayString_otherYear_includesYear() {
+        LocalDateTime now = LocalDateTime.of(2026, 12, 31, 0, 0);
+        assertEquals("Fri 1 Jan 2027, 9:00am", new NextSession("2027-01-01 09:00").toDisplayString(now));
+    }
+
+    @Test
     public void toDisplayString_englishDateAndTwelveHourTime() {
-        LocalDateTime now = LocalDateTime.of(2026, 1, 1, 0, 0);
+        LocalDateTime now = LocalDateTime.of(2030, 1, 1, 0, 0);
         assertEquals("Wed 18 Sep, 7:00pm", new NextSession("2030-09-18 19:00").toDisplayString(now));
         assertEquals("Wed 18 Sep, 12:00am", new NextSession("2030-09-18 00:00").toDisplayString(now));
         assertEquals("Wed 18 Sep, 12:05pm", new NextSession("2030-09-18 12:05").toDisplayString(now));
