@@ -85,7 +85,7 @@ public class SessionCommandParserTest {
 
     @Test
     public void parse_invalidTime_failure() {
-        for (String time : List.of("", "2400", "24:00", "2360", "23:60", "-100", "7:00", "700", "17:00:00",
+        for (String time : List.of("", "2400", "24:00", "2360", "23:60", "-100", "9:3", "17:00:00",
                 "17.00", "5pm", "17000", "17:00 trailing")) {
             assertParseFailure(parser, " 1 d/" + date + " t/" + time, ParserUtil.MESSAGE_INVALID_SESSION_TIME);
         }
@@ -98,6 +98,9 @@ public class SessionCommandParserTest {
         assertEquals(LocalTime.MIDNIGHT, ParserUtil.parseSessionTime("0000"));
         assertEquals(LocalTime.of(23, 59), ParserUtil.parseSessionTime("23:59"));
         assertEquals(LocalTime.of(9, 5), ParserUtil.parseSessionTime(" 0905 "));
+        for (String singleDigitHour : List.of("930", "9:30", "0930", "09:30")) {
+            assertEquals(LocalTime.of(9, 30), ParserUtil.parseSessionTime(singleDigitHour));
+        }
         assertParseSuccess(parser, " 1 d/" + LocalDate.now() + " t/0000",
                 new SessionCommand(Index.fromOneBased(1), new NextSession(LocalDate.now() + " 00:00")));
     }
