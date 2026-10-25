@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import java.time.LocalDate;
+import java.util.Locale;
 
 import seedu.address.model.Model;
 import seedu.address.model.person.SessionOnDatePredicate;
@@ -35,7 +36,7 @@ public class SessionsCommand extends Command {
         } else if (count == 1) {
             message = String.format(MESSAGE_SUCCESS_ONE_CLIENT, date);
         } else {
-            message = String.format(MESSAGE_SUCCESS, count, date);
+            message = String.format(Locale.ROOT, MESSAGE_SUCCESS, count, date);
         }
         return new CommandResult(message, false, false, true);
     }
