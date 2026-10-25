@@ -78,6 +78,15 @@ public class SessionManagementTest {
     }
 
     @Test
+    public void execute_cancelByNameOutsideFilter_savesAndReloads() throws Exception {
+        logic.execute("find Ada");
+        logic.execute("cancelsession n/  zOe   rEvIeW");
+        assertEquals(List.of(other), model.getFilteredPersonList());
+        assertEquals(List.of(other, booked.withNextSession(null)), model.getAddressBook().getPersonList());
+        assertEquals(model.getAddressBook(), json.readAddressBook().orElseThrow());
+    }
+
+    @Test
     public void execute_failedCancellationSave_restoresDataAndDateFilter() throws Exception {
         logic.execute("sessions d/" + date);
         AddressBook before = new AddressBook(model.getAddressBook());

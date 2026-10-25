@@ -65,6 +65,27 @@ public class CancelSessionCommandTest {
     }
 
     @Test
+    public void execute_nameOutsideDisplayedList_preservesFilterAndProgress() throws Exception {
+        model.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of("Ada")));
+        new CancelSessionCommand(" zOe   rEvIeW ").execute(model);
+        assertEquals(List.of(other), model.getFilteredPersonList());
+        assertEquals(List.of(other, booked.withNextSession(null)), model.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void execute_unknownOrPartialName_keepsData() {
+        assertCommandFailure(new CancelSessionCommand("Zoe"), model, SessionCommand.MESSAGE_NO_SUCH_NAME);
+        assertCommandFailure(new CancelSessionCommand("Unknown"), model, SessionCommand.MESSAGE_NO_SUCH_NAME);
+    }
+
+    @Test
+    public void execute_namedClientWithoutSession_keepsData() throws Exception {
+        new CancelSessionCommand("Zoe Review").execute(model);
+        assertCommandFailure(new CancelSessionCommand("Zoe Review"), model,
+                "No session is recorded for Zoe Review.");
+    }
+
+    @Test
     public void execute_dateFilteredIndex_removesCancelledClientFromView() throws Exception {
         model.updateFilteredPersonList(new SessionOnDatePredicate(date));
         new CancelSessionCommand(Index.fromOneBased(1)).execute(model);
@@ -108,5 +129,8 @@ public class CancelSessionCommandTest {
         assertFalse(command.equals(new CancelSessionCommand(Index.fromOneBased(2))));
         assertFalse(command.equals(null));
         assertFalse(command.equals("cancelsession"));
+        assertFalse(command.equals(new CancelSessionCommand("Zoe Review")));
+        assertEquals(new CancelSessionCommand("Zoe Review"), new CancelSessionCommand("Zoe   Review"));
+        assertFalse(new CancelSessionCommand("Zoe Review").equals(new CancelSessionCommand("Ada Review")));
     }
 }

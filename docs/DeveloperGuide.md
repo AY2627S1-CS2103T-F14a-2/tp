@@ -20,7 +20,7 @@
 * Gabriel Wan used [OpenAI Codex](https://openai.com/codex/) to assist with implementing, testing,
   and documenting the v1.3 next-session feature, including parsing, client integration, JSON storage, sorting,
   and the client card row, and the v1.4 session cancellation/date-filter commands, tests, documentation,
-  and release preparation.
+  and release preparation. For v1.5, Gabriel used Codex for cancellation by full name and its tests and documentation.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #64 changes (the `list` command messages, undoing changes when saving fails, the damaged data file warning, the client card phone and email rows, and the related tests and User Guide wording) on 2026-10-15. The changes were reviewed and tested by the author.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #79 changes (the tests for data files with invalid values, the `view` sequence diagram and "View client history" section, and the related manual testing steps) on 2026-10-22. The changes were reviewed and tested by the author.
 * Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the client `add`/`delete` changes for v1.3 (removing address, optional email, name and phone limits, Spotter messages). All generated code was reviewed and tested before committing.
@@ -255,9 +255,12 @@ measurement list avoids stale summary data after deletion.
 
 ### Session cancellation and date filtering
 
-`cancelsession INDEX` removes the current displayed client's single recorded session.
-`CancelSessionCommandParser` accepts exactly one index and `CancelSessionCommand` resolves it against
+`cancelsession INDEX` or `cancelsession n/NAME` removes a client's single recorded session.
+`CancelSessionCommandParser` accepts exactly one index or full name. `CancelSessionCommand` resolves indices against
 `Model#getFilteredPersonList()`, so indices refer to the sorted/filtered UI rather than JSON order.
+Names use the booking command's case-insensitive, whitespace-normalized matching across the whole address book.
+This lets a trainer cancel a known client's booking even after indices change or a filter hides the client,
+while preserving the current filter. Mixed identifiers, empty names and slashes are rejected during parsing.
 It rejects an invalid index or a client without a recorded session before changing the model.
 
 The following partial model diagram shows the session field, the date predicate and the progress data that must survive
@@ -1098,6 +1101,10 @@ replace `DATE` in every command below, and `TODAY` with today's date. Add unique
    Close and restart Spotter. Ada remains unbooked and the contact/progress data are unchanged.
 1. Enter `find SessionCancelAda`, then try `cancelsession 1`.<br>
    Expected: `No session is recorded for SessionCancelAda.` No client data or displayed results change.
+1. Enter `find SessionCancelAda`, then `cancelsession n/sessioncancelzoe`.<br>
+   Expected: Zoe's session is cancelled even though only Ada is displayed. The filter still shows Ada,
+   and Zoe's other data are preserved. Repeat the command: `No session is recorded for SessionCancelZoe.`
+   Try `cancelsession n/Unknown`: the unknown-name error is shown and nothing changes.
 1. Try `cancelsession 0`, `cancelsession 999999`, `cancelsession 1 2`, `sessions d/2026-02-30`,
    `sessions d/DATE d/DATE` and `sessions d/DATE x/foo`.<br>
    Expected: Invalid index, format or calendar errors, with no changes to clients, the current filter or saved data.
