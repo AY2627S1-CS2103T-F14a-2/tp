@@ -239,6 +239,8 @@ Design notes:
 * **"Now" at drawing time:** whether the next session has passed is decided when the panel is drawn, as on the
   client card. `MainWindow` also redraws the panel after every command, so a session that passes while the
   panel is open is shown the same way as on the card.
+* **Scroll position:** when the viewed client changes to a different client (by `Person#isSamePerson`), the
+  panel scrolls back to the top. A replacement of the same client, e.g. a new record, keeps the scroll position.
 * **Ordering:** both histories are listed newest first. Measurements on the same date follow the type order
   weight, body fat, waist. Performance records on the same date are listed most recently recorded first, so the
   first line always matches the client card's "Latest performance".
