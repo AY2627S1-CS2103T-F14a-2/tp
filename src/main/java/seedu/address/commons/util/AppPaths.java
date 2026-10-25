@@ -14,7 +14,8 @@ import java.security.CodeSource;
  */
 public final class AppPaths {
 
-    private static final Path HOME_DIRECTORY = locateHomeDirectory();
+    private static final Path HOME_DIRECTORY = resolveCodeSource(
+            AppPaths.class.getProtectionDomain().getCodeSource(), Path.of(""));
 
     private AppPaths() {
     }
@@ -46,12 +47,11 @@ public final class AppPaths {
      * Uses this class's code location so paths are available before the first logger is initialized.
      * An unknown location fails explicitly instead of silently writing into an unrelated folder.
      */
-    private static Path locateHomeDirectory() {
-        CodeSource source = AppPaths.class.getProtectionDomain().getCodeSource();
+    static Path resolveCodeSource(CodeSource source, Path workingDirectory) {
         if (source == null) {
             throw new IllegalStateException("Cannot determine Spotter's application folder.");
         }
-        return resolveHomeDirectory(source.getLocation(), Path.of(""));
+        return resolveHomeDirectory(source.getLocation(), workingDirectory);
     }
 
     /**

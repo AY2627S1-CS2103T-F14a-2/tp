@@ -36,6 +36,14 @@ public class AppPathsTest {
     private int probeNumber;
 
     @Test
+    public void resolveCodeSource_missingMetadata_failsInsteadOfUsingWorkingDirectory() {
+        IllegalStateException error = assertThrows(IllegalStateException.class, () ->
+                AppPaths.resolveCodeSource(null, temporaryFolder));
+
+        assertEquals("Cannot determine Spotter's application folder.", error.getMessage());
+    }
+
+    @Test
     public void resolveHomeDirectory_archiveWithEncodedCharacters_usesContainingFolder() throws Exception {
         Path home = Files.createDirectory(temporaryFolder.resolve("Spotter space Ω 100%"));
         Path archive = Files.createFile(home.resolve("renamed application.jar"));
