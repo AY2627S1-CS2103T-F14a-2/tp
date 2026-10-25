@@ -18,6 +18,7 @@ import seedu.address.model.progress.PerformanceHistory;
  * Kept separate from the UI so that the output can be tested without starting JavaFX.
  *
  * <p>AI assistance: Claude Code helped implement this class and its tests.
+ * Gabriel used OpenAI Codex to consolidate the separately styled history sections and their tests.
  */
 public final class ClientHistoryFormatter {
 
@@ -25,8 +26,7 @@ public final class ClientHistoryFormatter {
     public static final String NO_EMAIL = "-";
     public static final String NO_SESSION = "- (none booked)";
     static final String NO_TAGS = "-";
-    static final String NO_MEASUREMENTS = "Measurements: none recorded yet.";
-    static final String NO_PERFORMANCES = "Performance: none recorded yet.";
+    private static final String NO_RECORDS = "None recorded yet.";
 
     // Two spaces separate the date from the record so the columns stay readable.
     private static final String DATE_SEPARATOR = "  ";
@@ -34,22 +34,10 @@ public final class ClientHistoryFormatter {
     private ClientHistoryFormatter() {} // prevents instantiation
 
     /**
-     * Returns the full details and history of {@code person}.
-     * The name is left out, as the panel shows it as its title.
-     *
-     * @param now The current time, used to decide whether the next session has already passed.
-     */
-    public static String format(Person person, LocalDateTime now) {
-        requireNonNull(person);
-        requireNonNull(now);
-        return formatDetails(person, now)
-                + "\n\n" + formatMeasurements(person.getMeasurements())
-                + "\n\n" + formatPerformances(person.getPerformanceHistory());
-    }
-
-    /**
      * Formats the contact, session and tag details independently of the history sections.
      * AI assistance: Gabriel used OpenAI Codex to expose section formatting for the detail panel.
+     *
+     * @param now The current time, used to decide whether the next session has already passed.
      */
     public static String formatDetails(Person person, LocalDateTime now) {
         requireNonNull(person);
@@ -68,23 +56,21 @@ public final class ClientHistoryFormatter {
     }
 
     /**
-     * Lists measurements newest first; same-date records follow the type order weight, body fat, waist.
+     * Formats a history section heading, using the singular label only for one record.
      */
-    static String formatMeasurements(List<Measurement> measurements) {
-        requireNonNull(measurements);
-        if (measurements.isEmpty()) {
-            return NO_MEASUREMENTS;
-        }
-        return "Measurements " + countHeader(measurements.size()) + "\n" + formatMeasurementRecords(measurements);
+    public static String formatSectionHeading(String title, int count) {
+        requireNonNull(title);
+        return title + " · " + count + (count == 1 ? " record" : " records");
     }
 
     /**
      * Formats measurement rows, without a heading, for the separately styled history section.
+     * Records are newest first; same-date records follow the type order weight, body fat, waist.
      */
     public static String formatMeasurementRecords(List<Measurement> measurements) {
         requireNonNull(measurements);
         if (measurements.isEmpty()) {
-            return "None recorded yet.";
+            return NO_RECORDS;
         }
         List<String> lines = measurements.stream()
                 .sorted(Comparator.comparing(Measurement::getDate).reversed()
@@ -96,35 +82,20 @@ public final class ClientHistoryFormatter {
     }
 
     /**
-     * Lists performances newest first; same-date records are shown most recently recorded first,
+     * Formats performance rows without a heading, newest first; same-date records are most recently recorded first,
      * so the first line always matches the card's "Latest performance".
      *
      * @param history Records in the order they were recorded, oldest recorded first.
      */
-    static String formatPerformances(PerformanceHistory history) {
-        requireNonNull(history);
-        if (history.size() == 0) {
-            return NO_PERFORMANCES;
-        }
-        return "Performance " + countHeader(history.size()) + "\n" + formatPerformanceRecords(history);
-    }
-
-    /**
-     * Formats performance rows, without a heading, using the card's newest-first ordering.
-     */
     public static String formatPerformanceRecords(PerformanceHistory history) {
         requireNonNull(history);
         if (history.size() == 0) {
-            return "None recorded yet.";
+            return NO_RECORDS;
         }
         // Same order as the card's latest performance, so the first line always matches it.
         List<String> lines = history.getNewestFirst().stream()
                 .map(p -> p.getDate() + DATE_SEPARATOR + p.getSummary())
                 .toList();
         return String.join("\n", lines);
-    }
-
-    private static String countHeader(int count) {
-        return "(" + count + (count == 1 ? " record" : " records") + ", newest first):";
     }
 }

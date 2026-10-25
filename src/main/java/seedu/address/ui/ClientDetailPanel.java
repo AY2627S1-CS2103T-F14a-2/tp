@@ -62,13 +62,11 @@ public class ClientDetailPanel extends UiPart<ScrollPane> {
         }
         name.setText(person.getName().fullName);
         details.setText(ClientHistoryFormatter.formatDetails(person, LocalDateTime.now()));
-        measurementHeading.setText(sectionHeading("Measurements", person.getMeasurements().size()));
+        measurementHeading.setText(ClientHistoryFormatter.formatSectionHeading("Measurements",
+                person.getMeasurements().size()));
         measurements.setText(ClientHistoryFormatter.formatMeasurementRecords(person.getMeasurements()));
-        performanceHeading.setText(sectionHeading("Performance", person.getPerformanceHistory().size()));
+        performanceHeading.setText(ClientHistoryFormatter.formatSectionHeading("Performance",
+                person.getPerformanceHistory().size()));
         performances.setText(ClientHistoryFormatter.formatPerformanceRecords(person.getPerformanceHistory()));
-    }
-
-    private static String sectionHeading(String title, int count) {
-        return title + " · " + count + (count == 1 ? " record" : " records");
     }
 }

@@ -18,6 +18,9 @@ public class ResultDisplay extends UiPart<Region> {
     private static final String FXML = "ResultDisplay.fxml";
     private static final double MIN_HEIGHT = 44;
     private static final double MAX_HEIGHT = 112;
+    // Conservative pixel allowances for the JavaFX TextArea skin with DarkTheme.css, not exact CSS insets:
+    // 24 covers top/bottom padding and text-metric slack; 32 reserves horizontal padding plus a vertical
+    // scrollbar even while hidden. Recheck wrapping and last-line visibility when changing either style.
     private static final double TEXT_INSETS = 24;
     private static final double SCROLLBAR_SPACE = 32;
 
