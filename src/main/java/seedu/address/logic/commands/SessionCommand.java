@@ -27,6 +27,8 @@ public class SessionCommand extends Command {
     public static final String MESSAGE_EMPTY_NAME = "Name cannot be empty.";
     public static final String MESSAGE_NAME_SLASH = "Name must not contain '/'.";
     public static final String MESSAGE_SUCCESS = "Recorded next session for %s on %s at %s";
+    public static final String MESSAGE_RESCHEDULED = "Rescheduled next session for %s from %s to %s.";
+    public static final String MESSAGE_UNCHANGED = "Next session for %s is already recorded on %s.";
 
     private final Index index;
     private final String name;
@@ -68,10 +70,26 @@ public class SessionCommand extends Command {
                     .filter(person -> person.getName().matches(name))
                     .findFirst().orElseThrow(() -> new CommandException(MESSAGE_NO_SUCH_NAME));
         }
+        String feedback = getFeedback(target);
         model.setPerson(target, target.withNextSession(nextSession));
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-        return new CommandResult(String.format(MESSAGE_SUCCESS, target.getName(), nextSession.value.toLocalDate(),
-                nextSession.value.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"))));
+        return new CommandResult(feedback, false, false, true);
+    }
+
+    /**
+     * Identifies a replacement explicitly so a trainer can check which booking was removed.
+     * AI assistance: Gabriel used OpenAI Codex for booking feedback and regression tests.
+     */
+    private String getFeedback(Person target) {
+        if (target.getNextSession().isEmpty()) {
+            return String.format(MESSAGE_SUCCESS, target.getName(), nextSession.value.toLocalDate(),
+                    nextSession.value.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm")));
+        }
+        NextSession previous = target.getNextSession().orElseThrow();
+        if (previous.equals(nextSession)) {
+            return String.format(MESSAGE_UNCHANGED, target.getName(), nextSession);
+        }
+        return String.format(MESSAGE_RESCHEDULED, target.getName(), previous, nextSession);
     }
 
     @Override

@@ -45,6 +45,7 @@ public class SessionCommandTest {
         assertEquals(List.of(booked, alex), model.getFilteredPersonList());
         // Sorting is a display transform; storage remains in its original order.
         assertEquals(List.of(booked, alex), model.getAddressBook().getPersonList());
+        assertTrue(result.isScrollToTop());
     }
 
     @Test
@@ -66,9 +67,22 @@ public class SessionCommandTest {
     public void execute_existingSession_replacesWithoutChangingContacts() throws Exception {
         new SessionCommand("Sarah Lim", session).execute(model);
         NextSession replacement = new NextSession(LocalDate.now().plusDays(2) + " 09:05");
-        new SessionCommand("Sarah Lim", replacement).execute(model);
+        CommandResult result = new SessionCommand("Sarah Lim", replacement).execute(model);
+        assertEquals("Rescheduled next session for Sarah Lim from " + session + " to " + replacement + ".",
+                result.getFeedbackToUser());
         assertEquals(sarah.withNextSession(replacement), model.getFilteredPersonList().getFirst());
         assertEquals(2, model.getAddressBook().getPersonList().size());
+    }
+
+    @Test
+    public void execute_sameBooking_reportsUnchangedAndShowsAllClients() throws Exception {
+        new SessionCommand("Sarah Lim", session).execute(model);
+        model.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of("Alex")));
+        CommandResult result = new SessionCommand("Sarah Lim", session).execute(model);
+        assertEquals("Next session for Sarah Lim is already recorded on " + session + ".",
+                result.getFeedbackToUser());
+        assertEquals(List.of(sarah.withNextSession(session), alex), model.getFilteredPersonList());
+        assertTrue(result.isScrollToTop());
     }
 
     @Test

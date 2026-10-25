@@ -52,6 +52,9 @@ public class LogicManager implements Logic {
             saveOrRollBack(addressBookBeforeCommand, predicateBeforeCommand);
         }
 
+        // Resolve the command's index against what the user saw before refreshing expired-session order.
+        // Recomputing the comparator also refreshes time-dependent client card rows without saving data.
+        model.updateFilteredPersonList(model.getFilteredPersonListPredicate());
         return commandResult;
     }
 

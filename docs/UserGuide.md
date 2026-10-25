@@ -467,13 +467,17 @@ Examples (use today's date or a later date):
 
 Success: `Recorded next session for Sarah Lim on 2026-12-15 at 19:00`.
 The stored client's name is used in the message; both time formats are stored and reported as `HH:mm`.
+Replacing a different booking reports `Rescheduled next session for Sarah Lim from 2026-12-15 19:00 to 2026-12-16 09:00.`
+Entering the same booking again reports `Next session for Sarah Lim is already recorded on 2026-12-15 19:00.`
 The booking is saved automatically and survives restarting Spotter. Editing contact details preserves it,
 and deleting the client removes it together with the client.
 
-After a successful booking, all clients are shown. Upcoming sessions appear first, soonest first, with
+After a successful booking, all clients are shown and the list scrolls to the top. Upcoming sessions appear first, soonest first, with
 case-insensitive alphabetical names breaking ties. Expired recorded sessions follow upcoming ones, followed
 by clients with no recorded session; unbooked clients are alphabetical. This order also applies to `list`,
 filtered lists, and startup. Sorting the displayed list does not reorder the JSON file.
+After each successful command, the order and session card rows are refreshed to account for bookings that have passed.
+An index-based command acts on the client shown at that index before this refresh.
 **Index numbers can change after a booking or a client change. Check the displayed list before any index-based command.**
 
 The card shows `Next session: Tue 15 Dec, 7:00pm` for an upcoming booking, `Next session: - (none booked)`

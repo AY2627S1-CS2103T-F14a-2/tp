@@ -20,7 +20,8 @@
 * Gabriel Wan used [OpenAI Codex](https://openai.com/codex/) to assist with implementing, testing,
   and documenting the v1.3 next-session feature, including parsing, client integration, JSON storage, sorting,
   and the client card row, and the v1.4 session cancellation/date-filter commands, tests, documentation,
-  and release preparation. For v1.5, Gabriel used Codex for cancellation by full name and its tests and documentation.
+  and release preparation. For v1.5, Gabriel used Codex for cancellation by full name, rescheduling feedback,
+  refreshing session order after commands, and the related tests and documentation.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #64 changes (the `list` command messages, undoing changes when saving fails, the damaged data file warning, the client card phone and email rows, and the related tests and User Guide wording) on 2026-10-15. The changes were reviewed and tested by the author.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #79 changes (the tests for data files with invalid values, the `view` sequence diagram and "View client history" section, and the related manual testing steps) on 2026-10-22. The changes were reviewed and tested by the author.
 * Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the client `add`/`delete` changes for v1.3 (removing address, optional email, name and phone limits, Spotter messages). All generated code was reviewed and tested before committing.
@@ -254,6 +255,16 @@ No storage schema change or separate cached record count is needed. Keeping coun
 measurement list avoids stale summary data after deletion.
 
 ### Session cancellation and date filtering
+
+`session` distinguishes first bookings, rescheduling and an unchanged booking in its feedback. A replacement
+includes both old and new timestamps, so the trainer can verify the overwritten slot. Successful bookings
+restore the full client list and scroll to the top, including after an unchanged booking.
+
+After successfully executing and saving a command, `LogicManager` reapplies the current filter to refresh the
+time-dependent session comparator. This also refreshes client card rows through `PersonListPanel`'s existing
+comparator listener. Refreshing after execution preserves the meaning of displayed indices: a booking that expires
+while the trainer types must not cause an index-based command to act on a different client. Read-only refreshes
+never save the data file; rejected commands retain the displayed list.
 
 `cancelsession INDEX` or `cancelsession n/NAME` removes a client's single recorded session.
 `CancelSessionCommandParser` accepts exactly one index or full name. `CancelSessionCommand` resolves indices against
@@ -1115,6 +1126,13 @@ replace `DATE` in every command below, and `TODAY` with today's date. Add unique
    Cancel Ada's current displayed index.<br>
    Expected: `Unable to save Spotter data.` The booking and date-filtered list are restored with all progress intact.
    Close Spotter, remove the empty blocking directory and restore the backup file before further testing.
+1. Book Ada at `session n/SessionCancelAda d/DATE t/0900`, then change it to
+   `session n/SessionCancelAda d/DATE t/1000`.<br>
+   Expected: The rescheduling message includes the old `09:00` and new `10:00` bookings. The full list scrolls
+   to the top. Repeat the second command: Spotter reports that the booking is already recorded.
+1. Keep Spotter open across a session's start time, then run `help`.<br>
+   Expected: Expired cards show `- (none upcoming)` and sort after future bookings. For an index-based command
+   entered before this refresh, the client shown at that index receives the change before the list is reordered.
 
 ### Saving data
 
