@@ -222,7 +222,8 @@ Format: `measure INDEX d/DATE t/TYPE v/VALUE`
 * The same date and type replaces the previous value without increasing the record count.
 * Records are saved automatically and restored when the application restarts.
 * The client card shows the measurement with the latest date and the total record count, for example:
-  `Latest measurement: 12 Sep - weight 72.4 kg (4 records)`.
+  `Latest measurement: 12 Sep - weight 72.4 kg (4 records)`. A date outside the current year includes the year,
+  e.g. `12 Sep 2025`.
 * When multiple types share the latest date, the card prefers weight, then body fat, then waist.
 * Clients without measurements show `Latest measurement: -`.
 * The count includes all dates and types. Adding an older measurement increases the count but does not change
@@ -334,7 +335,8 @@ Parameter | Accepted values
 
 After a performance is recorded, the client's card shows their latest performance and the number of records,
 e.g. `Latest performance: 18 Sep - Bench Press, 3 sets of 8 reps at 60 kg (4 records)`.
-If several records share the latest date, the one recorded last is shown.
+If several records share the latest date, the one recorded last is shown. A date outside the current year includes
+the year, e.g. `18 Sep 2025`.
 
 Examples:
 * `performance 2 d/2026-09-18 e/Bench Press s/3 r/8 w/60` records `Recorded performance for <client name>: Bench Press, 3 sets of 8 reps at 60 kg on 2026-09-18.`
@@ -497,7 +499,8 @@ by clients with no recorded session; unbooked clients are alphabetical. This ord
 filtered lists, and startup. Sorting the displayed list does not reorder the JSON file.
 **Index numbers can change after a booking or a client change. Check the displayed list before any index-based command.**
 
-The card shows `Next session: Tue 15 Dec, 7:00pm` for an upcoming booking, `Next session: - (none booked)`
+The card shows `Next session: Tue 15 Dec, 7:00pm` for an upcoming booking (with the year for a booking in another
+year, e.g. `Wed 15 Dec 2027, 7:00pm`), `Next session: - (none booked)`
 when no session has been recorded, and `Next session: - (none upcoming)` when the recorded booking has passed.
 Expired bookings are retained in the data file until replaced or cancelled.
 
