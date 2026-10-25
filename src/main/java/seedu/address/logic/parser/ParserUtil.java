@@ -36,7 +36,6 @@ public class ParserUtil {
     public static final String MESSAGE_SESSION_DATE_FORMAT =
             "Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).";
     public static final String MESSAGE_INVALID_SESSION_DATE = "Date must be a valid calendar date.";
-    public static final String MESSAGE_PAST_SESSION_DATE = "Date cannot be in the past.";
     public static final String MESSAGE_INVALID_SESSION_TIME = "Time must be a valid time in HHMM or HH:MM format.";
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("uuuu-MM-dd")
@@ -45,19 +44,8 @@ public class ParserUtil {
             .withResolverStyle(ResolverStyle.STRICT);
 
     /**
-     * Parses a session date, allowing today but rejecting past dates.
-     */
-    public static LocalDate parseSessionDate(String date) throws ParseException {
-        LocalDate parsed = parseCalendarDate(date);
-        if (parsed.isBefore(LocalDate.now())) {
-            throw new ParseException(MESSAGE_PAST_SESSION_DATE);
-        }
-        return parsed;
-    }
-
-    /**
-     * Parses a real YYYY-MM-DD date in years 0001-9999 without restricting it relative to today.
-     * Booking commands separately reject past dates; date filters may inspect retained past bookings.
+     * Parses a real YYYY-MM-DD date in years 0001-9999 without restricting it relative to today,
+     * so past sessions can be recorded and retained past bookings can be listed.
      */
     public static LocalDate parseCalendarDate(String date) throws ParseException {
         requireNonNull(date);

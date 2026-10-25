@@ -77,9 +77,10 @@ public class SessionCommandParserTest {
     }
 
     @Test
-    public void parse_pastDate_failure() {
-        assertParseFailure(parser, " 1 d/" + LocalDate.now().minusDays(1) + " t/1700",
-                ParserUtil.MESSAGE_PAST_SESSION_DATE);
+    public void parse_pastDate_success() {
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        assertParseSuccess(parser, " 1 d/" + yesterday + " t/1700",
+                new SessionCommand(Index.fromOneBased(1), new NextSession(yesterday + " 17:00")));
     }
 
     @Test
@@ -92,8 +93,8 @@ public class SessionCommandParserTest {
 
     @Test
     public void parseDateAndTime_boundaries_success() throws Exception {
-        assertEquals(LocalDate.now(), ParserUtil.parseSessionDate(" " + LocalDate.now() + " "));
-        assertEquals(LocalDate.of(9999, 12, 31), ParserUtil.parseSessionDate("9999-12-31"));
+        assertEquals(LocalDate.now(), ParserUtil.parseCalendarDate(" " + LocalDate.now() + " "));
+        assertEquals(LocalDate.of(9999, 12, 31), ParserUtil.parseCalendarDate("9999-12-31"));
         assertEquals(LocalTime.MIDNIGHT, ParserUtil.parseSessionTime("0000"));
         assertEquals(LocalTime.of(23, 59), ParserUtil.parseSessionTime("23:59"));
         assertEquals(LocalTime.of(9, 5), ParserUtil.parseSessionTime(" 0905 "));

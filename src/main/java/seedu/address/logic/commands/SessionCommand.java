@@ -3,13 +3,12 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.exceptions.CommandException;
-import seedu.address.logic.parser.ParserUtil;
 import seedu.address.model.Model;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
@@ -27,6 +26,8 @@ public class SessionCommand extends Command {
     public static final String MESSAGE_EMPTY_NAME = "Name cannot be empty.";
     public static final String MESSAGE_NAME_SLASH = "Name must not contain '/'.";
     public static final String MESSAGE_SUCCESS = "Recorded next session for %s on %s at %s";
+    public static final String MESSAGE_PAST_SESSION =
+            "Note: this session is in the past, so it shows as \"- (none upcoming)\".";
 
     private final Index index;
     private final String name;
@@ -53,10 +54,6 @@ public class SessionCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        // Recheck at execution in case the date changed after parsing the command.
-        if (nextSession.value.toLocalDate().isBefore(LocalDate.now())) {
-            throw new CommandException(ParserUtil.MESSAGE_PAST_SESSION_DATE);
-        }
         Person target;
         if (index != null) {
             if (index.getZeroBased() >= model.getFilteredPersonList().size()) {
@@ -70,8 +67,11 @@ public class SessionCommand extends Command {
         }
         model.setPerson(target, target.withNextSession(nextSession));
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-        return new CommandResult(String.format(MESSAGE_SUCCESS, target.getName(), nextSession.value.toLocalDate(),
-                nextSession.value.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"))));
+        String message = String.format(MESSAGE_SUCCESS, target.getName(), nextSession.value.toLocalDate(),
+                nextSession.value.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm")));
+        // Past sessions are kept for record-keeping; warn rather than block, as the booking is not upcoming.
+        boolean isPast = nextSession.value.isBefore(LocalDateTime.now());
+        return new CommandResult(isPast ? message + "\n" + MESSAGE_PAST_SESSION : message);
     }
 
     @Override

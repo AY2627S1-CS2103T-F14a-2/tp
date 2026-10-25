@@ -12,7 +12,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
-import seedu.address.logic.parser.ParserUtil;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
@@ -88,9 +87,12 @@ public class SessionCommandTest {
     }
 
     @Test
-    public void execute_dateBecamePast_keepsData() {
-        NextSession expired = new NextSession(LocalDate.now().minusDays(1) + " 17:00");
-        assertCommandFailure(new SessionCommand("Sarah Lim", expired), model, ParserUtil.MESSAGE_PAST_SESSION_DATE);
+    public void execute_pastDate_recordsWithNote() throws Exception {
+        NextSession past = new NextSession(LocalDate.now().minusDays(1) + " 17:00");
+        CommandResult result = new SessionCommand("Sarah Lim", past).execute(model);
+        assertEquals("Recorded next session for Sarah Lim on " + past.value.toLocalDate() + " at 17:00\n"
+                + SessionCommand.MESSAGE_PAST_SESSION, result.getFeedbackToUser());
+        assertEquals(past, model.getAddressBook().getPersonList().getFirst().getNextSession().orElseThrow());
     }
 
     @Test
