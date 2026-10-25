@@ -5,15 +5,16 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<HBox id="cardPane" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
-  <VBox alignment="CENTER_LEFT" HBox.hgrow="ALWAYS" minWidth="10" prefWidth="150">
+<HBox id="cardPane" styleClass="client-card"
+      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+  <VBox alignment="CENTER_LEFT" spacing="3" HBox.hgrow="ALWAYS" minWidth="10" prefWidth="150">
     <padding>
-      <Insets top="5" right="5" bottom="5" left="15" />
+      <Insets top="10" right="12" bottom="10" left="12" />
     </padding>
-    <Label fx:id="sessionTime" styleClass="cell_big_label" />
-    <Label fx:id="name" styleClass="cell_small_label" wrapText="true" />
-    <Label fx:id="phone" styleClass="cell_small_label" />
-    <Label fx:id="latestMeasurement" styleClass="cell_small_label" wrapText="true" />
-    <Label fx:id="latestPerformance" styleClass="cell_small_label" wrapText="true" />
+    <Label fx:id="sessionTime" styleClass="card-title" wrapText="true" />
+    <Label fx:id="name" styleClass="card-session" wrapText="true" />
+    <Label fx:id="phone" styleClass="card-detail" wrapText="true" />
+    <Label fx:id="latestMeasurement" styleClass="card-detail" wrapText="true" />
+    <Label fx:id="latestPerformance" styleClass="card-detail" wrapText="true" />
   </VBox>
 </HBox>

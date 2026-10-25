@@ -14,6 +14,7 @@ import seedu.address.model.person.Person;
  * It redraws whenever the viewed client changes, e.g. after that client is edited or gets a new record.
  *
  * <p>AI assistance: Claude Code helped implement this class.
+ * Gabriel used OpenAI Codex to separate and style the history sections.
  */
 public class ClientDetailPanel extends UiPart<ScrollPane> {
 
@@ -24,7 +25,15 @@ public class ClientDetailPanel extends UiPart<ScrollPane> {
     @FXML
     private Label name;
     @FXML
-    private Label history;
+    private Label details;
+    @FXML
+    private Label measurementHeading;
+    @FXML
+    private Label measurements;
+    @FXML
+    private Label performanceHeading;
+    @FXML
+    private Label performances;
 
     /**
      * Creates a {@code ClientDetailPanel} that shows {@code viewedPerson} whenever a client is viewed.
@@ -52,6 +61,14 @@ public class ClientDetailPanel extends UiPart<ScrollPane> {
             return;
         }
         name.setText(person.getName().fullName);
-        history.setText(ClientHistoryFormatter.format(person, LocalDateTime.now()));
+        details.setText(ClientHistoryFormatter.formatDetails(person, LocalDateTime.now()));
+        measurementHeading.setText(sectionHeading("Measurements", person.getMeasurements().size()));
+        measurements.setText(ClientHistoryFormatter.formatMeasurementRecords(person.getMeasurements()));
+        performanceHeading.setText(sectionHeading("Performance", person.getPerformanceHistory().size()));
+        performances.setText(ClientHistoryFormatter.formatPerformanceRecords(person.getPerformanceHistory()));
+    }
+
+    private static String sectionHeading(String title, int count) {
+        return title + " · " + count + (count == 1 ? " record" : " records");
     }
 }

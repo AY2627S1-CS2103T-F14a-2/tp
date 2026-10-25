@@ -47,7 +47,13 @@ public final class ClientHistoryFormatter {
                 + "\n\n" + formatPerformances(person.getPerformanceHistory());
     }
 
-    private static String formatDetails(Person person, LocalDateTime now) {
+    /**
+     * Formats the contact, session and tag details independently of the history sections.
+     * AI assistance: Gabriel used OpenAI Codex to expose section formatting for the detail panel.
+     */
+    public static String formatDetails(Person person, LocalDateTime now) {
+        requireNonNull(person);
+        requireNonNull(now);
         String email = person.getEmail().map(e -> e.value).orElse(NO_EMAIL);
         // Matches the "Next session" row of the client card.
         String session = person.getNextSession().map(s -> s.toDisplayString(now)).orElse(NO_SESSION);
@@ -69,31 +75,53 @@ public final class ClientHistoryFormatter {
         if (measurements.isEmpty()) {
             return NO_MEASUREMENTS;
         }
+        return "Measurements " + countHeader(measurements.size()) + "\n" + formatMeasurementRecords(measurements);
+    }
+
+    /**
+     * Formats measurement rows, without a heading, for the separately styled history section.
+     */
+    public static String formatMeasurementRecords(List<Measurement> measurements) {
+        requireNonNull(measurements);
+        if (measurements.isEmpty()) {
+            return "None recorded yet.";
+        }
         List<String> lines = measurements.stream()
                 .sorted(Comparator.comparing(Measurement::getDate).reversed()
                         .thenComparing(Measurement::getType))
                 .map(m -> m.getDate() + DATE_SEPARATOR + m.getType() + " " + m.getValue().toPlainString()
                         + " " + m.getType().getUnit())
                 .toList();
-        return "Measurements " + countHeader(lines.size()) + "\n" + String.join("\n", lines);
+        return String.join("\n", lines);
     }
 
     /**
      * Lists performances newest first; same-date records are shown most recently recorded first,
      * so the first line always matches the card's "Latest performance".
      *
-     * @param performances Records in the order they were recorded, oldest recorded first.
+     * @param history Records in the order they were recorded, oldest recorded first.
      */
     static String formatPerformances(PerformanceHistory history) {
         requireNonNull(history);
         if (history.size() == 0) {
             return NO_PERFORMANCES;
         }
+        return "Performance " + countHeader(history.size()) + "\n" + formatPerformanceRecords(history);
+    }
+
+    /**
+     * Formats performance rows, without a heading, using the card's newest-first ordering.
+     */
+    public static String formatPerformanceRecords(PerformanceHistory history) {
+        requireNonNull(history);
+        if (history.size() == 0) {
+            return "None recorded yet.";
+        }
         // Same order as the card's latest performance, so the first line always matches it.
         List<String> lines = history.getNewestFirst().stream()
                 .map(p -> p.getDate() + DATE_SEPARATOR + p.getSummary())
                 .toList();
-        return "Performance " + countHeader(lines.size()) + "\n" + String.join("\n", lines);
+        return String.join("\n", lines);
     }
 
     private static String countHeader(int count) {
