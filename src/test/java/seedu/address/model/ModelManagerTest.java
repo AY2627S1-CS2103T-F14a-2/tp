@@ -166,7 +166,7 @@ public class ModelManagerTest {
         modelManager.addPerson(passed);
         modelManager.addPerson(DANIEL); // no booking
 
-        modelManager.updateUpcomingSessionList(NOW);
+        modelManager.updateSessionLists(NOW);
 
         assertEquals(List.of(sooner, later), modelManager.getUpcomingSessionList());
     }
@@ -176,7 +176,7 @@ public class ModelManagerTest {
         Person atNow = new PersonBuilder(ALICE).withNextSession("2026-10-25 10:00").build();
         modelManager.addPerson(atNow);
 
-        modelManager.updateUpcomingSessionList(NOW);
+        modelManager.updateSessionLists(NOW);
 
         assertEquals(List.of(atNow), modelManager.getUpcomingSessionList());
     }
@@ -184,7 +184,7 @@ public class ModelManagerTest {
     @Test
     public void getUpcomingSessionList_bookAndCancel_updatesWithoutRefresh() {
         modelManager.addPerson(ALICE);
-        modelManager.updateUpcomingSessionList(NOW);
+        modelManager.updateSessionLists(NOW);
         Person booked = new PersonBuilder(ALICE).withNextSession("2026-11-01 18:00").build();
 
         modelManager.setPerson(ALICE, booked);
@@ -195,18 +195,32 @@ public class ModelManagerTest {
     }
 
     @Test
-    public void updateUpcomingSessionList_sessionHasPassed_removesClient() {
+    public void updateSessionLists_sessionHasPassed_removesClient() {
         modelManager.addPerson(new PersonBuilder(ALICE).withNextSession("2026-11-01 18:00").build());
-        modelManager.updateUpcomingSessionList(NOW);
+        modelManager.updateSessionLists(NOW);
 
-        modelManager.updateUpcomingSessionList(LocalDateTime.of(2026, 11, 1, 18, 1));
+        modelManager.updateSessionLists(LocalDateTime.of(2026, 11, 1, 18, 1));
 
         assertEquals(List.of(), modelManager.getUpcomingSessionList());
     }
 
     @Test
-    public void updateUpcomingSessionList_null_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> modelManager.updateUpcomingSessionList(null));
+    public void updateSessionLists_sessionHasPassed_movesClientBelowUpcomingSessions() {
+        Person sooner = new PersonBuilder(ALICE).withNextSession("2026-11-01 18:00").build();
+        Person later = new PersonBuilder(BENSON).withNextSession("2026-11-02 09:00").build();
+        modelManager.addPerson(later);
+        modelManager.addPerson(sooner);
+        modelManager.updateSessionLists(NOW);
+        assertEquals(List.of(sooner, later), modelManager.getFilteredPersonList());
+
+        modelManager.updateSessionLists(LocalDateTime.of(2026, 11, 1, 18, 1));
+
+        assertEquals(List.of(later, sooner), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void updateSessionLists_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.updateSessionLists(null));
     }
 
     @Test

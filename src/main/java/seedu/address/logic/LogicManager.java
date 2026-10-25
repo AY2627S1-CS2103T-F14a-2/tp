@@ -43,14 +43,14 @@ public class LogicManager implements Logic {
     @Override
     public CommandResult execute(String commandText) throws CommandException, ParseException {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
-        // Drops sessions that have passed since the last command.
-        model.updateUpcomingSessionList(LocalDateTime.now());
 
         Command command = addressBookParser.parseCommand(commandText);
         AddressBook addressBookBeforeCommand = new AddressBook(model.getAddressBook());
         Predicate<Person> predicateBeforeCommand = model.getFilteredPersonListPredicate();
         Person viewedPersonBeforeCommand = model.getViewedPerson().getValue();
         CommandResult commandResult = command.execute(model);
+        // Re-sorts by the current time only after the command has used the displayed indices.
+        model.updateSessionLists(LocalDateTime.now());
 
         // Read-only commands leave the data unchanged, so they never write (or fail to write) the data file.
         if (!model.getAddressBook().equals(addressBookBeforeCommand)) {

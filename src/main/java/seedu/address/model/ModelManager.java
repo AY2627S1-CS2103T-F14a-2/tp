@@ -151,8 +151,9 @@ public class ModelManager implements Model {
     }
 
     @Override
-    public void updateUpcomingSessionList(LocalDateTime now) {
+    public void updateSessionLists(LocalDateTime now) {
         requireNonNull(now);
+        sortedPersons.setComparator(new PersonSessionComparator(now));
         upcomingSessionPersons.setPredicate(hasSessionFrom(now));
         sortedUpcomingSessionPersons.setComparator(new PersonSessionComparator(now));
     }

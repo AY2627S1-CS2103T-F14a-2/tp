@@ -164,7 +164,7 @@ public class AddCommandTest {
         }
 
         @Override
-        public void updateUpcomingSessionList(LocalDateTime now) {
+        public void updateSessionLists(LocalDateTime now) {
             throw new AssertionError("This method should not be called.");
         }
 

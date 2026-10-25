@@ -78,16 +78,17 @@ public interface Model {
 
     /**
      * Returns an unmodifiable view of the clients with a session at or after the time given to the last
-     * {@link #updateUpcomingSessionList(LocalDateTime)}, soonest session first.
+     * {@link #updateSessionLists(LocalDateTime)}, soonest session first.
      * Unlike the filtered person list, it always covers every client in the address book.
      */
     ObservableList<Person> getUpcomingSessionList();
 
     /**
-     * Updates the upcoming session list so that only sessions at or after {@code now} are included.
+     * Updates the filtered person list's order and the upcoming session list so that both treat sessions
+     * before {@code now} as passed.
      * @throws NullPointerException if {@code now} is null.
      */
-    void updateUpcomingSessionList(LocalDateTime now);
+    void updateSessionLists(LocalDateTime now);
 
     /**
      * Returns the client whose details and history are shown by {@code view}.
