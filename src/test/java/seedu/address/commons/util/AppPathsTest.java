@@ -6,14 +6,19 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.InputStream;
+import java.lang.management.ManagementFactory;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -52,6 +57,14 @@ public class AppPathsTest {
     public void resolveHomeDirectory_nonLocalLocation_failsInsteadOfUsingWorkingDirectory() throws Exception {
         assertThrows(IllegalStateException.class, () -> AppPaths.resolveHomeDirectory(
                 URI.create("https://example.com/spotter.jar").toURL(), temporaryFolder));
+    }
+
+    @Test
+    public void resolveHomeDirectory_fileLocationWithQuery_failsInsteadOfUsingWorkingDirectory() throws Exception {
+        URI invalidLocation = URI.create(temporaryFolder.resolve("spotter.jar").toUri() + "?unexpected=query");
+
+        assertThrows(IllegalStateException.class, () ->
+                AppPaths.resolveHomeDirectory(invalidLocation.toURL(), temporaryFolder));
     }
 
     @Test
@@ -103,8 +116,8 @@ public class AppPathsTest {
 
         assertTrue(runProbe(archive, second).contains("saved-client"));
         try (Stream<Path> firstFiles = Files.list(first); Stream<Path> secondFiles = Files.list(second)) {
-            assertEquals(0, firstFiles.count());
-            assertEquals(0, secondFiles.count());
+            assertEquals(List.of(), firstFiles.toList());
+            assertEquals(List.of(), secondFiles.toList());
         }
     }
 
@@ -149,7 +162,14 @@ public class AppPathsTest {
         String executable = System.getProperty("os.name").startsWith("Windows") ? "java.exe" : "java";
         Path java = Path.of(System.getProperty("java.home"), "bin", executable);
         Path output = temporaryFolder.resolve("probe-" + probeNumber++ + ".txt");
-        Process process = new ProcessBuilder(java.toString(), "-jar", archive.toString())
+        List<String> command = new ArrayList<>(List.of(java.toString()));
+        // Include the real packaged-JVM checks in the same coverage report as the parent tests.
+        ManagementFactory.getRuntimeMXBean().getInputArguments().stream()
+                .filter(argument -> argument.startsWith("-javaagent:") && argument.contains("jacoco"))
+                .map(AppPathsTest::resolveCoverageDestination)
+                .findFirst().ifPresent(command::add);
+        command.addAll(List.of("-jar", archive.toString()));
+        Process process = new ProcessBuilder(command)
                 .directory(launchFolder.toFile()).redirectErrorStream(true).redirectOutput(output.toFile()).start();
         try {
             assertTrue(process.waitFor(20, TimeUnit.SECONDS), "Packaged paths probe timed out.");
@@ -159,5 +179,11 @@ public class AppPathsTest {
         } finally {
             process.destroyForcibly();
         }
+    }
+
+    /** Keeps Gradle's relative coverage destination in the project when the child changes directory. */
+    private static String resolveCoverageDestination(String argument) {
+        return Pattern.compile("destfile=([^,]+)").matcher(argument).replaceFirst(match ->
+                Matcher.quoteReplacement("destfile=" + Path.of(match.group(1)).toAbsolutePath().normalize()));
     }
 }
