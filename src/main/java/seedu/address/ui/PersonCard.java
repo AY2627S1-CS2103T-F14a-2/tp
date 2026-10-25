@@ -24,8 +24,10 @@ import seedu.address.model.progress.PerformanceHistory;
  */
 public class PersonCard extends UiPart<Region> {
 
+    // Shared with UpcomingSessionCard.
+    static final String PHONE_LABEL = "Phone: ";
+
     private static final String FXML = "PersonListCard.fxml";
-    private static final String PHONE_LABEL = "Phone: ";
     private static final String EMAIL_LABEL = "Email: ";
     private static final String PERFORMANCE_ROW_PREFIX = "Latest performance: ";
 
@@ -78,6 +80,9 @@ public class PersonCard extends UiPart<Region> {
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+        // AI assistance: Gabriel used OpenAI Codex to remove empty tag-row spacing.
+        tags.setVisible(!tags.getChildren().isEmpty());
+        tags.managedProperty().bind(tags.visibleProperty());
         latestPerformance.setText(formatLatestPerformance(person.getPerformanceHistory()));
     }
 

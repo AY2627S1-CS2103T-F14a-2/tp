@@ -2,8 +2,6 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
-import java.time.Clock;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -16,7 +14,7 @@ import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 
 /**
- * Shows the full details and history of a client identified by their displayed index.
+ * Shows the full details and history of a client identified by their displayed index in the detail panel.
  * Read-only: neither the data nor the displayed list changes, so nothing is saved.
  */
 public class ViewCommand extends Command {
@@ -29,24 +27,18 @@ public class ViewCommand extends Command {
             + "Parameters: INDEX (must be a positive integer)\n"
             + "Example: " + COMMAND_WORD + " 1";
 
+    public static final String MESSAGE_VIEW_SUCCESS = "Showing details and history of %1$s.";
+
     private static final Logger logger = LogsCenter.getLogger(ViewCommand.class);
 
     private final Index targetIndex;
-    private final Clock clock;
-
-    public ViewCommand(Index targetIndex) {
-        this(targetIndex, Clock.systemDefaultZone());
-    }
 
     /**
-     * Creates a command that reads the current time from {@code clock}, so tests can fix the time
-     * used to decide whether the next session has passed.
+     * Creates a command that shows the client at {@code targetIndex} of the displayed list.
      */
-    ViewCommand(Index targetIndex, Clock clock) {
+    public ViewCommand(Index targetIndex) {
         requireNonNull(targetIndex);
-        requireNonNull(clock);
         this.targetIndex = targetIndex;
-        this.clock = clock;
     }
 
     @Override
@@ -62,7 +54,8 @@ public class ViewCommand extends Command {
         // Logs only the index, as client details do not belong in log files.
         logger.fine("Viewing client at displayed index " + targetIndex.getOneBased());
         Person personToView = lastShownList.get(targetIndex.getZeroBased());
-        return new CommandResult(ClientHistoryFormatter.format(personToView, LocalDateTime.now(clock)));
+        model.setViewedPerson(personToView);
+        return new CommandResult(String.format(MESSAGE_VIEW_SUCCESS, personToView.getName().fullName));
     }
 
     @Override

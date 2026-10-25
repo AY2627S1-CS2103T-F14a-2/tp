@@ -1,0 +1,52 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":MeasureCommand" as MeasureCommand LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant ":ModelManager" as ModelManager MODEL_COLOR
+participant ":AddressBook" as AddressBook MODEL_COLOR
+participant "viewedPerson:ObjectProperty" as ViewedPerson MODEL_COLOR
+end box
+
+box UI UI_COLOR_T1
+participant ":ClientDetailPanel" as ClientDetailPanel UI_COLOR
+end box
+
+[-> MeasureCommand : execute(m)
+activate MeasureCommand
+
+MeasureCommand -> ModelManager : setPerson(p, editedP)
+activate ModelManager
+
+ModelManager -> AddressBook : setPerson(p, editedP)
+activate AddressBook
+AddressBook --> ModelManager
+deactivate AddressBook
+
+opt p is the viewed client
+    ModelManager -> ViewedPerson : set(editedP)
+    activate ViewedPerson
+
+    ViewedPerson -> ClientDetailPanel : changed(editedP)
+    activate ClientDetailPanel
+    note right of ClientDetailPanel
+      redraws with editedP's
+      details and history
+    end note
+    ClientDetailPanel --> ViewedPerson
+    deactivate ClientDetailPanel
+
+    ViewedPerson --> ModelManager
+    deactivate ViewedPerson
+end
+
+ModelManager --> MeasureCommand
+deactivate ModelManager
+
+[<-- MeasureCommand
+deactivate MeasureCommand
+@enduml

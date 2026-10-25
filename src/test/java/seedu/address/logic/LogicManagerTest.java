@@ -29,6 +29,7 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.PerformanceCommand;
+import seedu.address.logic.commands.SessionCommand;
 import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -158,6 +159,35 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_viewedClientChangeFailsToSave_viewedClientRestored() throws Exception {
+        viewAlice();
+        logic = new LogicManager(model, createStorageThrowing(DUMMY_IO_EXCEPTION));
+
+        assertThrows(CommandException.class, LogicManager.MESSAGE_SAVE_FAILURE, () ->
+                logic.execute(PERFORMANCE_COMMAND));
+        assertEquals(ALICE, logic.getViewedPerson().getValue());
+    }
+
+    @Test
+    public void execute_viewedClientChangeSaved_viewedClientUpdated() throws Exception {
+        viewAlice();
+
+        logic.execute(PERFORMANCE_COMMAND);
+
+        assertEquals(List.of(BENCH_PRESS), logic.getViewedPerson().getValue().getGymPerformances());
+    }
+
+    @Test
+    public void execute_sessionBooked_clientInUpcomingSessions() throws Exception {
+        model.addPerson(ALICE);
+
+        logic.execute(SessionCommand.COMMAND_WORD + " 1 d/2099-12-01 t/1800");
+
+        assertEquals(List.of(ALICE.getName()),
+                logic.getUpcomingSessionList().stream().map(Person::getName).toList());
+    }
+
+    @Test
     public void execute_readOnlyCommandWhenStorageThrows_success() throws Exception {
         logic = new LogicManager(model, createStorageThrowing(DUMMY_IO_EXCEPTION));
         assertCommandSuccess(ListCommand.COMMAND_WORD, ListCommand.MESSAGE_NO_CLIENTS, new ModelManager());
@@ -253,6 +283,14 @@ public class LogicManagerTest {
         assertThrows(CommandException.class, LogicManager.MESSAGE_SAVE_FAILURE, () -> logic.execute(inputCommand));
         assertEquals(expectedAddressBook, model.getAddressBook());
         assertEquals(List.of(BENSON), model.getFilteredPersonList());
+    }
+
+    /**
+     * Adds ALICE as the only client and views her with the {@code view} command.
+     */
+    private void viewAlice() throws Exception {
+        model.addPerson(ALICE);
+        logic.execute(ViewCommand.COMMAND_WORD + " 1");
     }
 
     /**

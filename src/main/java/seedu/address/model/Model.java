@@ -1,7 +1,9 @@
 package seedu.address.model;
 
+import java.time.LocalDateTime;
 import java.util.function.Predicate;
 
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.Person;
@@ -73,4 +75,30 @@ public interface Model {
      * Returns the predicate currently used to filter the filtered person list.
      */
     Predicate<Person> getFilteredPersonListPredicate();
+
+    /**
+     * Returns an unmodifiable view of the clients with a session at or after the time given to the last
+     * {@link #updateSessionLists(LocalDateTime)}, soonest session first.
+     * Unlike the filtered person list, it always covers every client in the address book.
+     */
+    ObservableList<Person> getUpcomingSessionList();
+
+    /**
+     * Updates the filtered person list's order and the upcoming session list so that both treat sessions
+     * before {@code now} as passed.
+     * @throws NullPointerException if {@code now} is null.
+     */
+    void updateSessionLists(LocalDateTime now);
+
+    /**
+     * Returns the client whose details and history are shown by {@code view}.
+     * Its value is null when no client is shown, and it follows the client through edits and new records.
+     */
+    ObservableValue<Person> getViewedPerson();
+
+    /**
+     * Shows the details and history of {@code person}, or no client if {@code person} is null.
+     * A non-null {@code person} must exist in the address book.
+     */
+    void setViewedPerson(Person person);
 }

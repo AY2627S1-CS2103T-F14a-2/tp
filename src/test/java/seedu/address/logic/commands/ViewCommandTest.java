@@ -11,10 +11,6 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
-import java.time.Clock;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,40 +28,48 @@ import seedu.address.model.person.Person;
  */
 public class ViewCommandTest {
 
-    private static final LocalDateTime NOW = LocalDateTime.of(2026, 10, 22, 10, 0);
-    private static final Clock FIXED_CLOCK = Clock.fixed(NOW.toInstant(ZoneOffset.UTC), ZoneId.of("UTC"));
-
     private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
 
     @Test
     public void constructor_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new ViewCommand(null));
-        assertThrows(NullPointerException.class, () -> new ViewCommand(INDEX_FIRST_PERSON, null));
     }
 
     @Test
-    public void execute_validIndexUnfilteredList_showsHistoryAndLeavesModelUnchanged() {
+    public void execute_validIndexUnfilteredList_viewsClientWithoutChangingData() {
         Person personToView = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
-        String expectedMessage = ClientHistoryFormatter.format(personToView, NOW);
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.setViewedPerson(personToView);
 
-        assertCommandSuccess(new ViewCommand(INDEX_SECOND_PERSON, FIXED_CLOCK), model, expectedMessage,
+        // ModelManager#equals also compares the viewed client
+        assertCommandSuccess(new ViewCommand(INDEX_SECOND_PERSON), model, expectedMessage(personToView),
                 expectedModel);
     }
 
     @Test
-    public void execute_validIndexFilteredList_showsHistoryAndKeepsFilter() {
+    public void execute_validIndexFilteredList_viewsClientAndKeepsFilter() {
         showPersonAtIndex(model, INDEX_SECOND_PERSON);
         Person personToView = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         List<Person> filteredListBefore = new ArrayList<>(model.getFilteredPersonList());
-        String expectedMessage = ClientHistoryFormatter.format(personToView, NOW);
 
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
         showPersonAtIndex(expectedModel, INDEX_SECOND_PERSON);
+        expectedModel.setViewedPerson(personToView);
 
-        assertCommandSuccess(new ViewCommand(INDEX_FIRST_PERSON, FIXED_CLOCK), model, expectedMessage,
+        assertCommandSuccess(new ViewCommand(INDEX_FIRST_PERSON), model, expectedMessage(personToView),
                 expectedModel);
         assertEquals(filteredListBefore, model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_anotherClientAlreadyViewed_viewsNewClient() throws Exception {
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person secondPerson = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
+        model.setViewedPerson(firstPerson);
+
+        new ViewCommand(INDEX_SECOND_PERSON).execute(model);
+
+        assertEquals(secondPerson, model.getViewedPerson().getValue());
     }
 
     @Test
@@ -94,8 +98,8 @@ public class ViewCommandTest {
         // same object -> returns true
         assertTrue(viewFirstCommand.equals(viewFirstCommand));
 
-        // same index, different clock -> returns true
-        assertTrue(viewFirstCommand.equals(new ViewCommand(INDEX_FIRST_PERSON, FIXED_CLOCK)));
+        // same values -> returns true
+        assertTrue(viewFirstCommand.equals(new ViewCommand(INDEX_FIRST_PERSON)));
 
         // different types -> returns false
         assertFalse(viewFirstCommand.equals(1));
@@ -113,5 +117,9 @@ public class ViewCommandTest {
         ViewCommand viewCommand = new ViewCommand(targetIndex);
         String expected = ViewCommand.class.getCanonicalName() + "{targetIndex=" + targetIndex + "}";
         assertEquals(expected, viewCommand.toString());
+    }
+
+    private static String expectedMessage(Person viewedPerson) {
+        return String.format(ViewCommand.MESSAGE_VIEW_SUCCESS, viewedPerson.getName().fullName);
     }
 }
