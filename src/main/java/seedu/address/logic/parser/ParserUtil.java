@@ -65,10 +65,7 @@ public class ParserUtil {
         if (!trimmed.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}")) {
             throw new ParseException(MESSAGE_SESSION_DATE_FORMAT);
         }
-        int year = Integer.parseInt(trimmed.substring(0, 4));
-        int month = Integer.parseInt(trimmed.substring(5, 7));
-        int day = Integer.parseInt(trimmed.substring(8, 10));
-        if (year == 0 || month < 1 || month > 12 || day < 1 || day > 31) {
+        if (trimmed.startsWith("0000") || !hasValidMonthAndDay(trimmed)) {
             throw new ParseException(MESSAGE_SESSION_DATE_FORMAT);
         }
         LocalDate parsed;
@@ -179,7 +176,8 @@ public class ParserUtil {
     public static LocalDate parseExistingRecordDate(String date) throws ParseException {
         requireNonNull(date);
         String trimmedDate = date.trim();
-        if (!trimmedDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
+        // A month or day out of range, e.g. 2026-13-01, is a format error rather than a nonexistent date
+        if (!trimmedDate.matches("\\d{4}-\\d{2}-\\d{2}") || !hasValidMonthAndDay(trimmedDate)) {
             throw new ParseException(MESSAGE_INVALID_RECORD_DATE);
         }
         // The format is right from here on, so any remaining problem is a date that does not exist
@@ -194,6 +192,15 @@ public class ParserUtil {
             throw new ParseException(nonexistentDateMessage);
         }
         return parsedDate;
+    }
+
+    /**
+     * Returns true if the month and day of a {@code yyyy-MM-dd} string are within 01-12 and 01-31.
+     */
+    private static boolean hasValidMonthAndDay(String date) {
+        int month = Integer.parseInt(date.substring(5, 7));
+        int day = Integer.parseInt(date.substring(8, 10));
+        return month >= 1 && month <= 12 && day >= 1 && day <= 31;
     }
 
     /**
