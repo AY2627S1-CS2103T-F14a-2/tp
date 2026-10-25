@@ -215,7 +215,7 @@ public class MainWindow extends UiPart<Stage> {
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
-            // The client cards may also have been redrawn, so the panel is refreshed to keep them consistent.
+            // Redraws time-dependent text, e.g. a next session that has just passed.
             clientDetailPanel.refresh();
 
             if (commandResult.isShowHelp()) {

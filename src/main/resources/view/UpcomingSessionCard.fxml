@@ -6,7 +6,6 @@
 <?import javafx.scene.layout.VBox?>
 
 <HBox id="cardPane" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
-  <!-- A small preferred width lets the list fit the card to its width, so long rows wrap (as in PersonListCard). -->
   <VBox alignment="CENTER_LEFT" HBox.hgrow="ALWAYS" minWidth="10" prefWidth="150">
     <padding>
       <Insets top="5" right="5" bottom="5" left="15" />

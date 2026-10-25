@@ -31,7 +31,6 @@ public class ModelManager implements Model {
     private final FilteredList<Person> upcomingSessionPersons;
     private final SortedList<Person> sortedUpcomingSessionPersons;
     private Predicate<Person> filteredPersonListPredicate = PREDICATE_SHOW_ALL_PERSONS;
-    // Holds null when no client is viewed, so the UI shows the upcoming sessions instead.
     private final SimpleObjectProperty<Person> viewedPerson = new SimpleObjectProperty<>();
 
     /**
@@ -114,7 +113,7 @@ public class ModelManager implements Model {
         requireAllNonNull(target, editedPerson);
 
         addressBook.setPerson(target, editedPerson);
-        // Persons are immutable, so the viewed client must follow the replacement to stay up to date.
+        // Person is immutable, so the viewed client follows its replacement.
         if (target.equals(viewedPerson.get())) {
             viewedPerson.set(editedPerson);
         }
