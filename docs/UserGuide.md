@@ -469,6 +469,11 @@ Success: `Recorded next session for Sarah Lim on 2026-12-15 at 19:00`.
 The stored client's name is used in the message; both time formats are stored and reported as `HH:mm`.
 Replacing a different booking reports `Rescheduled next session for Sarah Lim from 2026-12-15 19:00 to 2026-12-16 09:00.`
 Entering the same booking again reports `Next session for Sarah Lim is already recorded on 2026-12-15 19:00.`
+If another client is booked at exactly that date and time, Spotter appends
+`Warning: This time is also booked for Alex Tan. All bookings are kept.`
+All matching clients are named alphabetically, including clients outside the current filter.
+This is a warning: the booking still succeeds. Spotter does not store session durations, so different start times
+are not checked for overlapping durations.
 The booking is saved automatically and survives restarting Spotter. Editing contact details preserves it,
 and deleting the client removes it together with the client.
 

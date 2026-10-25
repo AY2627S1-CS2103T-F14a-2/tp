@@ -86,6 +86,37 @@ public class SessionCommandTest {
     }
 
     @Test
+    public void execute_clashOutsideFilter_warnsAndKeepsBothBookings() throws Exception {
+        model.setPerson(alex, alex.withNextSession(session));
+        model.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of("Sarah")));
+        CommandResult result = new SessionCommand(Index.fromOneBased(1), session).execute(model);
+        assertTrue(result.getFeedbackToUser().endsWith(
+                "\nWarning: This time is also booked for Alex Tan. All bookings are kept."));
+        assertEquals(List.of(alex.withNextSession(session), sarah.withNextSession(session)),
+                model.getFilteredPersonList());
+        assertEquals(2, model.getAddressBook().getPersonList().size());
+    }
+
+    @Test
+    public void execute_multipleClashes_namesAreAlphabeticalAndExcludeTarget() throws Exception {
+        model.setPerson(alex, alex.withNextSession(session));
+        model.setPerson(sarah, sarah.withNextSession(session));
+        model.addPerson(new PersonBuilder().withName("Ben Test").withNextSession(session.toString()).build());
+        CommandResult result = new SessionCommand("Sarah Lim", session).execute(model);
+        assertEquals("Next session for Sarah Lim is already recorded on " + session + "."
+                + "\nWarning: This time is also booked for Alex Tan, Ben Test. All bookings are kept.",
+                result.getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_differentTimesOrOwnOldBooking_doesNotWarn() throws Exception {
+        model.setPerson(alex, alex.withNextSession(new NextSession(session.value.toLocalDate() + " 17:01")));
+        model.setPerson(sarah, sarah.withNextSession(session));
+        CommandResult result = new SessionCommand("Sarah Lim", session).execute(model);
+        assertFalse(result.getFeedbackToUser().contains("Warning:"));
+    }
+
+    @Test
     public void execute_todayWithPastTime_accepted() throws Exception {
         NextSession today = new NextSession(LocalDate.now() + " 00:00");
         new SessionCommand("Sarah Lim", today).execute(model);

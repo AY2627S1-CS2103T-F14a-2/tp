@@ -21,7 +21,7 @@
   and documenting the v1.3 next-session feature, including parsing, client integration, JSON storage, sorting,
   and the client card row, and the v1.4 session cancellation/date-filter commands, tests, documentation,
   and release preparation. For v1.5, Gabriel used Codex for cancellation by full name, rescheduling feedback,
-  refreshing session order after commands, and the related tests and documentation.
+  refreshing session order after commands, exact-time clash warnings, and the related tests and documentation.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #64 changes (the `list` command messages, undoing changes when saving fails, the damaged data file warning, the client card phone and email rows, and the related tests and User Guide wording) on 2026-10-15. The changes were reviewed and tested by the author.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #79 changes (the tests for data files with invalid values, the `view` sequence diagram and "View client history" section, and the related manual testing steps) on 2026-10-22. The changes were reviewed and tested by the author.
 * Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the client `add`/`delete` changes for v1.3 (removing address, optional email, name and phone limits, Spotter messages). All generated code was reviewed and tested before committing.
@@ -259,6 +259,9 @@ measurement list avoids stale summary data after deletion.
 `session` distinguishes first bookings, rescheduling and an unchanged booking in its feedback. A replacement
 includes both old and new timestamps, so the trainer can verify the overwritten slot. Successful bookings
 restore the full client list and scroll to the top, including after an unchanged booking.
+Before replacing the booking, the command checks the whole address book for other clients at the same
+timestamp, excluding the target client. The feedback names these clients alphabetically and keeps both
+bookings. The check uses exact timestamps: the model has no duration with which to infer an overlapping range.
 
 After successfully executing and saving a command, `LogicManager` reapplies the current filter to refresh the
 time-dependent session comparator. This also refreshes client card rows through `PersonListPanel`'s existing
@@ -816,7 +819,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 4a. Another client's next session is at the same date and time.
 
-    * 4a1. Spotter keeps both sessions; the MVP does not warn about clashes.
+    * 4a1. Spotter keeps both sessions and warns the trainer, naming the other clients booked at that exact time.
 
       Use case ends.
 
@@ -1133,6 +1136,10 @@ replace `DATE` in every command below, and `TODAY` with today's date. Add unique
 1. Keep Spotter open across a session's start time, then run `help`.<br>
    Expected: Expired cards show `- (none upcoming)` and sort after future bookings. For an index-based command
    entered before this refresh, the client shown at that index receives the change before the list is reordered.
+1. Book both Ada and Zoe for `DATE` at `1000`, using their full names.<br>
+   Expected: The second booking succeeds with a warning naming the other client. Both remain in `sessions d/DATE`.
+   Run `find SessionCancelAda`, then book Ada at `1000` again: the warning still names Zoe outside the filter.
+   Move Ada to `1001`: the warning disappears, because only exact start times are compared.
 
 ### Saving data
 
