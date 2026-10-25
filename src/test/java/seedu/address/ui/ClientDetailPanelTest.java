@@ -2,6 +2,7 @@ package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import java.time.LocalDateTime;
 
@@ -14,20 +15,23 @@ import org.testfx.framework.junit5.Start;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.stage.Stage;
 import seedu.address.logic.commands.ClientHistoryFormatter;
 import seedu.address.model.person.Person;
+import seedu.address.testutil.PersonBuilder;
 
 @ExtendWith(ApplicationExtension.class)
 public class ClientDetailPanelTest {
 
     private final SimpleObjectProperty<Person> viewedPerson = new SimpleObjectProperty<>();
-    private Scene scene;
+    private ScrollPane panel;
 
     @Start
     public void start(Stage stage) {
-        scene = new Scene(new ClientDetailPanel(viewedPerson).getRoot());
-        stage.setScene(scene);
+        panel = new ClientDetailPanel(viewedPerson).getRoot();
+        // Short enough that a history needs scrolling.
+        stage.setScene(new Scene(panel, 300, 100));
         stage.show();
     }
 
@@ -45,7 +49,25 @@ public class ClientDetailPanelTest {
         assertEquals(ClientHistoryFormatter.format(ALICE, LocalDateTime.now()), labelText("#history"));
     }
 
+    @Test
+    public void viewedPersonChanged_differentClient_scrollsToTop(FxRobot robot) {
+        robot.interact(() -> viewedPerson.set(ALICE));
+        robot.interact(() -> panel.setVvalue(1));
+        robot.interact(() -> viewedPerson.set(BENSON));
+
+        assertEquals(0, panel.getVvalue());
+    }
+
+    @Test
+    public void viewedPersonChanged_sameClientUpdated_keepsScrollPosition(FxRobot robot) {
+        robot.interact(() -> viewedPerson.set(ALICE));
+        robot.interact(() -> panel.setVvalue(1));
+        robot.interact(() -> viewedPerson.set(new PersonBuilder(ALICE).withPhone("99998888").build()));
+
+        assertEquals(1, panel.getVvalue());
+    }
+
     private String labelText(String selector) {
-        return ((Label) scene.lookup(selector)).getText();
+        return ((Label) panel.lookup(selector)).getText();
     }
 }

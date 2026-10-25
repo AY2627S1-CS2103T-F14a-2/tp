@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.layout.Region;
+import javafx.scene.control.ScrollPane;
 import seedu.address.logic.commands.ClientHistoryFormatter;
 import seedu.address.model.person.Person;
 
@@ -15,7 +15,7 @@ import seedu.address.model.person.Person;
  *
  * <p>AI assistance: Claude Code helped implement this class.
  */
-public class ClientDetailPanel extends UiPart<Region> {
+public class ClientDetailPanel extends UiPart<ScrollPane> {
 
     private static final String FXML = "ClientDetailPanel.fxml";
 
@@ -32,7 +32,13 @@ public class ClientDetailPanel extends UiPart<Region> {
     public ClientDetailPanel(ObservableValue<Person> viewedPerson) {
         super(FXML);
         this.viewedPerson = viewedPerson;
-        viewedPerson.addListener((observable, oldPerson, newPerson) -> refresh());
+        viewedPerson.addListener((observable, oldPerson, newPerson) -> {
+            // A different client opens at the top; an update to the same client keeps its scroll position.
+            if (newPerson != null && !newPerson.isSamePerson(oldPerson)) {
+                getRoot().setVvalue(0);
+            }
+            refresh();
+        });
         refresh();
     }
 
