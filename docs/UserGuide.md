@@ -76,7 +76,8 @@ soonest session at the top. Each card shows the session's date and time, the cli
 latest measurement and performance, so that you can prepare for the session at a glance.
 
 * The cards update as soon as you book, change or cancel a session, or record a measurement or performance.
-* A session drops off once its time has passed, the next time you enter any command.
+* Once a session's time has passed, it drops off after your next successful command, and its client card then
+  shows `- (none upcoming)` as well.
 * The cards have no index numbers. To act on a client, use their index in the client list on the left.
 * `find`, `filter` and `sessions` change only the client list; Upcoming sessions still shows every booking.
 * With no bookings, it shows `No upcoming sessions.` and how to book one with [`session`](#recording-a-clients-next-session-session).

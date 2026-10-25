@@ -191,14 +191,16 @@ see who is next and prepare. It adds no new session logic. Instead, it reuses wh
   The cards have no index numbers, so that they cannot be mistaken for the client list's indices.
 * Booking, cancelling or recording a session replaces the client through `Model#setPerson`. The `FilteredList`
   re-tests the replaced client, so the panel updates without any command knowing about it.
-  Only the passing of time changes nothing in the data, so `LogicManager#execute` calls
-  `Model#updateUpcomingSessionList(now)` before every command to drop sessions that have passed.
+  Only the passing of time changes nothing in the data, so after each successful command `LogicManager#execute`
+  calls `Model#updateSessionLists(now)`. Against that one time, it re-sorts the client list (which makes
+  `PersonListPanel` redraw the client cards) and drops passed sessions from this panel, so both sides agree.
+  It runs only after the command, as re-sorting first could change which client a typed index refers to.
 
 **Aspect: when to drop a passed session**
 
-* **Alternative 1 (current choice):** On the next command.
+* **Alternative 1 (current choice):** On the next successful command.
   * Pros: Needs no timer, and the model logic is tested with a fixed "now".
-  * Cons: A passed session stays visible until the trainer types something.
+  * Cons: A passed session stays visible until the trainer's next successful command.
 * **Alternative 2:** On a timer.
   * Pros: Always exact.
   * Cons: Adds a background thread to the UI for little benefit, as the trainer types commands throughout the day.
@@ -237,8 +239,8 @@ Design notes:
   so the panel's text can be checked in unit tests without starting the GUI. The panel only shows the client's
   name as its title and the formatter's text below it.
 * **"Now" at drawing time:** whether the next session has passed is decided when the panel is drawn, as on the
-  client card. `MainWindow` also redraws the panel after every command, so a session that passes while the
-  panel is open is shown the same way as on the card.
+  client card. `MainWindow` also redraws the panel after every successful command, so a session that passes
+  while the panel is open is shown the same way as on the card.
 * **Scroll position:** when the viewed client changes to a different client (by `Person#isSamePerson`), the
   panel scrolls back to the top. A replacement of the same client, e.g. a new record, keeps the scroll position.
 * **Ordering:** both histories are listed newest first. Measurements on the same date follow the type order
