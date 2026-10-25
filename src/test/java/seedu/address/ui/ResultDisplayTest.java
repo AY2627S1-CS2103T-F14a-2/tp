@@ -4,11 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.concurrent.TimeUnit;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
+import org.testfx.util.WaitForAsyncUtils;
 
 import javafx.scene.Scene;
 import javafx.scene.control.ScrollBar;
@@ -70,12 +73,16 @@ public class ResultDisplayTest {
     }
 
     @Test
-    public void feedback_narrowerWindow_growsToFitWrappedLines(FxRobot robot) {
+    public void feedback_narrowerWindow_growsToFitWrappedLines(FxRobot robot) throws Exception {
         show(robot, "No client with that name exists. Use the full client name shown in the list.");
         double wideHeight = display.getRoot().getHeight();
 
         robot.interact(() -> stage.setWidth(280));
-        robot.interact(container::layout);
+        // The native window resize reaches JavaFX asynchronously, particularly on macOS.
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> {
+            robot.interact(container::layout);
+            return container.getWidth() < 400 && display.getRoot().getHeight() > wideHeight;
+        });
 
         assertTrue(display.getRoot().getHeight() > wideHeight);
     }
