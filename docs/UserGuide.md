@@ -253,7 +253,7 @@ Common errors:
 | --- | --- |
 | Missing or repeated prefix | `Invalid command format. Use: measure INDEX d/DATE t/TYPE v/VALUE` |
 | Invalid client index | `The client index provided is invalid.` |
-| Date not in `yyyy-MM-dd` format | `The date must use the format yyyy-MM-dd.` |
+| Date not in `yyyy-MM-dd` format, or month or day out of range, e.g. `2026-13-01` | `The date must use the format yyyy-MM-dd.` |
 | Date in the right format that does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.` |
 | Future date | `The measurement date cannot be in the future.` |
 | Unsupported type | `Measurement type must be weight, bodyfat, or waist.` |
@@ -303,7 +303,7 @@ and leaves the data unchanged.
 | --- | --- |
 | Missing or repeated prefix, missing or non-numeric index | `Invalid command format. Use: deletemeasure INDEX d/DATE t/TYPE` |
 | Zero, negative, overflowing or out-of-range index | `The client index provided is invalid.` |
-| Date not in `yyyy-MM-dd` format | `The date must use the format yyyy-MM-dd.` |
+| Date not in `yyyy-MM-dd` format, or month or day out of range, e.g. `2026-13-01` | `The date must use the format yyyy-MM-dd.` |
 | Date in the right format that does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.` |
 | Unsupported or empty type | `Measurement type must be weight, bodyfat, or waist.` |
 
@@ -347,7 +347,7 @@ Problem | Message
 --------|--------
 A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invalid command format. Use: performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`
 `INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
-`DATE` is not in `yyyy-MM-dd` format | `The date must use the format yyyy-MM-dd.`
+`DATE` is not in `yyyy-MM-dd` format, or its month or day is out of range, e.g. `2026-13-01` | `The date must use the format yyyy-MM-dd.`
 `DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
 `DATE` is in the future | `The performance date cannot be in the future.`
 `EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only letters, numbers, spaces, hyphens, and apostrophes.`
@@ -387,7 +387,7 @@ Problem | Message
 --------|--------
 A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invalid command format. Use: deleteperformance INDEX d/DATE e/EXERCISE`
 `INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
-`DATE` is not in `yyyy-MM-dd` format | `The date must use the format yyyy-MM-dd.`
+`DATE` is not in `yyyy-MM-dd` format, or its month or day is out of range, e.g. `2026-13-01` | `The date must use the format yyyy-MM-dd.`
 `DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
 `EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only letters, numbers, spaces, hyphens, and apostrophes.`
 The client has no record for that exercise on that date | `No performance record for <exercise> on <date> was found for <client name>.`
