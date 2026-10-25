@@ -7,13 +7,11 @@ participant ":LogicManager" as LogicManager LOGIC_COLOR
 participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
 participant ":ViewCommandParser" as ViewCommandParser LOGIC_COLOR
 participant "v:ViewCommand" as ViewCommand LOGIC_COLOR
-participant "<<class>>\nClientHistoryFormatter" as ClientHistoryFormatter LOGIC_COLOR
 participant "r:CommandResult" as CommandResult LOGIC_COLOR
 end box
 
 box Model MODEL_COLOR_T1
 participant "m:Model" as Model MODEL_COLOR
-participant "p:Person" as Person MODEL_COLOR
 end box
 
 [-> LogicManager : execute("view 1")
@@ -57,29 +55,20 @@ activate Model
 Model --> ViewCommand : list
 deactivate Model
 
-ViewCommand -> ClientHistoryFormatter : format(p, now)
-activate ClientHistoryFormatter
+ViewCommand -> Model : setViewedPerson(p)
+activate Model
 
-ClientHistoryFormatter -> Person : getNextSession()
-activate Person
-Person --> ClientHistoryFormatter
-deactivate Person
+note right of Model
+  p is the client at index 1.
+  The detail panel observes
+  the viewed client.
+end note
 
-ClientHistoryFormatter -> Person : getMeasurements()
-activate Person
-Person --> ClientHistoryFormatter
-deactivate Person
-
-ClientHistoryFormatter -> Person : getPerformanceHistory()
-activate Person
-Person --> ClientHistoryFormatter
-deactivate Person
-
-ClientHistoryFormatter --> ViewCommand : history
-deactivate ClientHistoryFormatter
+Model --> ViewCommand
+deactivate Model
 
 create CommandResult
-ViewCommand -> CommandResult : history
+ViewCommand -> CommandResult : confirmation message
 activate CommandResult
 
 CommandResult --> ViewCommand

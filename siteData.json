@@ -52,6 +52,7 @@
         "storage-component": "Storage component",
         "common-classes": "Common classes",
         "implementation": "Implementation",
+        "upcoming-sessions-panel": "Upcoming sessions panel",
         "view-client-history": "View client history",
         "recording-and-deleting-gym-performances": "Recording and deleting gym performances",
         "deleting-body-measurements": "Deleting body measurements",
@@ -73,6 +74,7 @@
         "deleting-body-measurements-2": "Deleting body measurements",
         "recording-and-deleting-gym-performances-2": "Recording and deleting gym performances",
         "cancelling-and-listing-sessions": "Cancelling and listing sessions",
+        "upcoming-sessions-and-viewing-a-client-s-history": "Upcoming sessions and viewing a client's history",
         "saving-data": "Saving data"
       },
       "headingKeywords": {}
@@ -120,6 +122,7 @@
         "spotter-user-guide": "Spotter User Guide",
         "quick-start": "Quick start",
         "features": "Features",
+        "the-spotter-window": "The Spotter window",
         "viewing-help-help": "Viewing help: help",
         "adding-a-client-add": "Adding a client: add",
         "listing-all-clients-list": "Listing all clients: list",
