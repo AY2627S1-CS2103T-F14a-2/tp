@@ -3,7 +3,8 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
-import java.time.LocalDate;
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
@@ -27,18 +28,29 @@ public class SessionCommand extends Command {
     public static final String MESSAGE_EMPTY_NAME = "Name cannot be empty.";
     public static final String MESSAGE_NAME_SLASH = "Name must not contain '/'.";
     public static final String MESSAGE_SUCCESS = "Recorded next session for %s on %s at %s";
+    public static final String MESSAGE_TIME_PASSED =
+            ". Note: this time has already passed, so it is shown as \"none upcoming\".";
 
     private final Index index;
     private final String name;
     private final NextSession nextSession;
+    private final Clock clock;
 
     /**
      * Identifies the client using their position in the currently displayed list.
      */
     public SessionCommand(Index index, NextSession nextSession) {
+        this(index, nextSession, Clock.systemDefaultZone());
+    }
+
+    /**
+     * Identifies the client by displayed index, using {@code clock} for the current time so tests can fix "now".
+     */
+    SessionCommand(Index index, NextSession nextSession, Clock clock) {
         this.index = requireNonNull(index);
         this.name = null;
         this.nextSession = requireNonNull(nextSession);
+        this.clock = requireNonNull(clock);
     }
 
     /**
@@ -48,13 +60,15 @@ public class SessionCommand extends Command {
         this.index = null;
         this.name = Name.normalizeSpaces(name);
         this.nextSession = requireNonNull(nextSession);
+        this.clock = Clock.systemDefaultZone();
     }
 
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
+        LocalDateTime now = LocalDateTime.now(clock);
         // Recheck at execution in case the date changed after parsing the command.
-        if (nextSession.value.toLocalDate().isBefore(LocalDate.now())) {
+        if (nextSession.value.toLocalDate().isBefore(now.toLocalDate())) {
             throw new CommandException(ParserUtil.MESSAGE_PAST_SESSION_DATE);
         }
         Person target;
@@ -70,8 +84,13 @@ public class SessionCommand extends Command {
         }
         model.setPerson(target, target.withNextSession(nextSession));
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-        return new CommandResult(String.format(MESSAGE_SUCCESS, target.getName(), nextSession.value.toLocalDate(),
-                nextSession.value.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"))));
+        String message = String.format(MESSAGE_SUCCESS, target.getName(), nextSession.value.toLocalDate(),
+                nextSession.value.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm")));
+        // Same rule as the card: a session exactly at "now" has not passed yet.
+        if (nextSession.value.isBefore(now)) {
+            message += MESSAGE_TIME_PASSED;
+        }
+        return new CommandResult(message);
     }
 
     @Override

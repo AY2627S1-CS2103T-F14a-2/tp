@@ -5,7 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 
+import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +27,10 @@ import seedu.address.testutil.PersonBuilder;
  * Checks replacement, displayed indices after sorting/filtering, exact messages, and unchanged data on failure.
  */
 public class SessionCommandTest {
+    private static final LocalDateTime NOW = LocalDateTime.of(2026, 10, 26, 14, 0);
+    private static final Clock FIXED_CLOCK =
+            Clock.fixed(NOW.atZone(ZoneId.systemDefault()).toInstant(), ZoneId.systemDefault());
+    private static final String NORMAL_MESSAGE = "Recorded next session for Sarah Lim on %s at %s";
     private final Person sarah = new PersonBuilder().withName("Sarah Lim").build();
     private final Person alex = new PersonBuilder().withName("Alex Tan").build();
     private final NextSession session = new NextSession(LocalDate.now().plusDays(1) + " 17:00");
@@ -79,6 +86,26 @@ public class SessionCommandTest {
     }
 
     @Test
+    public void execute_pastTimeToday_warnsTimeHasPassed() throws Exception {
+        assertEquals(String.format(NORMAL_MESSAGE, "2026-10-26", "13:59") + SessionCommand.MESSAGE_TIME_PASSED,
+                bookSarahAt("2026-10-26 13:59"));
+        assertEquals("Recorded next session for Sarah Lim on 2026-10-26 at 13:59. Note: this time has already "
+                + "passed, so it is shown as \"none upcoming\".", bookSarahAt("2026-10-26 13:59"));
+    }
+
+    @Test
+    public void execute_laterTodayOrFutureDate_normalMessage() throws Exception {
+        assertEquals(String.format(NORMAL_MESSAGE, "2026-10-26", "14:01"), bookSarahAt("2026-10-26 14:01"));
+        assertEquals(String.format(NORMAL_MESSAGE, "2026-10-27", "09:00"), bookSarahAt("2026-10-27 09:00"));
+    }
+
+    @Test
+    public void execute_exactlyNow_notPassed() throws Exception {
+        // Matches the card, which still shows a session at exactly "now" as upcoming
+        assertEquals(String.format(NORMAL_MESSAGE, "2026-10-26", "14:00"), bookSarahAt("2026-10-26 14:00"));
+    }
+
+    @Test
     public void execute_missingIndexOrName_keepsDataAndFilter() {
         model.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of("Sarah")));
         assertCommandFailure(new SessionCommand(Index.fromOneBased(2), session), model,
@@ -102,6 +129,16 @@ public class SessionCommandTest {
         assertEquals(session, model.getFilteredPersonList().getFirst().getNextSession().orElseThrow());
         new DeleteCommand(Index.fromOneBased(1)).execute(model);
         assertEquals(List.of(alex), model.getAddressBook().getPersonList());
+    }
+
+    /**
+     * Books Sarah, the second displayed client, at {@code dateTime} with the clock fixed at {@code NOW}, and
+     * returns the feedback message. The clients are reset first, as booking re-sorts the list.
+     */
+    private String bookSarahAt(String dateTime) throws Exception {
+        setUp();
+        return new SessionCommand(Index.fromOneBased(2), new NextSession(dateTime), FIXED_CLOCK).execute(model)
+                .getFeedbackToUser();
     }
 
     @Test

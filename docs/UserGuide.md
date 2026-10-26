@@ -500,6 +500,9 @@ Examples (use today's date or a later date):
 
 Success: `Recorded next session for Sarah Lim on 2026-12-15 at 19:00`.
 The stored client's name is used in the message; both time formats are stored and reported as `HH:mm`.
+If you book today at a time that has already passed, the booking is still recorded, and the message adds
+`Note: this time has already passed, so it is shown as "none upcoming".` A booking for the current minute
+has not passed yet.
 The booking is saved automatically and survives restarting Spotter. Editing contact details preserves it,
 and deleting the client removes it together with the client.
 
