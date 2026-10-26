@@ -1009,6 +1009,11 @@ testers are expected to do more *exploratory* testing.
 
 ### Launch and shutdown
 
+To check copied command separators, use a disposable dataset and copy a `measure` or `performance` command
+from a text editor with literal tabs between its prefixes. Paste into Spotter's command field.
+Expected: Tabs become visible spaces; pressing Enter records the measurement or performance normally.
+Repeat while replacing selected text, and check Undo/Redo before pressing Enter.
+
 1. Initial launch
 
    1. Download the JAR file and copy it into an empty folder.
