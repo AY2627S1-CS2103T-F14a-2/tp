@@ -151,7 +151,7 @@ public class PerformanceCommandParserTest {
     public void parse_severalInvalidValues_reportsFirstInCommandOrder() {
         // invalid date and load: the date is reported first
         assertParseFailure(parser, "1 d/2026-13-01" + EXERCISE + SETS + REPS + " w/abc",
-                withUsage(String.format(ParserUtil.MESSAGE_NONEXISTENT_RECORD_DATE, "2026-13-01")));
+                withUsage(ParserUtil.MESSAGE_INVALID_RECORD_DATE));
     }
 
     private static String withUsage(String message) {

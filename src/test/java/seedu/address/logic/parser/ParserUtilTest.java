@@ -98,7 +98,7 @@ public class ParserUtilTest {
     @Test
     public void parseRecordDate_wrongFormat_throwsParseException() {
         for (String wrongFormat : List.of("", "18-09-2026", "2026/09/18", "2026-9-18", "12026-09-18",
-                "+2026-09-18", "today")) {
+                "+2026-09-18", "today", "2026-13-01", "2026-00-10", "2026-10-32")) {
             assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_RECORD_DATE, ()
                 -> ParserUtil.parseRecordDate(wrongFormat, FUTURE_DATE_MESSAGE));
         }
@@ -107,8 +107,7 @@ public class ParserUtilTest {
     @Test
     public void parseRecordDate_nonexistentDate_throwsParseException() {
         // the format is right but the date does not exist, so the message names the date instead of the format
-        for (String nonexistentDate : List.of("2026-02-30", "2027-02-29", "2026-13-01", "2026-00-10", "2026-04-31",
-                "0000-01-01")) {
+        for (String nonexistentDate : List.of("2026-02-30", "2027-02-29", "2026-04-31", "0000-01-01")) {
             assertThrows(ParseException.class, String.format(ParserUtil.MESSAGE_NONEXISTENT_RECORD_DATE,
                     nonexistentDate), () -> ParserUtil.parseRecordDate(nonexistentDate, FUTURE_DATE_MESSAGE));
         }
@@ -128,7 +127,7 @@ public class ParserUtilTest {
     @Test
     public void parseExistingRecordDate_invalidDate_throwsParseException() {
         assertThrows(NullPointerException.class, () -> ParserUtil.parseExistingRecordDate(null));
-        for (String wrongFormat : List.of("", "18-09-2026", "12026-09-18")) {
+        for (String wrongFormat : List.of("", "18-09-2026", "12026-09-18", "2026-13-01")) {
             assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_RECORD_DATE, ()
                 -> ParserUtil.parseExistingRecordDate(wrongFormat));
         }
