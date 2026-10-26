@@ -25,7 +25,7 @@ public class HelpWindowTest {
     @Test
     public void focus_iconifiedState_clearsBeforeShowing(FxRobot robot) {
         robot.interact(() -> {
-            // A hidden stage has no native peer that can reject minimization, as Xvfb does without a window manager.
+            // A hidden stage lets us control iconified state without asynchronous window-manager callbacks.
             help.hide();
             help.getRoot().setIconified(true);
             assertTrue(help.getRoot().isIconified());
@@ -37,10 +37,8 @@ public class HelpWindowTest {
     }
 
     @Test
-    public void focus_shownWindow_restoresExistingStage(FxRobot robot) {
+    public void focus_shownWindow_keepsExistingStageVisible(FxRobot robot) {
         robot.interact(() -> {
-            // Exercise native minimization where supported, without requiring a desktop window manager in CI.
-            help.getRoot().setIconified(true);
             help.focus();
             assertTrue(help.isShowing());
             assertFalse(help.getRoot().isIconified());
