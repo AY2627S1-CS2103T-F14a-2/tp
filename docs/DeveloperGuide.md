@@ -1111,6 +1111,11 @@ from storage and rollback of records, the active filter and the saved file after
 
 ### Recording and deleting gym performances
 
+To check equipment labels, use a disposable client and today's date: record `e/Row (Cable)` with
+`performance INDEX d/DATE e/Row (Cable) s/3 r/8 w/30`, then repeat using `e/row   (cable)` and a different load.
+Expected: One record remains. Restart Spotter and delete it with `deleteperformance INDEX d/DATE e/ROW (CABLE)`.
+The record is removed, while the client's other data is preserved.
+
 Use fictional data in a disposable test folder. Start with a client without performance records,
 run `list` and substitute that client's displayed index for `1` below. `NAME` is that client's name.
 
