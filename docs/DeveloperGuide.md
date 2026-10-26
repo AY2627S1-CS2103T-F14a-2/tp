@@ -22,7 +22,7 @@
   and the client card row, and the v1.4 session cancellation/date-filter commands, tests, documentation,
   and release preparation.
 * Gabriel Wan used OpenAI Codex to assist with the v1.5 UI polish: adaptive feedback sizing, card spacing and
-  styling, separate history sections, GUI tests, documentation and screenshots.
+  styling, separate history sections, GUI tests, documentation, screenshots and alpha-test fixes.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #64 changes (the `list` command messages, undoing changes when saving fails, the damaged data file warning, the client card phone and email rows, and the related tests and User Guide wording) on 2026-10-15. The changes were reviewed and tested by the author.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #79 changes (the tests for data files with invalid values, the `view` sequence diagram and "View client history" section, and the related manual testing steps) on 2026-10-22. The changes were reviewed and tested by the author.
 * Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the client `add`/`delete` changes for v1.3 (removing address, optional email, name and phone limits, Spotter messages). All generated code was reviewed and tested before committing.
@@ -1024,6 +1024,14 @@ testers are expected to do more *exploratory* testing.
        Expected: The most recent window size and location are retained.
 
 1. _{ more test cases … }_
+
+### Clearing all clients
+
+1. In a disposable dataset with at least two clients and a saved data file, filter to one client and view their history.
+2. Enter `clear 1`, `clear all`, then `clear n/Alice`.
+   Expected: Each input reports that `clear` takes no parameters. Clients, the active filter, the history panel
+   and the data file are unchanged, including after restarting.
+3. Enter `clear` without parameters. Expected: All clients and their records are removed and remain absent after restart.
 
 ### Deleting a person
 

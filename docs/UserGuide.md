@@ -63,7 +63,7 @@ Spotter is a **desktop application for freelance personal trainers to manage the
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Extraneous parameters for `help`, `exit`, and `clear` are ignored.<br>
+* Extraneous parameters for `help` and `exit` are ignored. `clear` rejects extra parameters.<br>
   For example, `help 123` is interpreted as `help`. `list` does not accept any extra text (see [`list`](#listing-all-clients-list)).
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
@@ -468,6 +468,9 @@ If a command fails, the panel keeps showing the client as they were before that 
 Clears all clients from Spotter.
 
 Format: `clear`
+
+`clear` takes no parameters. Inputs such as `clear 1` or `clear all` are rejected without changing clients,
+their records, the current view or the saved data. To remove one client, use `delete INDEX`.
 
 ### Exiting the program: `exit`
 
