@@ -341,8 +341,8 @@ Before replacing the booking, the command checks the whole address book for othe
 timestamp, excluding the target client. The feedback names these clients alphabetically and keeps both
 bookings. The check uses exact timestamps: the model has no duration with which to infer an overlapping range.
 
-After successfully executing and saving a command, `LogicManager` reapplies the current filter to refresh the
-time-dependent session comparator. This also refreshes client card rows through `PersonListPanel`'s existing
+After a command executes, `LogicManager` calls `Model#updateSessionLists` with the current time to refresh the
+session comparator while preserving the current filter. This also refreshes client card rows through `PersonListPanel`'s existing
 comparator listener. Refreshing after execution preserves the meaning of displayed indices: a booking that expires
 while the trainer types must not cause an index-based command to act on a different client. Read-only refreshes
 never save the data file; rejected commands retain the displayed list.
