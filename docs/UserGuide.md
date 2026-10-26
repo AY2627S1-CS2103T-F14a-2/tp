@@ -107,6 +107,7 @@ Format: `add n/NAME p/PHONE [e/EMAIL] [t/TAG]...`
 * `NAME` may contain only English letters (A–Z), digits and spaces, and must be 1 to 100 characters long. Repeated spaces between words are merged into one, and leading or trailing spaces are removed.
 * `PHONE` must contain only digits and be 3 to 15 digits long.
 * `EMAIL` is optional. A client without an email shows `-` in place of it.
+  Entering `e/` without an email after it also adds the client without an email, as in `edit`.
 * A client whose name matches an existing client's, ignoring case and extra spaces, is rejected as a duplicate. For example, `john tan` is a duplicate of `John Tan`.
 
 <box type="tip" seamless>
