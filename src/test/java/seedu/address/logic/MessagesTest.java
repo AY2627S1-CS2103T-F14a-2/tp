@@ -1,6 +1,7 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static seedu.address.testutil.Assert.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
@@ -28,6 +29,11 @@ public class MessagesTest {
         assertEquals("Listed 1 client.", Messages.getClientsListedMessage(1));
         assertEquals("Listed 2 clients.", Messages.getClientsListedMessage(2));
         assertEquals("Listed 1000 clients.", Messages.getClientsListedMessage(1000)); // no digit grouping
+    }
+
+    @Test
+    public void getClientsListedMessage_negativeCount_throwsAssertionError() {
+        assertThrows(AssertionError.class, () -> Messages.getClientsListedMessage(-1));
     }
 
     @Test
