@@ -511,13 +511,22 @@ Examples (use today's date or a later date):
 
 Success: `Recorded next session for Sarah Lim on 2026-12-15 at 19:00`.
 The stored client's name is used in the message; both time formats are stored and reported as `HH:mm`.
+Replacing a different booking reports `Rescheduled next session for Sarah Lim from 2026-12-15 19:00 to 2026-12-16 09:00.`
+Entering the same booking again reports `Next session for Sarah Lim is already recorded on 2026-12-15 19:00.`
+If another client is booked at exactly that date and time, Spotter appends
+`Warning: This time is also booked for Alex Tan. All bookings are kept.`
+All matching clients are named alphabetically, including clients outside the current filter.
+This is a warning: the booking still succeeds. Spotter does not store session durations, so different start times
+are not checked for overlapping durations.
 The booking is saved automatically and survives restarting Spotter. Editing contact details preserves it,
 and deleting the client removes it together with the client.
 
-After a successful booking, all clients are shown. Upcoming sessions appear first, soonest first, with
+After a successful booking, all clients are shown and the list scrolls to the top. Upcoming sessions appear first, soonest first, with
 case-insensitive alphabetical names breaking ties. Expired recorded sessions follow upcoming ones, followed
 by clients with no recorded session; unbooked clients are alphabetical. This order also applies to `list`,
 filtered lists, and startup. Sorting the displayed list does not reorder the JSON file.
+After each successful command, the order and session card rows are refreshed to account for bookings that have passed.
+An index-based command acts on the client shown at that index before this refresh.
 **Index numbers can change after a booking or a client change. Check the displayed list before any index-based command.**
 
 The card shows `Next session: Tue 15 Dec, 7:00pm` for an upcoming booking, `Next session: - (none booked)`
@@ -540,11 +549,13 @@ Invalid time | `Time must be a valid time in HHMM or HH:MM format.`
 
 ### Cancelling a recorded session: `cancelsession`
 
-Removes the recorded session for the client at the current displayed index.
+Removes the recorded session for the client at the current displayed index or with the specified full name.
 
-Format: `cancelsession INDEX`
+Format: `cancelsession INDEX` or `cancelsession n/NAME`
 
 * `INDEX` must be a positive integer shown in the current list, including results from `find`, `filter` or `sessions`.
+* `NAME` follows the same full-name matching rules as `session n/NAME`: case and extra spaces are ignored.
+  It searches all clients, even if the client is hidden by the current filter. Supply exactly one identifier.
 * Both upcoming and expired recorded sessions can be cancelled.
 * Contact details, tags, measurements and performance records are preserved. The cancellation is saved automatically.
 * The current filter stays active. A cancelled client disappears from a `sessions` date view, but remains in Spotter.
@@ -552,10 +563,13 @@ Format: `cancelsession INDEX`
 * Indices may change after cancellation. Check the displayed list before entering the next index-based command.
 * A client with no recorded session is rejected with `No session is recorded for NAME.`
   An invalid index shows `The client index provided is invalid.`
-  Missing, non-numeric or extra arguments show `Invalid command format! Use: cancelsession INDEX`.
+  Missing, non-numeric or mixed identifiers show
+  `Invalid command format! Use: cancelsession INDEX or cancelsession n/NAME`.
+  Unknown names show `No client with that name exists in Spotter.`; empty names and slashes use the booking errors above.
 * If saving fails, the original session and displayed list are restored and `Unable to save Spotter data.` is shown.
 
 Example: `cancelsession 1` cancels the first displayed client's session.
+Alternatively, `cancelsession n/Sarah Lim` cancels Sarah's booking without relying on a changing list index.
 Success: `Cancelled session on 2026-12-15 09:00 for Sarah Lim.` (when that is her recorded booking).
 The confirmation includes the removed booking's date and 24-hour time, including for expired bookings.
 
@@ -635,7 +649,7 @@ Action     | Format, Examples
 **Filter** | `filter t/TAG [t/MORE_TAGS]...`<br> e.g., `filter t/rehab t/strength`
 **List**   | `list`
 **Session** | `session INDEX d/DATE t/TIME` or `session n/NAME d/DATE t/TIME`<br> e.g., `session 1 d/2026-12-15 t/1900`
-**Cancel session** | `cancelsession INDEX`<br> e.g., `cancelsession 1`
+**Cancel session** | `cancelsession INDEX` or `cancelsession n/NAME`<br> e.g., `cancelsession n/Sarah Lim`
 **Sessions on date** | `sessions d/DATE`<br> e.g., `sessions d/2026-12-15`
 **Measure** | `measure INDEX d/DATE t/TYPE v/VALUE`<br> e.g., `measure 1 d/2026-09-12 t/weight v/72.4`
 **Performance** | `performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`<br> e.g., `performance 2 d/2026-09-18 e/Bench Press s/3 r/8 w/60`

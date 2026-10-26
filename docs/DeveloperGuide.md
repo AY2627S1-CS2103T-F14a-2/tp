@@ -20,7 +20,8 @@
 * Gabriel Wan used [OpenAI Codex](https://openai.com/codex/) to assist with implementing, testing,
   and documenting the v1.3 next-session feature, including parsing, client integration, JSON storage, sorting,
   and the client card row, and the v1.4 session cancellation/date-filter commands, tests, documentation,
-  and release preparation.
+  and release preparation. For v1.5, Gabriel used Codex for cancellation by full name, rescheduling feedback,
+  refreshing session order after commands, exact-time clash warnings, and the related tests and documentation.
 * Gabriel Wan used OpenAI Codex to assist with the v1.5 UI polish: adaptive feedback sizing, card spacing and
   styling, separate history sections, GUI tests, documentation and screenshots.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #64 changes (the `list` command messages, undoing changes when saving fails, the damaged data file warning, the client card phone and email rows, and the related tests and User Guide wording) on 2026-10-15. The changes were reviewed and tested by the author.
@@ -333,9 +334,25 @@ measurement list avoids stale summary data after deletion.
 
 ### Session cancellation and date filtering
 
-`cancelsession INDEX` removes the current displayed client's single recorded session.
-`CancelSessionCommandParser` accepts exactly one index and `CancelSessionCommand` resolves it against
+`session` distinguishes first bookings, rescheduling and an unchanged booking in its feedback. A replacement
+includes both old and new timestamps, so the trainer can verify the overwritten slot. Successful bookings
+restore the full client list and scroll to the top, including after an unchanged booking.
+Before replacing the booking, the command checks the whole address book for other clients at the same
+timestamp, excluding the target client. The feedback names these clients alphabetically and keeps both
+bookings. The check uses exact timestamps: the model has no duration with which to infer an overlapping range.
+
+After a command executes, `LogicManager` calls `Model#updateSessionLists` with the current time to refresh the
+session comparator while preserving the current filter. This also refreshes client card rows through `PersonListPanel`'s existing
+comparator listener. Refreshing after execution preserves the meaning of displayed indices: a booking that expires
+while the trainer types must not cause an index-based command to act on a different client. Read-only refreshes
+never save the data file; rejected commands retain the displayed list.
+
+`cancelsession INDEX` or `cancelsession n/NAME` removes a client's single recorded session.
+`CancelSessionCommandParser` accepts exactly one index or full name. `CancelSessionCommand` resolves indices against
 `Model#getFilteredPersonList()`, so indices refer to the sorted/filtered UI rather than JSON order.
+Names use the booking command's case-insensitive, whitespace-normalized matching across the whole address book.
+This lets a trainer cancel a known client's booking even after indices change or a filter hides the client,
+while preserving the current filter. Mixed identifiers, empty names and slashes are rejected during parsing.
 It rejects an invalid index or a client without a recorded session before changing the model.
 
 The following partial model diagram shows the session field, the date predicate and the progress data that must survive
@@ -880,7 +897,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 4a. Another client's next session is at the same date and time.
 
-    * 4a1. Spotter keeps both sessions; the MVP does not warn about clashes.
+    * 4a1. Spotter keeps both sessions and warns the trainer, naming the other clients booked at that exact time.
 
       Use case ends.
 
@@ -1194,6 +1211,10 @@ replace `DATE` in every command below, and `TODAY` with today's date. Add unique
    Close and restart Spotter. Ada remains unbooked and the contact/progress data are unchanged.
 1. Enter `find SessionCancelAda`, then try `cancelsession 1`.<br>
    Expected: `No session is recorded for SessionCancelAda.` No client data or displayed results change.
+1. Enter `find SessionCancelAda`, then `cancelsession n/sessioncancelzoe`.<br>
+   Expected: Zoe's session is cancelled even though only Ada is displayed. The filter still shows Ada,
+   and Zoe's other data are preserved. Repeat the command: `No session is recorded for SessionCancelZoe.`
+   Try `cancelsession n/Unknown`: the unknown-name error is shown and nothing changes.
 1. Try `cancelsession 0`, `cancelsession 999999`, `cancelsession 1 2`, `sessions d/2026-02-30`,
    `sessions d/DATE d/DATE` and `sessions d/DATE x/foo`.<br>
    Expected: Invalid index, format or calendar errors, with no changes to clients, the current filter or saved data.
@@ -1204,6 +1225,17 @@ replace `DATE` in every command below, and `TODAY` with today's date. Add unique
    Cancel Ada's current displayed index.<br>
    Expected: `Unable to save Spotter data.` The booking and date-filtered list are restored with all progress intact.
    Close Spotter, remove the empty blocking directory and restore the backup file before further testing.
+1. Book Ada at `session n/SessionCancelAda d/DATE t/0900`, then change it to
+   `session n/SessionCancelAda d/DATE t/1000`.<br>
+   Expected: The rescheduling message includes the old `09:00` and new `10:00` bookings. The full list scrolls
+   to the top. Repeat the second command: Spotter reports that the booking is already recorded.
+1. Keep Spotter open across a session's start time, then run `help`.<br>
+   Expected: Expired cards show `- (none upcoming)` and sort after future bookings. For an index-based command
+   entered before this refresh, the client shown at that index receives the change before the list is reordered.
+1. Book both Ada and Zoe for `DATE` at `1000`, using their full names.<br>
+   Expected: The second booking succeeds with a warning naming the other client. Both remain in `sessions d/DATE`.
+   Run `find SessionCancelAda`, then book Ada at `1000` again: the warning still names Zoe outside the filter.
+   Move Ada to `1001`: the warning disappears, because only exact start times are compared.
 
 ### Upcoming sessions and viewing a client's history
 
