@@ -39,6 +39,9 @@ public class ParserUtil {
     public static final String MESSAGE_PAST_SESSION_DATE = "Date cannot be in the past.";
     public static final String MESSAGE_INVALID_SESSION_TIME = "Time must be a valid time in HHMM or HH:MM format.";
 
+    // Groups of digits separated by one or more spaces, e.g. "9927 2758" as shown on the client card
+    private static final String SPACED_DIGITS_REGEX = "\\d+( +\\d+)+";
+
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("uuuu-MM-dd")
             .withResolverStyle(ResolverStyle.STRICT);
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm")
@@ -221,13 +224,17 @@ public class ParserUtil {
 
     /**
      * Parses a {@code String phone} into a {@code Phone}.
-     * Leading and trailing whitespaces will be trimmed.
+     * Leading and trailing whitespaces will be trimmed, and spaces between digits are removed so that a number
+     * typed as displayed (e.g. "9927 2758") is stored as digits only.
      *
      * @throws ParseException if the given {@code phone} is invalid.
      */
     public static Phone parsePhone(String phone) throws ParseException {
         requireNonNull(phone);
         String trimmedPhone = phone.trim();
+        if (trimmedPhone.matches(SPACED_DIGITS_REGEX)) {
+            trimmedPhone = trimmedPhone.replace(" ", "");
+        }
         if (!Phone.isValidPhone(trimmedPhone)) {
             throw new ParseException(Phone.isTooLong(trimmedPhone)
                     ? Phone.MESSAGE_LENGTH_CONSTRAINTS : Phone.MESSAGE_CONSTRAINTS);

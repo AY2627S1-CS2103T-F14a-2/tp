@@ -110,6 +110,14 @@ public class AddCommandParserTest {
     }
 
     @Test
+    public void parse_phoneWithSpacesBetweenDigits_storesDigitsOnly() {
+        // the phone is typed as the client card displays it, e.g. "2222 2222"
+        Person expectedPerson = new PersonBuilder(BOB).withTags(VALID_TAG_FRIEND).build();
+        assertParseSuccess(parser, NAME_DESC_BOB + " " + PREFIX_PHONE + "2222 2222" + EMAIL_DESC_BOB
+                + TAG_DESC_FRIEND, new AddCommand(expectedPerson));
+    }
+
+    @Test
     public void parse_optionalFieldsMissing_success() {
         // zero tags
         Person expectedPerson = new PersonBuilder(AMY).withTags().build();
