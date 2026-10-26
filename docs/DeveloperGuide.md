@@ -1009,6 +1009,10 @@ testers are expected to do more *exploratory* testing.
 
 ### Launch and shutdown
 
+To check Help restoration, enter `help`, minimize the Help window, return to Spotter and enter `help` again.
+Expected: The same Help window is restored and brought forward. Repeat using the Help menu and `F1` after
+minimizing it each time; all three routes restore the existing window.
+
 1. Initial launch
 
    1. Download the JAR file and copy it into an empty folder.
