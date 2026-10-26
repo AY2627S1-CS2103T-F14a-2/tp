@@ -26,6 +26,18 @@ public class ExerciseNameTest {
     }
 
     @Test
+    public void parentheses_equipmentAndVariationLabels_keepExistingIdentityAndLimits() {
+        ExerciseName cableRow = new ExerciseName("  Row   (Cable)  ");
+        assertEquals("Row (Cable)", cableRow.value);
+        assertEquals(cableRow, new ExerciseName("row (cable)"));
+        assertEquals(cableRow.hashCode(), new ExerciseName("ROW (CABLE)").hashCode());
+        assertTrue(ExerciseName.isValidExerciseName("a".repeat(48) + "()"));
+        assertFalse(ExerciseName.isValidExerciseName("a".repeat(49) + "()"));
+        assertFalse(ExerciseName.isValidExerciseName("()"));
+        assertFalse(ExerciseName.isValidExerciseName("Row (Cable)/"));
+    }
+
+    @Test
     public void isValidExerciseName() {
         // null exercise name
         assertThrows(NullPointerException.class, () -> ExerciseName.isValidExerciseName(null));
