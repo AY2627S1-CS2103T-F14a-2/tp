@@ -10,9 +10,10 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.CancelSessionCommand;
+import seedu.address.logic.commands.SessionCommand;
 
 /**
- * Checks exact index syntax and the distinction between invalid format and an invalid client index.
+ * Checks exact index and name syntax, and the distinction between invalid format and an invalid client index.
  */
 public class CancelSessionCommandParserTest {
     private final CancelSessionCommandParser parser = new CancelSessionCommandParser();
@@ -25,9 +26,28 @@ public class CancelSessionCommandParserTest {
 
     @Test
     public void parse_missingOrExtraArguments_failure() {
-        for (String input : List.of("", " ", "Sarah", "1 2", "1.0", "+1", "1 n/Sarah", "n/Sarah", "1 d/2026-10-22")) {
+        for (String input : List.of("", " ", "Sarah", "1 2", "1.0", "+1", "1 d/2026-10-22")) {
             assertParseFailure(parser, input, CancelSessionCommand.MESSAGE_INVALID_FORMAT);
         }
+    }
+
+    @Test
+    public void parse_name_success() {
+        assertParseSuccess(parser, "n/Sarah Lim", new CancelSessionCommand("Sarah Lim"));
+        // Spacing is normalised as in session n/NAME; case is ignored later, when matching clients
+        assertParseSuccess(parser, " \t n/  sArAh \t  lIm  ", new CancelSessionCommand("sArAh lIm"));
+    }
+
+    @Test
+    public void parse_nameFormErrors_failure() {
+        // both identifiers, repeated n/, unknown prefix
+        for (String input : List.of("1 n/Sarah", "n/Sarah n/Lim", "n/Sarah d/2026-10-22",
+                "x/foo n/Sarah")) {
+            assertParseFailure(parser, input, CancelSessionCommand.MESSAGE_INVALID_FORMAT);
+        }
+        assertParseFailure(parser, "n/", SessionCommand.MESSAGE_EMPTY_NAME);
+        assertParseFailure(parser, "n/   ", SessionCommand.MESSAGE_EMPTY_NAME);
+        assertParseFailure(parser, "n/Sarah/Lim", SessionCommand.MESSAGE_NAME_SLASH);
     }
 
     @Test

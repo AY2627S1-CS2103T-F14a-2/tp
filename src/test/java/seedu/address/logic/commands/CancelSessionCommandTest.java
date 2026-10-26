@@ -25,7 +25,8 @@ import seedu.address.model.person.SessionOnDatePredicate;
 import seedu.address.testutil.PersonBuilder;
 
 /**
- * Covers cancellation from displayed indices, filter behaviour and preservation of all non-session data.
+ * Covers cancellation by displayed index and by name, filter behaviour, the index-shift note and preservation
+ * of all non-session data.
  */
 public class CancelSessionCommandTest {
     private final LocalDate date = LocalDate.now().plusDays(2);
@@ -77,6 +78,59 @@ public class CancelSessionCommandTest {
     }
 
     @Test
+    public void execute_dateFilteredIndex_notesThatClientsShifted() throws Exception {
+        model.updateFilteredPersonList(new SessionOnDatePredicate(date));
+        CommandResult result = new CancelSessionCommand(Index.fromOneBased(1)).execute(model);
+        assertEquals("Cancelled session on " + date + " 09:00 for Zoe Review. Zoe Review is no longer shown "
+                + "here; clients below have moved up one place.", result.getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_name_cancelsWithoutNoteInFullList() throws Exception {
+        CommandResult result = new CancelSessionCommand("  zoe   REVIEW ").execute(model);
+        assertEquals("Cancelled session on " + date + " 09:00 for Zoe Review.", result.getFeedbackToUser());
+        assertEquals(booked.withNextSession(null), model.getAddressBook().getPersonList().get(1));
+        assertEquals(other, model.getAddressBook().getPersonList().getFirst());
+    }
+
+    @Test
+    public void execute_repeatedName_noSessionRecorded() throws Exception {
+        new CancelSessionCommand("Zoe Review").execute(model);
+        assertCommandFailure(new CancelSessionCommand("Zoe Review"), model, "No session is recorded for Zoe Review.");
+    }
+
+    @Test
+    public void execute_nameHiddenByFilter_cancelsWithoutNote() throws Exception {
+        model.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of("Ada")));
+        CommandResult result = new CancelSessionCommand("Zoe Review").execute(model);
+        // Zoe was never shown, so no displayed index moved
+        assertEquals("Cancelled session on " + date + " 09:00 for Zoe Review.", result.getFeedbackToUser());
+        assertEquals(List.of(other), model.getFilteredPersonList());
+        assertEquals(booked.withNextSession(null), model.getAddressBook().getPersonList().get(1));
+        assertCommandFailure(new CancelSessionCommand("Nobody"), model, SessionCommand.MESSAGE_NO_SUCH_NAME);
+    }
+
+    @Test
+    public void execute_repeatedNameInDateView_neverCancelsNextClient() throws Exception {
+        // Issue #134: repeating cancelsession 1 here would cancel bob after Alice
+        Person alice = new PersonBuilder().withName("Alice Ong").withNextSession(date + " 08:00").build();
+        Person bob = new PersonBuilder().withName("bob Lee").withNextSession(date + " 08:00").build();
+        Person carl = new PersonBuilder().withName("Carl Ng").withNextSession(date + " 08:00").build();
+        Model sameDay = new ModelManager();
+        sameDay.addPerson(alice);
+        sameDay.addPerson(bob);
+        sameDay.addPerson(carl);
+        sameDay.updateFilteredPersonList(new SessionOnDatePredicate(date));
+        assertEquals(List.of(alice, bob, carl), sameDay.getFilteredPersonList());
+
+        CommandResult result = new CancelSessionCommand("Alice Ong").execute(sameDay);
+        assertTrue(result.getFeedbackToUser().endsWith(
+                " Alice Ong is no longer shown here; clients below have moved up one place."));
+        assertCommandFailure(new CancelSessionCommand("Alice Ong"), sameDay, "No session is recorded for Alice Ong.");
+        assertEquals(List.of(bob, carl), sameDay.getFilteredPersonList());
+    }
+
+    @Test
     public void execute_expiredSession_canBeRemoved() throws Exception {
         Person expired = new PersonBuilder(booked).withNextSession(LocalDate.now().minusDays(1) + " 09:00").build();
         model.setPerson(booked, expired);
@@ -108,5 +162,10 @@ public class CancelSessionCommandTest {
         assertFalse(command.equals(new CancelSessionCommand(Index.fromOneBased(2))));
         assertFalse(command.equals(null));
         assertFalse(command.equals("cancelsession"));
+
+        CancelSessionCommand byName = new CancelSessionCommand("Zoe Review");
+        assertTrue(byName.equals(new CancelSessionCommand("Zoe   Review")));
+        assertFalse(byName.equals(new CancelSessionCommand("Ada Review")));
+        assertFalse(byName.equals(command));
     }
 }

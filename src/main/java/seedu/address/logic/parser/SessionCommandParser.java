@@ -21,7 +21,8 @@ import seedu.address.model.session.NextSession;
  * Parses the two session command forms and rejects missing, duplicate, and unknown prefixes.
  */
 public class SessionCommandParser implements Parser<SessionCommand> {
-    private static final Pattern PREFIX_PATTERN = Pattern.compile("(?:^|\\s)([^\\s/]+/)");
+    // Shared with CancelSessionCommandParser so both commands detect unknown prefixes the same way.
+    static final Pattern PREFIX_PATTERN = Pattern.compile("(?:^|\\s)([^\\s/]+/)");
 
     @Override
     public SessionCommand parse(String args) throws ParseException {

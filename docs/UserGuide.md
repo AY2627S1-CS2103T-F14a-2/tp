@@ -529,24 +529,43 @@ Invalid time | `Time must be a valid time in HHMM or HH:MM format.`
 
 ### Cancelling a recorded session: `cancelsession`
 
-Removes the recorded session for the client at the current displayed index.
+Removes the recorded session for a client, identified by their index in the current displayed list or by their name.
 
-Format: `cancelsession INDEX`
+Format: `cancelsession INDEX` or `cancelsession n/NAME`
 
+* Supply exactly one of `INDEX` or `n/NAME`.
 * `INDEX` must be a positive integer shown in the current list, including results from `find`, `filter` or `sessions`.
+* `NAME` follows the same rules as in `session`: it must match a client's full name, ignoring case, leading/trailing
+  whitespace and repeated internal spaces. All clients are searched, including clients hidden by the current filter.
 * Both upcoming and expired recorded sessions can be cancelled.
 * Contact details, tags, measurements and performance records are preserved. The cancellation is saved automatically.
 * The current filter stays active. A cancelled client disappears from a `sessions` date view, but remains in Spotter.
   In the full list, their card shows `Next session: - (none booked)` and moves to the unbooked group.
-* Indices may change after cancellation. Check the displayed list before entering the next index-based command.
-* A client with no recorded session is rejected with `No session is recorded for NAME.`
-  An invalid index shows `The client index provided is invalid.`
-  Missing, non-numeric or extra arguments show `Invalid command format! Use: cancelsession INDEX`.
-* If saving fails, the original session and displayed list are restored and `Unable to save Spotter data.` is shown.
+* If the cancelled client disappears from the displayed list, the message adds
+  `NAME is no longer shown here; clients below have moved up one place.`, because their index numbers have changed.
 
-Example: `cancelsession 1` cancels the first displayed client's session.
+<box type="tip" seamless>
+
+**Tip:** In a `sessions` date view, prefer `cancelsession n/NAME`; index numbers shift after each cancellation.
+</box>
+
+Examples:
+* `cancelsession 1` cancels the first displayed client's session.
+* `cancelsession n/Sarah Lim` cancels Sarah Lim's session.
+
 Success: `Cancelled session on 2026-12-15 09:00 for Sarah Lim.` (when that is her recorded booking).
 The confirmation includes the removed booking's date and 24-hour time, including for expired bookings.
+In a `sessions` date view, it continues: `Sarah Lim is no longer shown here; clients below have moved up one place.`
+
+Problem | Message
+--------|--------
+Missing, non-numeric or extra arguments, both `INDEX` and `n/NAME`, or an unknown or repeated prefix | `Invalid command format! Use: cancelsession INDEX or cancelsession n/NAME`
+`INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
+`NAME` is empty | `Name cannot be empty.`
+`NAME` contains `/` | `Name must not contain '/'.`
+No client has that name | `No client with that name exists in Spotter.`
+The client has no recorded session | `No session is recorded for NAME.`
+Saving fails | `Unable to save Spotter data.` (the original session and displayed list are restored)
 
 ### Listing sessions on a date: `sessions`
 
@@ -563,6 +582,11 @@ Format: `sessions d/DATE`
   An expired booking's card continues to show `- (none upcoming)`.
 * The panel scrolls to the top and displayed indices start at 1. The command changes no client data and does not save the file.
 * Use `list` to show all clients again. Use the indices in the current results for `cancelsession`, `edit` or `delete`.
+
+<box type="tip" seamless>
+
+**Tip:** In a `sessions` date view, prefer `cancelsession n/NAME`; index numbers shift after each cancellation.
+</box>
 
 Example: `sessions d/2026-12-15`.
 
@@ -625,7 +649,7 @@ Action     | Format, Examples
 **Filter** | `filter t/TAG [t/MORE_TAGS]...`<br> e.g., `filter t/rehab t/strength`
 **List**   | `list`
 **Session** | `session INDEX d/DATE t/TIME` or `session n/NAME d/DATE t/TIME`<br> e.g., `session 1 d/2026-12-15 t/1900`
-**Cancel session** | `cancelsession INDEX`<br> e.g., `cancelsession 1`
+**Cancel session** | `cancelsession INDEX` or `cancelsession n/NAME`<br> e.g., `cancelsession 1`, `cancelsession n/Sarah Lim`
 **Sessions on date** | `sessions d/DATE`<br> e.g., `sessions d/2026-12-15`
 **Measure** | `measure INDEX d/DATE t/TYPE v/VALUE`<br> e.g., `measure 1 d/2026-09-12 t/weight v/72.4`
 **Performance** | `performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`<br> e.g., `performance 2 d/2026-09-18 e/Bench Press s/3 r/8 w/60`
