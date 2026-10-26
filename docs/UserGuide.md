@@ -179,6 +179,8 @@ Shows clients who have at least one of the specified tags.
 Format: `filter t/TAG [t/MORE_TAGS]...`
 
 * Supply at least one non-empty tag, with a separate `t/` prefix for each tag.
+* Each tag must contain only letters and digits, like the tags that `add` and `edit` accept. Spaces, hyphens and other
+  symbols are not allowed, e.g. `t/re-hab` is rejected.
 * Matching is case-insensitive and requires the whole tag name: `REHAB` matches `rehab`, but `reh` does not.
 * Multiple tags use an `OR` search. `filter t/rehab t/strength` shows clients with either tag or both.
 * The command searches all clients and replaces any previous `find`, `filter` or `sessions` results.
@@ -194,6 +196,7 @@ Examples:
 | --- | --- |
 | No `t/` prefix, or text before the first prefix, e.g. `filter rehab` | `Invalid command format!` followed by the expected format |
 | An empty tag, e.g. `filter t/` or `filter t/rehab t/` | `Tags to filter by cannot be empty.` followed by the expected format |
+| A tag that is not alphanumeric, e.g. `filter t/re-hab` or `filter t/best friends` | `Tag names should be alphanumeric` followed by the expected format |
 
 <!-- AI assistance: Helen used OpenAI Codex to draft the filter documentation and update UG terminology and the command summary. -->
 
