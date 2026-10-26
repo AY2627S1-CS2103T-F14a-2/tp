@@ -68,9 +68,7 @@ public class SessionCommand extends Command {
             }
             target = model.getFilteredPersonList().get(index.getZeroBased());
         } else {
-            target = model.getAddressBook().getPersonList().stream()
-                    .filter(person -> person.getName().matches(name))
-                    .findFirst().orElseThrow(() -> new CommandException(MESSAGE_NO_SUCH_NAME));
+            target = findClientByName(model, name);
         }
         String feedback = getFeedback(target) + getClashWarning(model, target);
         model.setPerson(target, target.withNextSession(nextSession));
@@ -92,6 +90,13 @@ public class SessionCommand extends Command {
             return String.format(MESSAGE_UNCHANGED, target.getName(), nextSession);
         }
         return String.format(MESSAGE_RESCHEDULED, target.getName(), previous, nextSession);
+    }
+
+    /** Resolves the same normalized full-name identity for booking and cancellation, across filters. */
+    static Person findClientByName(Model model, String name) throws CommandException {
+        return model.getAddressBook().getPersonList().stream()
+                .filter(person -> person.getName().matches(name))
+                .findFirst().orElseThrow(() -> new CommandException(MESSAGE_NO_SUCH_NAME));
     }
 
     /**

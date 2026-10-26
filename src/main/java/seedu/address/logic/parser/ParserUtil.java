@@ -10,10 +10,13 @@ import java.time.format.ResolverStyle;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Messages;
+import seedu.address.logic.commands.SessionCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
@@ -43,6 +46,35 @@ public class ParserUtil {
             .withResolverStyle(ResolverStyle.STRICT);
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm")
             .withResolverStyle(ResolverStyle.STRICT);
+
+    private static final Pattern PREFIX_PATTERN = Pattern.compile("(?:^|\\s)([^\\s/]+/)");
+
+    /** Rejects prefix-shaped arguments outside the command's accepted fields. */
+    public static void rejectUnsupportedPrefixes(String arguments, String message, Prefix... allowed)
+            throws ParseException {
+        Matcher matcher = PREFIX_PATTERN.matcher(arguments);
+        Set<String> prefixes = new HashSet<>();
+        for (Prefix prefix : allowed) {
+            prefixes.add(prefix.getPrefix());
+        }
+        while (matcher.find()) {
+            if (!prefixes.contains(matcher.group(1))) {
+                throw new ParseException(message);
+            }
+        }
+    }
+
+    /** Normalizes and validates the full-name identifier shared by session commands. */
+    public static String parseSessionClientName(String value) throws ParseException {
+        String name = Name.normalizeSpaces(requireNonNull(value));
+        if (name.isEmpty()) {
+            throw new ParseException(SessionCommand.MESSAGE_EMPTY_NAME);
+        }
+        if (name.contains("/")) {
+            throw new ParseException(SessionCommand.MESSAGE_NAME_SLASH);
+        }
+        return name;
+    }
 
     /**
      * Parses a session date, allowing today but rejecting past dates.

@@ -47,9 +47,7 @@ public class CancelSessionCommand extends Command {
         requireNonNull(model);
         Person target;
         if (index == null) {
-            target = model.getAddressBook().getPersonList().stream()
-                    .filter(person -> person.getName().matches(name))
-                    .findFirst().orElseThrow(() -> new CommandException(SessionCommand.MESSAGE_NO_SUCH_NAME));
+            target = SessionCommand.findClientByName(model, name);
         } else {
             if (index.getZeroBased() >= model.getFilteredPersonList().size()) {
                 throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
