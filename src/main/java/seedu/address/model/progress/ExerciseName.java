@@ -25,6 +25,7 @@ public class ExerciseName {
     /*
      * Allows only letters, digits, spaces, parentheses, hyphens, and straight or curly (’) apostrophes,
      * and requires at least one letter or digit so that names such as "-" or "'" are rejected.
+     * Parentheses are literal label characters and need not be paired.
      */
     private static final String VALIDATION_REGEX = "(?=.*\\p{Alnum})[\\p{Alnum} ()'’-]+";
 

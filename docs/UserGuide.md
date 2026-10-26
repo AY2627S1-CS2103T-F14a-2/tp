@@ -332,7 +332,7 @@ Parameter | Accepted values
 ----------|----------------
 `INDEX` | A positive integer from the displayed client list, e.g. `1`.
 `DATE` | A real date in `yyyy-MM-dd` format, e.g. `2026-09-18`. It can be today or in the past, but not in the future.
-`EXERCISE` | 1 to 50 characters: letters, numbers, spaces, hyphens (`-`), apostrophes (`'`) and parentheses (`(` and `)`), for example `Row (Cable)`. It must contain at least one letter or number. Extra spaces are ignored, and letter case does not matter when checking for an existing record, so `bench press` and `Bench Press` are the same exercise. The same rules apply when deleting a record or loading stored exercise names.
+`EXERCISE` | 1 to 50 characters: letters, numbers, spaces, hyphens (`-`), apostrophes (`'`) and parentheses (`(` and `)`), for example `Row (Cable)`. Parentheses do not need to be paired. It must contain at least one letter or number. Extra spaces are ignored, and letter case does not matter when checking for an existing record, so `bench press` and `Bench Press` are the same exercise. The same rules apply when deleting a record or loading stored exercise names.
 `SETS` | A whole number from 1 to 100.
 `REPS` | The repetitions per set, as a whole number from 1 to 1000.
 `LOAD` | The load in kg, from 0 to 1000, with at most two decimal places. Use `0` for bodyweight exercises. Do not type the unit.

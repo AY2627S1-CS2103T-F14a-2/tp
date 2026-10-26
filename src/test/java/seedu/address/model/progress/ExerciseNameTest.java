@@ -26,7 +26,7 @@ public class ExerciseNameTest {
     }
 
     @Test
-    public void parentheses_equipmentAndVariationLabels_keepExistingIdentityAndLimits() {
+    public void constructor_parenthesizedName_keepsIdentityAndLimits() {
         ExerciseName cableRow = new ExerciseName("  Row   (Cable)  ");
         assertEquals("Row (Cable)", cableRow.value);
         assertEquals(cableRow, new ExerciseName("row (cable)"));
@@ -35,6 +35,8 @@ public class ExerciseNameTest {
         assertFalse(ExerciseName.isValidExerciseName("a".repeat(49) + "()"));
         assertFalse(ExerciseName.isValidExerciseName("()"));
         assertFalse(ExerciseName.isValidExerciseName("Row (Cable)/"));
+        assertEquals("Row (Cable", new ExerciseName("  Row (Cable  ").value);
+        assertEquals("Row Cable)", new ExerciseName("Row Cable)").value);
     }
 
     @Test
