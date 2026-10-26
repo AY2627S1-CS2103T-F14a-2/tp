@@ -119,6 +119,7 @@ public class PerformanceCommandParserTest {
 
         assertParseFailure(parser, "1" + DATE + " e/" + SETS + REPS + LOAD, expectedMessage); // empty
         assertParseFailure(parser, "1" + DATE + " e/Bench@Press" + SETS + REPS + LOAD, expectedMessage);
+        assertParseFailure(parser, "1" + DATE + " e/Développé couché" + SETS + REPS + LOAD, expectedMessage);
         assertParseFailure(parser, "1" + DATE + " e/" + "a".repeat(51) + SETS + REPS + LOAD, expectedMessage);
     }
 

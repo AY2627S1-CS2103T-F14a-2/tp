@@ -38,6 +38,9 @@ public class ExerciseNameTest {
         assertFalse(ExerciseName.isValidExerciseName("Bench@Press")); // unsupported character
         assertFalse(ExerciseName.isValidExerciseName("Squat/Deadlift")); // unsupported character
         assertFalse(ExerciseName.isValidExerciseName("a".repeat(51))); // too long
+        assertFalse(ExerciseName.isValidExerciseName("Développé couché")); // accented letters are not English A-Z
+        assertFalse(ExerciseName.isValidExerciseName("Жим лёжа")); // non-Latin letters
+        assertFalse(ExerciseName.isValidExerciseName("Bench Press ３")); // full-width digit
 
         // valid exercise names
         assertTrue(ExerciseName.isValidExerciseName("a")); // one character
@@ -73,6 +76,12 @@ public class ExerciseNameTest {
 
         // different values -> returns false
         assertFalse(exerciseName.equals(new ExerciseName("Incline Bench Press")));
+
+        // straight and curly apostrophes -> returns true
+        assertTrue(new ExerciseName("Farmer's Walk").equals(new ExerciseName("farmer’s walk")));
+
+        // an apostrophe is not the same as no apostrophe -> returns false
+        assertFalse(new ExerciseName("Farmer's Walk").equals(new ExerciseName("Farmers Walk")));
     }
 
     @Test
@@ -81,7 +90,17 @@ public class ExerciseNameTest {
     }
 
     @Test
+    public void hashCode_differentApostrophe_sameHashCode() {
+        assertEquals(new ExerciseName("Farmer's Walk").hashCode(), new ExerciseName("Farmer’s Walk").hashCode());
+    }
+
+    @Test
     public void toString_returnsNormalisedName() {
         assertEquals("Farmer's Walk", new ExerciseName(" Farmer's   Walk ").toString());
+    }
+
+    @Test
+    public void toString_curlyApostrophe_keptAsTyped() {
+        assertEquals("Farmer’s Walk", new ExerciseName("Farmer’s Walk").toString());
     }
 }

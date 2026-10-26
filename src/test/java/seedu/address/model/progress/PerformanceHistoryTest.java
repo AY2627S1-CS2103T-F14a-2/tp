@@ -149,6 +149,18 @@ public class PerformanceHistoryTest {
     }
 
     @Test
+    public void withRecord_curlyApostropheVariant_replacesStraightApostropheRecord() {
+        GymPerformance straight = performance(DAY_ONE, "Farmer's Walk", 3, 8, "60");
+        GymPerformance curly = performance(DAY_ONE, "Farmer’s Walk", 3, 8, "65");
+
+        PerformanceHistory updatedHistory = new PerformanceHistory(List.of(straight)).withRecord(curly);
+
+        assertEquals(List.of(curly), updatedHistory.asUnmodifiableList());
+        assertEquals(Optional.of(curly), updatedHistory.find(DAY_ONE, new ExerciseName("Farmer's Walk")));
+        assertEquals(new PerformanceHistory(), updatedHistory.withoutRecord(straight));
+    }
+
+    @Test
     public void getLatest() {
         // empty history
         assertEquals(Optional.empty(), new PerformanceHistory().getLatest());
