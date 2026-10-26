@@ -1052,6 +1052,11 @@ testers are expected to do more *exploratory* testing.
 
 ### Recording body measurements
 
+To check copied command separators, use a disposable dataset and copy a `measure` or `performance` command
+from a text editor with literal tabs between its prefixes. Paste into Spotter's command field.
+Expected: Tabs become visible spaces; pressing Enter records the measurement or performance normally.
+Repeat while replacing selected text, and check Undo/Redo before pressing Enter.
+
 Use fictional data in a disposable test folder. Start with a client without measurements,
 run `list` and substitute that client's displayed index for `1` below.
 
