@@ -57,10 +57,17 @@ public class SessionCommand extends Command {
      * Identifies the client by their full name, ignoring case and repeated spaces.
      */
     public SessionCommand(String name, NextSession nextSession) {
+        this(name, nextSession, Clock.systemDefaultZone());
+    }
+
+    /**
+     * Identifies the client by full name, using {@code clock} for the current time so tests can fix "now".
+     */
+    SessionCommand(String name, NextSession nextSession, Clock clock) {
         this.index = null;
         this.name = Name.normalizeSpaces(name);
         this.nextSession = requireNonNull(nextSession);
-        this.clock = Clock.systemDefaultZone();
+        this.clock = requireNonNull(clock);
     }
 
     @Override

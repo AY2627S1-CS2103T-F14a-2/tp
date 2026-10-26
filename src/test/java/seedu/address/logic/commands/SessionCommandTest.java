@@ -94,6 +94,14 @@ public class SessionCommandTest {
     }
 
     @Test
+    public void execute_pastTimeTodayByName_warnsTimeHasPassed() throws Exception {
+        CommandResult result = new SessionCommand("Sarah Lim", new NextSession("2026-10-26 13:59"), FIXED_CLOCK)
+                .execute(model);
+        assertEquals(String.format(NORMAL_MESSAGE, "2026-10-26", "13:59") + SessionCommand.MESSAGE_TIME_PASSED,
+                result.getFeedbackToUser());
+    }
+
+    @Test
     public void execute_laterTodayOrFutureDate_normalMessage() throws Exception {
         assertEquals(String.format(NORMAL_MESSAGE, "2026-10-26", "14:01"), bookSarahAt("2026-10-26 14:01"));
         assertEquals(String.format(NORMAL_MESSAGE, "2026-10-27", "09:00"), bookSarahAt("2026-10-27 09:00"));
