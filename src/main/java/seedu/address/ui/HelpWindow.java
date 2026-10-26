@@ -83,9 +83,11 @@ public class HelpWindow extends UiPart<Stage> {
     }
 
     /**
-     * Focuses on the help window.
+     * Restores a minimized help window and brings it to the front.
      */
     public void focus() {
+        getRoot().setIconified(false);
+        getRoot().toFront();
         getRoot().requestFocus();
     }
 
