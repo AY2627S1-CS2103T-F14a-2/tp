@@ -589,7 +589,7 @@ Spotter saves your data automatically to `[JAR file location]/data/spotter.json`
 
 ### Editing the data file
 
-Spotter data is saved automatically as a JSON file `[JAR file location]/data/spotter.json`. Advanced users are welcome to update data directly by editing that data file.
+Spotter data is saved automatically as a JSON file `[JAR file location]/data/spotter.json`. Advanced users are welcome to update data directly by editing that data file. Save it as UTF-8, with or without a byte-order mark (BOM).
 
 <box type="warning" seamless>
 
