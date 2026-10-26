@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import seedu.address.commons.util.PhoneDisplayFormatter;
 import seedu.address.logic.parser.Prefix;
 import seedu.address.model.person.Person;
 
@@ -41,10 +42,11 @@ public class Messages {
 
     /**
      * Formats the {@code person} for display to the user, omitting the email if there is none.
+     * The phone is grouped the same way as on the client card.
      */
     public static String format(Person person) {
         String email = person.getEmail().map(e -> "; Email: " + e).orElse("");
-        return person.getName() + "; Phone: " + person.getPhone() + email;
+        return person.getName() + "; Phone: " + PhoneDisplayFormatter.format(person.getPhone().value) + email;
     }
 
 }

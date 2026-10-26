@@ -235,6 +235,31 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parsePhone_spacesBetweenDigits_returnsDigitsOnly() throws Exception {
+        assertEquals(new Phone("99272758"), ParserUtil.parsePhone("9927 2758")); // as shown on the card
+        assertEquals(new Phone("99272758"), ParserUtil.parsePhone("9927  2758")); // repeated spaces
+        assertEquals(new Phone("99272758"), ParserUtil.parsePhone(" 9927 2758 ")); // surrounding spaces
+        assertEquals(new Phone("1234"), ParserUtil.parsePhone("123 4")); // uneven groups
+        assertEquals(new Phone("123"), ParserUtil.parsePhone("1 2 3")); // shortest length after removal
+        assertEquals(new Phone("1".repeat(Phone.MAX_LENGTH)),
+                ParserUtil.parsePhone("1".repeat(8) + " " + "1".repeat(Phone.MAX_LENGTH - 8))); // longest
+    }
+
+    @Test
+    public void parsePhone_spacesWithOtherCharacters_throwsFormatMessage() {
+        assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> ParserUtil.parsePhone("9927-2758"));
+        assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> ParserUtil.parsePhone("+65 9927 2758"));
+        assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> ParserUtil.parsePhone("   "));
+        assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> ParserUtil.parsePhone("1 2")); // 2 digits
+    }
+
+    @Test
+    public void parsePhone_tooLongAfterRemovingSpaces_throwsLengthMessage() {
+        assertThrows(ParseException.class, Phone.MESSAGE_LENGTH_CONSTRAINTS, ()
+            -> ParserUtil.parsePhone("1".repeat(8) + " " + "1".repeat(Phone.MAX_LENGTH - 7)));
+    }
+
+    @Test
     public void parseEmail_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> ParserUtil.parseEmail((String) null));
     }
