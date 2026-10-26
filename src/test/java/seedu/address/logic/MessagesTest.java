@@ -23,6 +23,14 @@ public class MessagesTest {
     }
 
     @Test
+    public void getClientsListedMessage_usesSingularAndPluralForms() {
+        assertEquals("No clients found.", Messages.getClientsListedMessage(0));
+        assertEquals("Listed 1 client.", Messages.getClientsListedMessage(1));
+        assertEquals("Listed 2 clients.", Messages.getClientsListedMessage(2));
+        assertEquals("Listed 1000 clients.", Messages.getClientsListedMessage(1000)); // no digit grouping
+    }
+
+    @Test
     public void withUsage_appendsUsageOnNewLine() {
         assertEquals("The client index provided is invalid.\nUse: view INDEX",
                 Messages.withUsage("The client index provided is invalid.", "view INDEX"));
