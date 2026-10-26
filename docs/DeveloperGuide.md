@@ -579,9 +579,13 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 **Use case: UC02 - Find a client**
 
+<!-- AI assistance: Helen used OpenAI Codex to correct UC02's name-matching description for issue #124. -->
+
 **MSS**
 
-1.  Trainer requests to find clients using keywords from their names, which may be full or partial names.
+1.  Trainer requests to find clients using one or more whole-word keywords from their names.
+    Matching is case-insensitive, and clients matching at least one keyword are returned.
+    For example, `find Alex` matches `Alex Yeoh`, but `find Ale` does not.
 2.  Spotter shows the list of matching clients.
 
     Use case ends.
