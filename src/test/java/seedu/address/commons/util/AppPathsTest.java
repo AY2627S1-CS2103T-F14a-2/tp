@@ -139,6 +139,7 @@ public class AppPathsTest {
         String output = runProbe(archive, launchFolder);
 
         assertTrue(output.contains("using console logging only."));
+        assertFalse(output.contains("\tat "), "A recoverable logging failure must not print a stack trace.");
         assertTrue(output.contains("probe-client"));
         assertTrue(Files.exists(home.resolve("preferences.json")));
         assertFalse(Files.exists(launchFolder.resolve("spotter.log.0")));

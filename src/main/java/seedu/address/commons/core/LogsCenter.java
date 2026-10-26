@@ -92,8 +92,8 @@ public class LogsCenter {
             baseLogger.addHandler(fileHandler);
         } catch (IOException e) {
             // The console handler is already usable even when the file handler cannot be created.
-            baseLogger.log(Level.WARNING, "Unable to write the log file in " + AppPaths.getHomeDirectory()
-                    + "; using console logging only.", e);
+            baseLogger.warning("Unable to write the log file in " + AppPaths.getHomeDirectory()
+                    + "; using console logging only. " + e.getMessage());
         }
     }
 
