@@ -66,7 +66,7 @@ Spotter is a **desktop application for freelance personal trainers to manage the
 * Extraneous parameters for `help`, `exit`, and `clear` are ignored.<br>
   For example, `help 123` is interpreted as `help`. `list` does not accept any extra text (see [`list`](#listing-all-clients-list)).
 
-* Tabs pasted into the command box become spaces, preserving separators in commands copied from tabular notes.<br>
+* Tabs pasted into the command box become spaces, preserving separators in commands copied from tabular notes.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
