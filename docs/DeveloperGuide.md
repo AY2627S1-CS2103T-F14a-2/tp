@@ -622,12 +622,15 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 **Use case: UC02 - Find a client**
 
 <!-- AI assistance: Helen used OpenAI Codex to correct UC02's name-matching description for issue #124. -->
+<!-- AI assistance: v1-nce used AI assistance for issue #173's substring-search implementation, regression tests,
+User Guide find section, UC02 and manual testing instructions. -->
 
 **MSS**
 
-1.  Trainer requests to find clients using one or more whole-word keywords from their names.
-    Matching is case-insensitive, and clients matching at least one keyword are returned.
-    For example, `find Alex` matches `Alex Yeoh`, but `find Ale` does not.
+1.  Trainer requests to find clients using one or more keywords from their names.
+    Each keyword can match any part of a name. Matching is case-insensitive and independent of the system locale;
+    clients matching at least one keyword are returned. Only names are searched.
+    For example, `find han` and `find HAN` both match `Hans Gruber`, and `find han bo` also matches `Bo Yang`.
 2.  Spotter shows the list of matching clients.
 
     Use case ends.
@@ -1077,6 +1080,22 @@ testers are expected to do more *exploratory* testing.
       Expected: Both routes restore the existing Help window and bring it forward.
 
 1. _{ more test cases … }_
+
+### Finding clients by partial name
+
+Use a disposable dataset containing only `Hans Gruber` (phone `91234567`, email `hans@example.com`, tag `friends`)
+and `Bo Yang` (phone `98765432`).
+
+1. Enter `find han`, `find HAN`, then `find ans`.<br>
+   Expected: Each search lists only Hans Gruber and shows `Listed 1 client.`.
+2. Enter `find han bo`.<br>
+   Expected: Both clients are listed, with `Listed 2 clients.`. Keywords are combined using OR, not AND.
+3. Enter `find xyz`, `find 9123`, `find example`, then `find friend`.<br>
+   Expected: Each search shows an empty client list and `No clients found.`; phone, email and tags are not searched.
+4. Enter `find` without keywords.<br>
+   Expected: A command-format error with usage guidance; the displayed list is unchanged.
+5. Enter `list`.<br>
+   Expected: Both clients reappear; searching has not changed stored data.
 
 ### Clearing all clients
 

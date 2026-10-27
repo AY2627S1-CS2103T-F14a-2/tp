@@ -84,6 +84,24 @@ public class FindCommandTest {
     }
 
     @Test
+    public void execute_partialKeywords_multiplePersonsFound() {
+        NameContainsKeywordsPredicate predicate = preparePredicate("URZ ELL UNZ");
+        FindCommand command = new FindCommand(predicate);
+        expectedModel.updateFilteredPersonList(predicate);
+        assertCommandSuccess(command, model, "Listed 3 clients.", expectedModel);
+        assertEquals(List.of(CARL, ELLE, FIONA), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_nonMatchingKeyword_noPersonFound() {
+        NameContainsKeywordsPredicate predicate = preparePredicate("Nobody");
+        FindCommand command = new FindCommand(predicate);
+        expectedModel.updateFilteredPersonList(predicate);
+        assertCommandSuccess(command, model, "No clients found.", expectedModel);
+        assertEquals(List.of(), model.getFilteredPersonList());
+    }
+
+    @Test
     public void execute_arabicFormatLocale_usesLatinDigits() {
         FindCommand command = new FindCommand(preparePredicate("Kurz Elle Kunz"));
         assertEquals("Listed 3 clients.", getInArabicFormatLocale(() -> command.execute(model).getFeedbackToUser()));
