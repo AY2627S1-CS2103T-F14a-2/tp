@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 
@@ -13,6 +14,8 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
@@ -21,8 +24,10 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
+import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
+import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 
@@ -64,7 +69,45 @@ public class AddCommandTest {
     }
 
     @Test
-    public void equals() {
+    public void execute_sharedPhoneHiddenClients_warnsInAddressBookOrder() {
+        Person zoe = new PersonBuilder().withName("Zoe Tan").withPhone("+65 9123-4567 (HP)").build();
+        Person unrelated = new PersonBuilder().withName("Unrelated Client").withPhone("81112222").build();
+        Person amy = new PersonBuilder().withName("Amy Tan").withPhone("(65) 9123.4567").build();
+        Model model = new ModelManager();
+        model.addPerson(zoe);
+        model.addPerson(unrelated);
+        model.addPerson(amy);
+        model.updateFilteredPersonList(person -> person.equals(unrelated));
+        Person added = new PersonBuilder().withName("New Client").withPhone("6591234567").build();
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.addPerson(added);
+        String expectedMessage = String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(added))
+                + "\nWarning: Zoe Tan also has this phone number."
+                + "\nWarning: Amy Tan also has this phone number.";
+
+        assertCommandSuccess(new AddCommand(added), model, expectedMessage, expectedModel);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "91234567, 81112222",
+        "91234567, +65 9123 4567",
+        "91234567, 9123 4567 (HP) 6111-2222 (Office)",
+        "9123 4567 (HP) 6111-2222 (Office), 91234567"
+    })
+    public void execute_differentCompletePhoneDigits_successWithoutWarning(String existingPhone, String addedPhone) {
+        Model model = new ModelManager();
+        model.addPerson(new PersonBuilder().withName("Existing Client").withPhone(existingPhone).build());
+        Person added = new PersonBuilder().withName("New Client").withPhone(addedPhone).build();
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.addPerson(added);
+
+        assertCommandSuccess(new AddCommand(added), model,
+                String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(added)), expectedModel);
+    }
+
+    @Test
+    public void equals_sameAndDifferentCommands_comparesValues() {
         Person alice = new PersonBuilder().withName("Alice").build();
         Person bob = new PersonBuilder().withName("Bob").build();
         AddCommand addAliceCommand = new AddCommand(alice);
@@ -88,7 +131,7 @@ public class AddCommandTest {
     }
 
     @Test
-    public void toStringMethod() {
+    public void toString_validCommand_containsFields() {
         AddCommand addCommand = new AddCommand(ALICE);
         String expected = AddCommand.class.getCanonicalName() + "{toAdd=" + ALICE + "}";
         assertEquals(expected, addCommand.toString());

@@ -23,7 +23,7 @@ public class NameTest {
     }
 
     @Test
-    public void isValidName() {
+    public void isValidName_nameFormats_validatesCharacters() {
         // null name
         assertThrows(NullPointerException.class, () -> Name.isValidName(null));
 
@@ -32,7 +32,6 @@ public class NameTest {
         assertFalse(Name.isValidName(" ")); // spaces only
         assertFalse(Name.isValidName("^")); // only non-alphanumeric characters
         assertFalse(Name.isValidName("peter*")); // contains non-alphanumeric characters
-        assertFalse(Name.isValidName("a".repeat(Name.MAX_LENGTH + 1))); // too long
 
         // valid name
         assertTrue(Name.isValidName("peter jack")); // alphabets only
@@ -40,7 +39,6 @@ public class NameTest {
         assertTrue(Name.isValidName("peter the 2nd")); // alphanumeric characters
         assertTrue(Name.isValidName("Capital Tan")); // with capital letters
         assertTrue(Name.isValidName("David Roger Jackson Ray Jr 2nd")); // long names
-        assertTrue(Name.isValidName("a".repeat(Name.MAX_LENGTH))); // maximum length
         assertTrue(Name.isValidName(" " + "a".repeat(Name.MAX_LENGTH - 2) + "  b ")); // within limit once collapsed
     }
 
@@ -65,7 +63,7 @@ public class NameTest {
     }
 
     @Test
-    public void isTooLong() {
+    public void isTooLong_normalizedLength_enforcesLimit() {
         assertFalse(Name.isTooLong("a".repeat(Name.MAX_LENGTH))); // maximum length
         assertFalse(Name.isTooLong("a".repeat(Name.MAX_LENGTH) + "   ")); // within limit once trimmed
         assertTrue(Name.isTooLong("a".repeat(Name.MAX_LENGTH + 1)));
@@ -77,7 +75,7 @@ public class NameTest {
     }
 
     @Test
-    public void isSameName() {
+    public void isSameName_caseAndSpacing_ignoresDifferences() {
         Name name = new Name("John Doe");
 
         // same value -> returns true
@@ -112,14 +110,14 @@ public class NameTest {
     }
 
     @Test
-    public void normalizeSpaces_preservesCaseAndCollapsesWhitespace() {
+    public void normalizeSpaces_whitespace_preservesCaseAndCollapsesWhitespace() {
         assertEquals("Sarah Lim", Name.normalizeSpaces(" \tSarah   Lim\t "));
         assertEquals("", Name.normalizeSpaces(" \t "));
         assertThrows(NullPointerException.class, () -> Name.normalizeSpaces(null));
     }
 
     @Test
-    public void equals() {
+    public void equals_sameAndDifferentNames_comparesValues() {
         Name name = new Name("Valid Name");
 
         // same values -> returns true
