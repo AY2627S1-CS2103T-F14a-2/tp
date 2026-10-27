@@ -53,10 +53,10 @@ public class DeleteMeasureCommandParserTest {
     @Test
     public void parse_invalidDateOrType_showsValidationErrorWithUsage() {
         for (String date : new String[] {"", "2026-9-12",
-            "12-09-2026", "2026-09-12 extra"}) {
+            "12-09-2026", "2026-09-12 extra", "2026-13-01"}) {
             assertError("1 d/" + date + " t/weight", ParserUtil.MESSAGE_INVALID_RECORD_DATE);
         }
-        for (String date : new String[] {"2026-02-30", "2026-13-01", "0000-01-01", "2027-02-29"}) {
+        for (String date : new String[] {"2026-02-30", "0000-01-01", "2027-02-29"}) {
             assertError("1 d/" + date + " t/weight", date + " is not a real date.");
         }
         for (String type : new String[] {"", "height", "body fat", "weight extra"}) {

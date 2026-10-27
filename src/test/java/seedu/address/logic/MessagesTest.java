@@ -1,6 +1,7 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static seedu.address.testutil.Assert.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
@@ -10,16 +11,35 @@ public class MessagesTest {
 
     @Test
     public void format_withEmail_includesEmail() {
-        assertEquals("Sarah Lim; Phone: 91234567; Email: sarah@example.com",
+        assertEquals("Sarah Lim; Phone: 9123 4567; Email: sarah@example.com",
                 Messages.format(new PersonBuilder().withName("Sarah Lim").withPhone("91234567")
                         .withEmail("sarah@example.com").withTags("rehab").build()));
     }
 
     @Test
     public void format_noEmail_omitsEmail() {
-        assertEquals("Sarah Lim; Phone: 91234567",
+        assertEquals("Sarah Lim; Phone: 9123 4567",
                 Messages.format(new PersonBuilder().withName("Sarah Lim").withPhone("91234567")
                         .withoutEmail().build()));
+    }
+
+    @Test
+    public void format_phoneNotEightDigits_showsPhoneUnchanged() {
+        assertEquals("Sarah Lim; Phone: 911",
+                Messages.format(new PersonBuilder().withName("Sarah Lim").withPhone("911").withoutEmail().build()));
+    }
+
+    @Test
+    public void getClientsListedMessage_usesSingularAndPluralForms() {
+        assertEquals("No clients found.", Messages.getClientsListedMessage(0));
+        assertEquals("Listed 1 client.", Messages.getClientsListedMessage(1));
+        assertEquals("Listed 2 clients.", Messages.getClientsListedMessage(2));
+        assertEquals("Listed 1000 clients.", Messages.getClientsListedMessage(1000)); // no digit grouping
+    }
+
+    @Test
+    public void getClientsListedMessage_negativeCount_throwsAssertionError() {
+        assertThrows(AssertionError.class, () -> Messages.getClientsListedMessage(-1));
     }
 
     @Test

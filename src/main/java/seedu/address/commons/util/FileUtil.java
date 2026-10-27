@@ -37,10 +37,12 @@ public class FileUtil {
     }
 
     /**
-     * Assumes file exists
+     * Assumes file exists. A leading UTF-8 byte-order mark is not returned as content.
      */
     public static String readFromFile(Path file) throws IOException {
-        return new String(Files.readAllBytes(file), CHARSET);
+        String content = new String(Files.readAllBytes(file), CHARSET);
+        // Some editors, e.g. Notepad's "UTF-8 with BOM" option, start the file with a byte-order mark.
+        return content.startsWith("\uFEFF") ? content.substring(1) : content;
     }
 
     /**

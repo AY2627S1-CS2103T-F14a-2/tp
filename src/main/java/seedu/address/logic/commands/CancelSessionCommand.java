@@ -13,8 +13,8 @@ import seedu.address.model.person.Person;
 import seedu.address.model.session.NextSession;
 
 /**
- * Removes a client's recorded session, identified by displayed index or full name, while preserving their
- * other data and the current filter.
+ * Removes a client's recorded session by displayed index or full name, preserving their data and filter.
+ * AI assistance: Gabriel used OpenAI Codex for cancellation by name and its regression tests.
  */
 public class CancelSessionCommand extends Command {
     public static final String COMMAND_WORD = "cancelsession";
@@ -29,7 +29,7 @@ public class CancelSessionCommand extends Command {
     private final String name;
 
     /**
-     * Identifies the client using their position in the currently displayed list.
+     * Identifies the client at the supplied position in the displayed list.
      */
     public CancelSessionCommand(Index index) {
         this.index = requireNonNull(index);
@@ -37,7 +37,7 @@ public class CancelSessionCommand extends Command {
     }
 
     /**
-     * Identifies the client by their full name, ignoring case and repeated spaces, among all clients.
+     * Identifies a client across the whole address book, using the same name matching as booking.
      */
     public CancelSessionCommand(String name) {
         this.index = null;
@@ -47,7 +47,15 @@ public class CancelSessionCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        Person target = findTarget(model);
+        Person target;
+        if (index == null) {
+            target = SessionCommand.findClientByName(model, name);
+        } else {
+            if (index.getZeroBased() >= model.getFilteredPersonList().size()) {
+                throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+            }
+            target = model.getFilteredPersonList().get(index.getZeroBased());
+        }
         NextSession cancelledSession = target.getNextSession().orElseThrow(() ->
                 new CommandException(String.format(MESSAGE_NO_SESSION, target.getName())));
         boolean wasShown = model.getFilteredPersonList().contains(target);
@@ -63,22 +71,9 @@ public class CancelSessionCommand extends Command {
         return new CommandResult(message, false, false, true);
     }
 
-    private Person findTarget(Model model) throws CommandException {
-        if (index != null) {
-            if (index.getZeroBased() >= model.getFilteredPersonList().size()) {
-                throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
-            }
-            return model.getFilteredPersonList().get(index.getZeroBased());
-        }
-        return model.getAddressBook().getPersonList().stream()
-                .filter(person -> person.getName().matches(name))
-                .findFirst().orElseThrow(() -> new CommandException(SessionCommand.MESSAGE_NO_SUCH_NAME));
-    }
-
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof CancelSessionCommand command
-                && Objects.equals(index, command.index)
-                && Objects.equals(name, command.name);
+                && Objects.equals(index, command.index) && Objects.equals(name, command.name);
     }
 }
