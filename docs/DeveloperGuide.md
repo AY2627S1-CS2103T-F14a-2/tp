@@ -150,7 +150,13 @@ How the parsing works:
 ### Model component
 **API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-F14a-2/tp/blob/master/src/main/java/seedu/address/model/Model.java)
 
-<puml src="diagrams/ModelClassDiagram.puml" width="450" />
+<!-- AI assistance: Helen used OpenAI Codex to update the Model and Storage diagrams and their explanations for issue #160. -->
+<puml src="diagrams/ModelClassDiagram.puml" width="900" alt="Spotter Model component and client training records" />
+
+Each `Person` holds contact details, tags, an optional `NextSession`, an immutable list of `Measurement`
+records and a `PerformanceHistory`. Each measurement has a `MeasurementType`; the performance history
+holds `GymPerformance` records with an `ExerciseName` and `Load`. Email is optional, and a client may have
+no session or progress records. The diagram shows the current model; there is no postal-address field.
 
 
 The `Model` component,
@@ -175,7 +181,13 @@ The `Model` component,
 
 **API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-F14a-2/tp/blob/master/src/main/java/seedu/address/storage/Storage.java)
 
-<puml src="diagrams/StorageClassDiagram.puml" width="550" />
+<puml src="diagrams/StorageClassDiagram.puml" width="800" alt="Spotter JSON storage and progress-record adapters" />
+
+`JsonAdaptedPerson` stores tags, measurements and gym performances as collections of `JsonAdaptedTag`,
+`JsonAdaptedMeasurement` and `JsonAdaptedGymPerformance` respectively. The optional next session is
+stored directly as a `String`, rather than through a separate adapter. On loading, these values are
+validated and converted into the corresponding client fields and records; older files without progress
+collections load with empty histories.
 
 The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
