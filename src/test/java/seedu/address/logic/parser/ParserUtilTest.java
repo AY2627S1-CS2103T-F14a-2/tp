@@ -98,7 +98,7 @@ public class ParserUtilTest {
     @Test
     public void parseRecordDate_wrongFormat_throwsParseException() {
         for (String wrongFormat : List.of("", "18-09-2026", "2026/09/18", "2026-9-18", "12026-09-18",
-                "+2026-09-18", "today")) {
+                "+2026-09-18", "today", "2026-13-01", "2026-00-10", "2026-10-32")) {
             assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_RECORD_DATE, ()
                 -> ParserUtil.parseRecordDate(wrongFormat, FUTURE_DATE_MESSAGE));
         }
@@ -107,8 +107,7 @@ public class ParserUtilTest {
     @Test
     public void parseRecordDate_nonexistentDate_throwsParseException() {
         // the format is right but the date does not exist, so the message names the date instead of the format
-        for (String nonexistentDate : List.of("2026-02-30", "2027-02-29", "2026-13-01", "2026-00-10", "2026-04-31",
-                "0000-01-01")) {
+        for (String nonexistentDate : List.of("2026-02-30", "2027-02-29", "2026-04-31", "0000-01-01")) {
             assertThrows(ParseException.class, String.format(ParserUtil.MESSAGE_NONEXISTENT_RECORD_DATE,
                     nonexistentDate), () -> ParserUtil.parseRecordDate(nonexistentDate, FUTURE_DATE_MESSAGE));
         }
@@ -128,7 +127,7 @@ public class ParserUtilTest {
     @Test
     public void parseExistingRecordDate_invalidDate_throwsParseException() {
         assertThrows(NullPointerException.class, () -> ParserUtil.parseExistingRecordDate(null));
-        for (String wrongFormat : List.of("", "18-09-2026", "12026-09-18")) {
+        for (String wrongFormat : List.of("", "18-09-2026", "12026-09-18", "2026-13-01")) {
             assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_RECORD_DATE, ()
                 -> ParserUtil.parseExistingRecordDate(wrongFormat));
         }
@@ -232,6 +231,31 @@ public class ParserUtilTest {
         String phoneWithWhitespace = WHITESPACE + VALID_PHONE + WHITESPACE;
         Phone expectedPhone = new Phone(VALID_PHONE);
         assertEquals(expectedPhone, ParserUtil.parsePhone(phoneWithWhitespace));
+    }
+
+    @Test
+    public void parsePhone_spacesBetweenDigits_returnsDigitsOnly() throws Exception {
+        assertEquals(new Phone("99272758"), ParserUtil.parsePhone("9927 2758")); // as shown on the card
+        assertEquals(new Phone("99272758"), ParserUtil.parsePhone("9927  2758")); // repeated spaces
+        assertEquals(new Phone("99272758"), ParserUtil.parsePhone(" 9927 2758 ")); // surrounding spaces
+        assertEquals(new Phone("1234"), ParserUtil.parsePhone("123 4")); // uneven groups
+        assertEquals(new Phone("123"), ParserUtil.parsePhone("1 2 3")); // shortest length after removal
+        assertEquals(new Phone("1".repeat(Phone.MAX_LENGTH)),
+                ParserUtil.parsePhone("1".repeat(8) + " " + "1".repeat(Phone.MAX_LENGTH - 8))); // longest
+    }
+
+    @Test
+    public void parsePhone_spacesWithOtherCharacters_throwsFormatMessage() {
+        assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> ParserUtil.parsePhone("9927-2758"));
+        assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> ParserUtil.parsePhone("+65 9927 2758"));
+        assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> ParserUtil.parsePhone("   "));
+        assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> ParserUtil.parsePhone("1 2")); // 2 digits
+    }
+
+    @Test
+    public void parsePhone_tooLongAfterRemovingSpaces_throwsLengthMessage() {
+        assertThrows(ParseException.class, Phone.MESSAGE_LENGTH_CONSTRAINTS, ()
+            -> ParserUtil.parsePhone("1".repeat(8) + " " + "1".repeat(Phone.MAX_LENGTH - 7)));
     }
 
     @Test

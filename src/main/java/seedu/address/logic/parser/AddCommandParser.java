@@ -40,7 +40,8 @@ public class AddCommandParser implements Parser<AddCommand> {
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL);
         Name name = ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get());
         Phone phone = ParserUtil.parsePhone(argMultimap.getValue(PREFIX_PHONE).get());
-        Optional<String> emailValue = argMultimap.getValue(PREFIX_EMAIL);
+        // As in edit, an empty e/ means no email
+        Optional<String> emailValue = argMultimap.getValue(PREFIX_EMAIL).filter(value -> !value.isBlank());
         Email email = emailValue.isPresent() ? ParserUtil.parseEmail(emailValue.get()) : null;
         Set<Tag> tagList = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_TAG));
 

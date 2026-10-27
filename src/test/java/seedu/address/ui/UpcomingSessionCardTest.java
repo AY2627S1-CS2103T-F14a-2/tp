@@ -30,7 +30,7 @@ public class UpcomingSessionCardTest {
 
     @Test
     public void constructor_bookedClient_showsSessionClientAndLatestRecords() {
-        assertEquals("Tue 1 Dec, 6:00pm", labelText("#sessionTime"));
+        assertEquals("Tue 1 Dec 2099, 6:00pm", labelText("#sessionTime"));
         assertEquals("Alice Pauline", labelText("#name"));
         assertEquals("Phone: 9435 1253", labelText("#phone"));
         assertEquals("Latest measurement: -", labelText("#latestMeasurement"));

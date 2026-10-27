@@ -12,21 +12,24 @@ import java.util.Locale;
  * <p>Names are normalised by trimming them and collapsing repeated internal whitespace into one space.
  * Two exercise names are equal if their normalised forms match, ignoring letter case,
  * so that {@code bench  press} and {@code Bench Press} refer to the same exercise.
+ * A curly apostrophe (’), as copied from formatted text, is compared as a straight one ('),
+ * but the name is still displayed as typed.
  *
  * <p>AI assistance: Claude (Anthropic) helped implement this class and its tests.
  */
 public class ExerciseName {
 
     public static final String MESSAGE_CONSTRAINTS = "Exercise names must be 1 to 50 characters and may contain "
-            + "only letters, numbers, spaces, hyphens, and apostrophes.";
+            + "only English letters (A-Z), digits (0-9), spaces, hyphens, apostrophes, and parentheses.";
 
     public static final int MAX_LENGTH = 50;
 
     /*
-     * Allows only letters, digits, spaces, hyphens, and straight or curly (’) apostrophes,
+     * Allows only English letters, digits, spaces, parentheses, hyphens, and straight or curly (’) apostrophes,
      * and requires at least one letter or digit so that names such as "-" or "'" are rejected.
+     * Parentheses are literal label characters and need not be paired.
      */
-    private static final String VALIDATION_REGEX = "(?=.*\\p{Alnum})[\\p{Alnum} '’-]+";
+    private static final String VALIDATION_REGEX = "(?=.*\\p{Alnum})[\\p{Alnum} ()'’-]+";
 
     public final String value;
 
@@ -55,7 +58,7 @@ public class ExerciseName {
     }
 
     private String comparisonKey() {
-        return value.toLowerCase(Locale.ROOT);
+        return value.replace('’', '\'').toLowerCase(Locale.ROOT);
     }
 
     @Override

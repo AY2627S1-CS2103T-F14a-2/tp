@@ -2,7 +2,6 @@ package seedu.address;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -10,6 +9,7 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.commons.util.AppPaths;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
@@ -38,8 +38,8 @@ public class MainApp extends Application {
             "Unable to load saved Spotter data. The existing data file has not been modified.";
 
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
-    private static final Path USER_PREFS_FILE_PATH = Paths.get("preferences.json");
-    private static final Path ADDRESS_BOOK_FILE_PATH = Paths.get("data", "spotter.json");
+    private static final Path USER_PREFS_FILE_PATH = AppPaths.getUserPrefsFilePath();
+    private static final Path ADDRESS_BOOK_FILE_PATH = AppPaths.getAddressBookFilePath();
 
     protected Ui ui;
     protected Logic logic;
