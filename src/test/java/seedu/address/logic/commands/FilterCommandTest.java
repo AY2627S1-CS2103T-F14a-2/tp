@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static seedu.address.logic.commands.CommandTestUtil.getInArabicFormatLocale;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.DANIEL;
@@ -79,6 +80,12 @@ public class FilterCommandTest {
         expectedModel.updateFilteredPersonList(predicate);
         assertCommandSuccess(command, model, expectedMessage, expectedModel);
         assertEquals(List.of(BENSON), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_arabicFormatLocale_usesLatinDigits() {
+        FilterCommand command = new FilterCommand(new TagContainsKeywordsPredicate(List.of("friends")));
+        assertEquals("3 person(s) listed!", getInArabicFormatLocale(() -> command.execute(model).getFeedbackToUser()));
     }
 
     @Test
