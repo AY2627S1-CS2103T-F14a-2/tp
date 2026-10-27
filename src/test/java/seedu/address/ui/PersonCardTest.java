@@ -14,6 +14,9 @@ import org.junit.jupiter.api.Test;
 import seedu.address.model.person.Measurement;
 import seedu.address.model.person.MeasurementType;
 import seedu.address.model.person.Person;
+import seedu.address.model.progress.ExerciseName;
+import seedu.address.model.progress.GymPerformance;
+import seedu.address.model.progress.Load;
 import seedu.address.model.progress.PerformanceHistory;
 import seedu.address.testutil.PersonBuilder;
 
@@ -108,6 +111,21 @@ public class PersonCardTest {
     }
 
     @Test
+    public void formatLatestPerformance_pastYear_includesYear() {
+        assertEquals("Latest performance: 15 Sep 2025 - Squat, 3 sets of 5 reps at 100 kg (1 record)",
+                PersonCard.formatLatestPerformance(squatOn(LocalDate.of(2025, 9, 15)), TODAY));
+    }
+
+    @Test
+    public void formatLatestPerformance_yearBoundary_includesYearOnlyForPreviousYear() {
+        LocalDate newYearsDay = LocalDate.of(2027, 1, 1);
+        assertEquals("Latest performance: 31 Dec 2026 - Squat, 3 sets of 5 reps at 100 kg (1 record)",
+                PersonCard.formatLatestPerformance(squatOn(LocalDate.of(2026, 12, 31)), newYearsDay));
+        assertEquals("Latest performance: 1 Jan - Squat, 3 sets of 5 reps at 100 kg (1 record)",
+                PersonCard.formatLatestPerformance(squatOn(newYearsDay), newYearsDay));
+    }
+
+    @Test
     public void formatLatestPerformance_oneRecord_usesSingularCount() {
         assertEquals("Latest performance: 15 Sep - Squat, 3 sets of 5 reps at 100 kg (1 record)",
                 PersonCard.formatLatestPerformance(new PerformanceHistory(List.of(SQUAT)), TODAY));
@@ -127,5 +145,10 @@ public class PersonCardTest {
 
     private static Measurement record(LocalDate date, MeasurementType type, String value) {
         return new Measurement(date, type, new BigDecimal(value));
+    }
+
+    private static PerformanceHistory squatOn(LocalDate date) {
+        return new PerformanceHistory(List.of(
+                new GymPerformance(date, new ExerciseName("Squat"), 3, 5, new Load("100"))));
     }
 }
