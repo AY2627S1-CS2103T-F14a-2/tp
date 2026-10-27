@@ -8,6 +8,7 @@ import java.util.List;
 import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.TagContainsKeywordsPredicate;
+import seedu.address.model.tag.Tag;
 
 /**
  * Parses input arguments and creates a new FilterCommand object.
@@ -15,6 +16,8 @@ import seedu.address.model.person.TagContainsKeywordsPredicate;
 public class FilterCommandParser implements Parser<FilterCommand> {
 
     public static final String MESSAGE_EMPTY_TAG = "Tags to filter by cannot be empty.\n"
+            + FilterCommand.MESSAGE_USAGE;
+    public static final String MESSAGE_INVALID_TAG = Tag.MESSAGE_CONSTRAINTS + "\n"
             + FilterCommand.MESSAGE_USAGE;
 
     /**
@@ -35,6 +38,12 @@ public class FilterCommandParser implements Parser<FilterCommand> {
             throw new ParseException(MESSAGE_EMPTY_TAG);
         }
 
-        return new FilterCommand(new TagContainsKeywordsPredicate(tagKeywords));
+        // A tag that add/edit would reject can never match, so report it instead of showing an empty list
+        List<String> trimmedTags = tagKeywords.stream().map(String::trim).toList();
+        if (!trimmedTags.stream().allMatch(Tag::isValidTagName)) {
+            throw new ParseException(MESSAGE_INVALID_TAG);
+        }
+
+        return new FilterCommand(new TagContainsKeywordsPredicate(trimmedTags));
     }
 }

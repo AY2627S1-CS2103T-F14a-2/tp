@@ -11,12 +11,14 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import javafx.collections.transformation.SortedList;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
@@ -26,6 +28,8 @@ import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.person.Measurement;
 import seedu.address.model.person.MeasurementType;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.PersonSessionComparator;
+import seedu.address.model.session.NextSession;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -74,6 +78,46 @@ public class SessionManagementTest {
         assertEquals(booked.getMeasurements(), rebooked.getMeasurements());
         assertEquals(booked.getPerformanceHistory(), rebooked.getPerformanceHistory());
         assertEquals(date.plusDays(1), rebooked.getNextSession().orElseThrow().value.toLocalDate());
+        assertEquals(model.getAddressBook(), json.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_afterSessionExpires_targetsDisplayedIndexBeforeRefreshingOrder() throws Exception {
+        Person expired = booked.withNextSession(new NextSession(
+                LocalDate.now().minusDays(1) + " 09:00"));
+        model.setPerson(booked, expired);
+        // Simulate a list rendered before the booking expired, without sleeping or changing the OS clock.
+        SortedList<Person> displayed = (SortedList<Person>) model.getFilteredPersonList();
+        displayed.setComparator(new PersonSessionComparator(LocalDateTime.now().minusDays(2)));
+        assertEquals(List.of(expired, other), displayed);
+        logic.execute("measure 1 d/" + LocalDate.now() + " t/waist v/80");
+        Person updatedExpired = model.getAddressBook().getPersonList().get(1);
+        assertEquals(2, updatedExpired.getMeasurements().size());
+        assertEquals(List.of(other, updatedExpired), model.getFilteredPersonList());
+        assertEquals(other, model.getAddressBook().getPersonList().getFirst());
+        assertEquals(model.getAddressBook(), json.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_readOnlyCommand_refreshesExpiredOrderWithoutSaving() throws Exception {
+        Person expired = booked.withNextSession(new NextSession(
+                LocalDate.now().minusDays(1) + " 09:00"));
+        model.setPerson(booked, expired);
+        SortedList<Person> displayed = (SortedList<Person>) model.getFilteredPersonList();
+        displayed.setComparator(new PersonSessionComparator(LocalDateTime.now().minusDays(2)));
+        byte[] savedBefore = Files.readAllBytes(json.getAddressBookFilePath());
+        LogicManager readOnlyLogic = new LogicManager(model, new StorageManager(failingStorage(), prefs));
+        readOnlyLogic.execute("help");
+        assertEquals(List.of(other, expired), model.getFilteredPersonList());
+        assertArrayEquals(savedBefore, Files.readAllBytes(json.getAddressBookFilePath()));
+    }
+
+    @Test
+    public void execute_cancelByNameOutsideFilter_savesAndReloads() throws Exception {
+        logic.execute("find Ada");
+        logic.execute("cancelsession n/  zOe   rEvIeW");
+        assertEquals(List.of(other), model.getFilteredPersonList());
+        assertEquals(List.of(other, booked.withNextSession(null)), model.getAddressBook().getPersonList());
         assertEquals(model.getAddressBook(), json.readAddressBook().orElseThrow());
     }
 
