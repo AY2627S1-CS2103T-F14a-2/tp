@@ -13,7 +13,7 @@ import seedu.address.logic.commands.CancelSessionCommand;
 import seedu.address.logic.commands.SessionCommand;
 
 /**
- * Checks exact index syntax and the distinction between invalid format and an invalid client index.
+ * Checks exact index and name syntax, and the distinction between invalid format and an invalid client index.
  */
 public class CancelSessionCommandParserTest {
     private final CancelSessionCommandParser parser = new CancelSessionCommandParser();
@@ -28,7 +28,7 @@ public class CancelSessionCommandParserTest {
     public void parse_missingOrExtraArguments_failure() {
         for (String input : List.of("", " ", "Sarah", "1 2", "1.0", "+1", "1 n/Sarah", "1 d/2026-10-22",
                 "n/Sarah n/Alex", "d/2026-10-22 n/Sarah", "n/Sarah d/2026-10-22",
-                "n/Sarah t/1700", "n/Sarah x/foo")) {
+                "n/Sarah t/1700", "n/Sarah x/foo", "x/foo n/Sarah")) {
             assertParseFailure(parser, input, CancelSessionCommand.MESSAGE_INVALID_FORMAT);
         }
     }
@@ -40,6 +40,7 @@ public class CancelSessionCommandParserTest {
 
     @Test
     public void parse_emptyOrSlashName_rejected() {
+        assertParseFailure(parser, " n/", SessionCommand.MESSAGE_EMPTY_NAME);
         assertParseFailure(parser, " n/   ", SessionCommand.MESSAGE_EMPTY_NAME);
         assertParseFailure(parser, " n/Sarah/Lim", SessionCommand.MESSAGE_NAME_SLASH);
     }

@@ -136,6 +136,20 @@ public class SessionManagementTest {
     }
 
     @Test
+    public void execute_failedCancellationByNameSave_restoresDataAndDateFilter() throws Exception {
+        logic.execute("sessions d/" + date);
+        AddressBook before = new AddressBook(model.getAddressBook());
+        List<Person> displayedBefore = List.copyOf(model.getFilteredPersonList());
+        byte[] savedBefore = Files.readAllBytes(json.getAddressBookFilePath());
+        LogicManager failingLogic = new LogicManager(model, new StorageManager(failingStorage(), prefs));
+        assertThrows(CommandException.class, LogicManager.MESSAGE_SAVE_FAILURE, () ->
+                failingLogic.execute("cancelsession n/Zoe Review"));
+        assertEquals(before, model.getAddressBook());
+        assertEquals(displayedBefore, model.getFilteredPersonList());
+        assertArrayEquals(savedBefore, Files.readAllBytes(json.getAddressBookFilePath()));
+    }
+
+    @Test
     public void execute_dateListingNeverSaves_evenWhenWritesFail() throws Exception {
         byte[] savedBefore = Files.readAllBytes(json.getAddressBookFilePath());
         LogicManager readOnlyLogic = new LogicManager(model, new StorageManager(failingStorage(), prefs));

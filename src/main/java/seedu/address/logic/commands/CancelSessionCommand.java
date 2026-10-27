@@ -22,6 +22,8 @@ public class CancelSessionCommand extends Command {
     public static final String MESSAGE_INVALID_FORMAT = "Invalid command format! Use: " + MESSAGE_USAGE;
     public static final String MESSAGE_NO_SESSION = "No session is recorded for %s.";
     public static final String MESSAGE_SUCCESS = "Cancelled session on %s for %s.";
+    public static final String MESSAGE_CLIENTS_SHIFTED =
+            " %s is no longer shown here; clients below have moved up one place.";
 
     private final Index index;
     private final String name;
@@ -56,11 +58,17 @@ public class CancelSessionCommand extends Command {
         }
         NextSession cancelledSession = target.getNextSession().orElseThrow(() ->
                 new CommandException(String.format(MESSAGE_NO_SESSION, target.getName())));
-        model.setPerson(target, target.withNextSession(null));
+        boolean wasShown = model.getFilteredPersonList().contains(target);
+        Person cancelled = target.withNextSession(null);
+        model.setPerson(target, cancelled);
         // Keep date/search filters: a cancelled client should disappear from a session-date view.
         model.updateFilteredPersonList(model.getFilteredPersonListPredicate());
-        return new CommandResult(String.format(MESSAGE_SUCCESS, cancelledSession, target.getName()),
-                false, false, true);
+        String message = String.format(MESSAGE_SUCCESS, cancelledSession, target.getName());
+        // Index numbers below the cancelled client have shifted, so a repeated index would hit someone else.
+        if (wasShown && !model.getFilteredPersonList().contains(cancelled)) {
+            message += String.format(MESSAGE_CLIENTS_SHIFTED, target.getName());
+        }
+        return new CommandResult(message, false, false, true);
     }
 
     @Override

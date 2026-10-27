@@ -375,6 +375,8 @@ Names use the booking command's case-insensitive, whitespace-normalized matching
 This lets a trainer cancel a known client's booking even after indices change or a filter hides the client,
 while preserving the current filter. Mixed identifiers, empty names and slashes are rejected during parsing.
 It rejects an invalid index or a client without a recorded session before changing the model.
+When the cancelled client drops out of the displayed list (e.g. in a `sessions` date view), the success message adds
+a note that the clients below have moved up one place, since a repeated index would now refer to a different client.
 
 The following partial model diagram shows the session field, the date predicate and the progress data that must survive
 cancellation. Contact fields are omitted to keep the diagram focused.
