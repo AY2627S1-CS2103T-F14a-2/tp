@@ -64,6 +64,14 @@ public class PerformanceCommandParserTest {
     }
 
     @Test
+    public void parse_exerciseWithSymbols_success() {
+        GymPerformance cleanAndJerk = new GymPerformance(LocalDate.of(2026, 9, 18), new ExerciseName("Clean & Jerk"),
+                3, 8, new Load("60"));
+        assertParseSuccess(parser, "1" + DATE + " e/Clean & Jerk" + SETS + REPS + LOAD,
+                new PerformanceCommand(INDEX_FIRST_PERSON, cleanAndJerk));
+    }
+
+    @Test
     public void parse_missingOrRepeatedPart_failure() {
         String expectedMessage = PerformanceCommand.MESSAGE_INVALID_FORMAT;
 

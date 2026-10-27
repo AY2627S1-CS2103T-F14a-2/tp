@@ -316,7 +316,9 @@ other progress data are omitted.
 Each `Person` owns one immutable `PerformanceHistory`, which keeps the records in the order they were recorded and
 never holds two records for the same exercise on the same date. Exercise names are compared through
 `ExerciseName#equals`, which ignores letter case, repeated spaces and the difference between straight (`'`) and curly
-(`’`) apostrophes, so a name pasted from formatted text does not split a client's history. `PerformanceCommand` calls
+(`’`) apostrophes, so a name pasted from formatted text does not split a client's history. Names may also contain
+`&`, `+` and `.` (e.g. `Clean & Jerk`), but not `/`, which would let text such as ` w/` inside a name be tokenized as
+another prefix. `PerformanceCommand` calls
 `Person#withGymPerformance`, which replaces any record for the same exercise and date. `DeletePerformanceCommand`
 finds the record through `PerformanceHistory#find` and calls `Person#withoutGymPerformance`; a missing record raises a
 `CommandException` before any state changes. Either way, the command replaces the client through `Model#setPerson`,

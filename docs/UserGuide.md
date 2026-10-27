@@ -348,7 +348,7 @@ Parameter | Accepted values
 ----------|----------------
 `INDEX` | A positive integer from the displayed client list, e.g. `1`.
 `DATE` | A real date in `yyyy-MM-dd` format, e.g. `2026-09-18`. It can be today or in the past, but not in the future.
-`EXERCISE` | 1 to 50 characters: English letters (A–Z), digits (0–9), spaces, hyphens (`-`), apostrophes (`'` or `’`) and parentheses (`(` and `)`), for example `Row (Cable)`. Accented and non-English letters, such as `é`, are not accepted. Parentheses do not need to be paired. It must contain at least one letter or digit. Extra spaces are ignored, and letter case and the apostrophe style do not matter when checking for an existing record, so `bench press` and `Bench Press` are the same exercise, and so are `Farmer's Walk` and `Farmer’s Walk`. The same rules apply when deleting a record or loading stored exercise names.
+`EXERCISE` | 1 to 50 characters: English letters (A–Z), digits (0–9), spaces, hyphens (`-`), apostrophes (`'` or `’`), parentheses (`(` and `)`), ampersands (`&`), plus signs (`+`) and full stops (`.`), for example `Row (Cable)`, `Clean & Jerk` or `1.5 Rep Squat`. Slashes (`/`) are not accepted, because Spotter would read text such as ` w/` as another prefix. Accented and non-English letters, such as `é`, are not accepted. Parentheses do not need to be paired. It must contain at least one letter or digit. Extra spaces are ignored, and letter case and the apostrophe style do not matter when checking for an existing record, so `bench press` and `Bench Press` are the same exercise, and so are `Farmer's Walk` and `Farmer’s Walk`. The same rules apply when deleting a record or loading stored exercise names.
 `SETS` | A whole number from 1 to 100.
 `REPS` | The repetitions per set, as a whole number from 1 to 1000.
 `LOAD` | The load in kg, from 0 to 1000, with at most two decimal places. Use `0` for bodyweight exercises. Do not type the unit.
@@ -372,7 +372,7 @@ A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invali
 `DATE` is not in `yyyy-MM-dd` format, or its month or day is out of range, e.g. `2026-13-01` | `The date must use the format yyyy-MM-dd.`
 `DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
 `DATE` is in the future | `The performance date cannot be in the future.`
-`EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only English letters (A-Z), digits (0-9), spaces, hyphens, apostrophes, and parentheses.`
+`EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only English letters (A-Z), digits (0-9), spaces, hyphens, apostrophes, parentheses, and the symbols & + .`
 `SETS` is invalid | `The number of sets must be a whole number between 1 and 100.`
 `REPS` is invalid | `The number of repetitions must be a whole number between 1 and 1000.`
 `LOAD` is not a number | `Exercise load must be numeric.`
@@ -411,7 +411,7 @@ A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invali
 `INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
 `DATE` is not in `yyyy-MM-dd` format, or its month or day is out of range, e.g. `2026-13-01` | `The date must use the format yyyy-MM-dd.`
 `DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
-`EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only English letters (A-Z), digits (0-9), spaces, hyphens, apostrophes, and parentheses.`
+`EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only English letters (A-Z), digits (0-9), spaces, hyphens, apostrophes, parentheses, and the symbols & + .`
 The client has no record for that exercise on that date | `No performance record for <exercise> on <date> was found for <client name>.`
 
 ### Viewing a client's history: `view`

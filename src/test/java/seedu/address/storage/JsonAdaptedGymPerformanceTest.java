@@ -31,6 +31,13 @@ public class JsonAdaptedGymPerformanceTest {
     }
 
     @Test
+    public void toModelType_exerciseWithSymbols_keepsName() throws Exception {
+        JsonAdaptedGymPerformance performance = new JsonAdaptedGymPerformance(VALID_DATE, "Clean & Jerk",
+                VALID_SETS, VALID_REPS, VALID_LOAD);
+        assertEquals("Clean & Jerk", performance.toModelType().getExerciseName().value);
+    }
+
+    @Test
     public void toModelType_futureDate_returnsGymPerformance() throws Exception {
         // Stored records must stay loadable, so the future-date rule only applies to new input
         JsonAdaptedGymPerformance performance = new JsonAdaptedGymPerformance("2999-01-01", VALID_EXERCISE,

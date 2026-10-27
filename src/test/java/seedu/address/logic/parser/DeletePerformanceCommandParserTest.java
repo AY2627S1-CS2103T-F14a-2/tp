@@ -40,6 +40,13 @@ public class DeletePerformanceCommandParserTest {
     }
 
     @Test
+    public void parse_exerciseWithSymbols_success() {
+        ExerciseName exerciseName = new ExerciseName("DB Press (Incline) & Fly");
+        assertParseSuccess(parser, "1" + DATE + " e/DB Press (Incline) & Fly",
+                new DeletePerformanceCommand(INDEX_FIRST_PERSON, RECORD_DATE, exerciseName));
+    }
+
+    @Test
     public void parse_futureDate_success() {
         // a future-dated record may have been loaded from an edited data file
         LocalDate tomorrow = LocalDate.now().plusDays(1);
