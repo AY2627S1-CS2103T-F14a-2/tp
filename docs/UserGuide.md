@@ -210,8 +210,6 @@ Examples:
 | An empty tag, e.g. `filter t/` or `filter t/rehab t/` | `Tags to filter by cannot be empty.` followed by the expected format |
 | A tag that is not alphanumeric, e.g. `filter t/re-hab` or `filter t/best friends` | `Tag names should be alphanumeric` followed by the expected format |
 
-<!-- AI assistance: Helen used OpenAI Codex to draft the filter documentation and update UG terminology and the command summary. -->
-
 ### Deleting a client: `delete`
 
 Deletes the specified client, and all of their records, from Spotter.
@@ -286,8 +284,6 @@ Parsing errors and invalid client indexes also show the expected command format.
 
 If saving fails, Spotter displays `Unable to save Spotter data` and restores the previous client records
 and displayed list. The failed measurement is not retained in memory.
-
-<!-- AI assistance: OpenAI Codex helped draft the measurement command documentation. -->
 
 ### Deleting a body measurement: `deletemeasure`
 
@@ -477,8 +473,6 @@ Problem | Message
 `INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
 
 If a command fails, the panel keeps showing the client as they were before that command.
-
-<!-- AI assistance: Claude Code helped draft the view command documentation. -->
 
 ### Clearing all entries: `clear`
 
