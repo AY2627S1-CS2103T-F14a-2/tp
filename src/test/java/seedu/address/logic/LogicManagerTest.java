@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.ListCommand;
@@ -71,6 +72,28 @@ public class LogicManagerTest {
     public void execute_invalidCommandFormat_throwsParseException() {
         String invalidCommand = "uicfhmowqewca";
         assertParseException(invalidCommand, MESSAGE_UNKNOWN_COMMAND);
+    }
+
+    @Test
+    public void execute_clearWithArguments_preservesClientsFilterViewedClientAndStoredData() throws Exception {
+        model.addPerson(ALICE);
+        model.addPerson(BENSON);
+        model.updateFilteredPersonList(person -> person.isSamePerson(BENSON));
+        model.setViewedPerson(ALICE);
+        Path file = temporaryFolder.resolve("addressBook.json");
+        new JsonAddressBookStorage(file).saveAddressBook(model.getAddressBook());
+        String savedData = Files.readString(file);
+        AddressBook before = new AddressBook(model.getAddressBook());
+
+        for (String argument : List.of("1", "all", "n/Alice")) {
+            assertThrows(ParseException.class, ClearCommand.MESSAGE_EXTRA_PARAMETERS, () -> {
+                logic.execute("clear " + argument);
+            });
+            assertEquals(before, model.getAddressBook());
+            assertEquals(List.of(BENSON), model.getFilteredPersonList());
+            assertEquals(ALICE, model.getViewedPerson().getValue());
+            assertEquals(savedData, Files.readString(file));
+        }
     }
 
     @Test

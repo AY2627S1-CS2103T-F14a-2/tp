@@ -23,7 +23,7 @@
   and release preparation. For v1.5, Gabriel used Codex for cancellation by full name, rescheduling feedback,
   refreshing session order after commands, exact-time clash warnings, and the related tests and documentation.
 * Gabriel Wan used OpenAI Codex to assist with the v1.5 UI polish: adaptive feedback sizing, card spacing and
-  styling, separate history sections, GUI tests, documentation and screenshots.
+  styling, separate history sections, GUI tests, documentation, screenshots and alpha-test fixes.
 * Gabriel Wan used OpenAI Codex to fix application file locations for issue #98, including JAR-home detection,
   logging fallback, packaged-JVM regression tests and the related documentation.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #64 changes (the `list` command messages, undoing changes when saving fails, the damaged data file warning, the client card phone and email rows, and the related tests and User Guide wording) on 2026-10-15. The changes were reviewed and tested by the author.
@@ -1067,6 +1067,14 @@ testers are expected to do more *exploratory* testing.
       Expected: Both routes restore the existing Help window and bring it forward.
 
 1. _{ more test cases … }_
+
+### Clearing all clients
+
+1. In a disposable dataset with at least two clients and a saved data file, filter to one client and view their history.
+2. Enter `clear 1`, `clear all`, then `clear n/Alice`.
+   Expected: Each input reports that `clear` takes no parameters. Clients, the active filter, the history panel
+   and the data file are unchanged, including after restarting.
+3. Enter `clear` without parameters. Expected: All clients and their records are removed and remain absent after restart.
 
 ### Launching from another directory
 
