@@ -78,11 +78,10 @@ public class FilterCommand extends Command {
         }
 
         // instanceof handles nulls
-        if (!(other instanceof FilterCommand)) {
+        if (!(other instanceof FilterCommand otherFilterCommand)) {
             return false;
         }
 
-        FilterCommand otherFilterCommand = (FilterCommand) other;
         return predicate.equals(otherFilterCommand.predicate);
     }
 

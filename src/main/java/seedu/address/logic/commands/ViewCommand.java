@@ -41,18 +41,18 @@ public class ViewCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        List<Person> lastShownList = model.getFilteredPersonList();
+        List<Person> displayedClients = model.getFilteredPersonList();
 
-        if (targetIndex.getZeroBased() >= lastShownList.size()) {
+        if (targetIndex.getZeroBased() >= displayedClients.size()) {
             throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         }
-        assert targetIndex.getZeroBased() >= 0 && targetIndex.getZeroBased() < lastShownList.size();
+        assert targetIndex.getZeroBased() >= 0 && targetIndex.getZeroBased() < displayedClients.size();
 
         // Logs only the index, as client details do not belong in log files.
         logger.fine("Viewing client at displayed index " + targetIndex.getOneBased());
-        Person personToView = lastShownList.get(targetIndex.getZeroBased());
-        model.setViewedPerson(personToView);
-        return new CommandResult(String.format(MESSAGE_VIEW_SUCCESS, personToView.getName().fullName));
+        Person clientToView = displayedClients.get(targetIndex.getZeroBased());
+        model.setViewedPerson(clientToView);
+        return new CommandResult(String.format(MESSAGE_VIEW_SUCCESS, clientToView.getName().fullName));
     }
 
     @Override

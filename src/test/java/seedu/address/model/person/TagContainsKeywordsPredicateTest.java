@@ -39,7 +39,7 @@ public class TagContainsKeywordsPredicateTest {
     }
 
     @Test
-    public void test_personHasMatchingTag_returnsTrue() {
+    public void test_clientHasMatchingTag_returnsTrue() {
         // One keyword
         TagContainsKeywordsPredicate predicate = new TagContainsKeywordsPredicate(List.of("rehab"));
         assertTrue(predicate.test(new PersonBuilder().withTags("rehab").build()));
@@ -52,13 +52,13 @@ public class TagContainsKeywordsPredicateTest {
         predicate = new TagContainsKeywordsPredicate(List.of("rEhAb"));
         assertTrue(predicate.test(new PersonBuilder().withTags("Rehab").build()));
 
-        // Person has multiple tags, only one matches
+        // Client has multiple tags, only one matches
         predicate = new TagContainsKeywordsPredicate(List.of("rehab"));
         assertTrue(predicate.test(new PersonBuilder().withTags("strength", "rehab").build()));
     }
 
     @Test
-    public void test_personHasNoMatchingTag_returnsFalse() {
+    public void test_clientHasNoMatchingTag_returnsFalse() {
         // Zero keywords
         TagContainsKeywordsPredicate predicate = new TagContainsKeywordsPredicate(Collections.emptyList());
         assertFalse(predicate.test(new PersonBuilder().withTags("rehab").build()));
@@ -71,7 +71,7 @@ public class TagContainsKeywordsPredicateTest {
         predicate = new TagContainsKeywordsPredicate(List.of("reh"));
         assertFalse(predicate.test(new PersonBuilder().withTags("rehab").build()));
 
-        // Person has no tags
+        // Client has no tags
         predicate = new TagContainsKeywordsPredicate(List.of("rehab"));
         assertFalse(predicate.test(new PersonBuilder().withTags().build()));
 

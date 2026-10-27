@@ -9,14 +9,14 @@ import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.tag.Tag;
 
 /**
- * Tests that a {@code Person} has at least one tag matching any of the given keywords.
+ * Tests that a client ({@code Person}) has at least one tag matching any of the given keywords.
  * Matching is case-insensitive and requires the whole tag name to match.
  */
 public class TagContainsKeywordsPredicate implements Predicate<Person> {
     private final List<String> keywords;
 
     /**
-     * Creates a predicate that matches persons having any of the given tag keywords.
+     * Creates a predicate that matches clients having any of the given tag keywords.
      */
     public TagContainsKeywordsPredicate(List<String> keywords) {
         requireNonNull(keywords);
