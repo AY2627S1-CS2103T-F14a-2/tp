@@ -91,11 +91,11 @@ public class DeletePerformanceCommandParserTest {
 
     @Test
     public void parse_invalidExercise_failure() {
+        // the name rules themselves are covered by ExerciseNameTest
         String expectedMessage = withUsage(ExerciseName.MESSAGE_CONSTRAINTS);
 
         assertParseFailure(parser, "1" + DATE + " e/", expectedMessage); // empty
         assertParseFailure(parser, "1" + DATE + " e/Bench@Press", expectedMessage); // unsupported character
-        assertParseFailure(parser, "1" + DATE + " e/" + "a".repeat(51), expectedMessage); // too long
     }
 
     private static String withUsage(String message) {
