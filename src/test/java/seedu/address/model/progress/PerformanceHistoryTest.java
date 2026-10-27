@@ -161,6 +161,20 @@ public class PerformanceHistoryTest {
     }
 
     @Test
+    public void withRecord_apostropheVariantWithParentheses_replacesAndDeletes() {
+        GymPerformance straight = performance(DAY_ONE, "Farmer's Walk (Cable)", 3, 8, "60");
+        GymPerformance curly = performance(DAY_ONE, "Farmer’s Walk (Cable)", 3, 8, "65");
+        GymPerformance unlabelled = performance(DAY_ONE, "Farmer's Walk", 3, 8, "70");
+
+        PerformanceHistory updatedHistory = new PerformanceHistory(List.of(straight, unlabelled)).withRecord(curly);
+
+        // the curly-apostrophe record replaces the straight one, but not the record without the label
+        assertEquals(List.of(unlabelled, curly), updatedHistory.asUnmodifiableList());
+        assertEquals(Optional.of(curly), updatedHistory.find(DAY_ONE, new ExerciseName("farmer's walk (cable)")));
+        assertEquals(new PerformanceHistory(List.of(unlabelled)), updatedHistory.withoutRecord(straight));
+    }
+
+    @Test
     public void getLatest() {
         // empty history
         assertEquals(Optional.empty(), new PerformanceHistory().getLatest());
