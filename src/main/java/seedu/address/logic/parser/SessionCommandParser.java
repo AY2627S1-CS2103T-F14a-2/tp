@@ -7,7 +7,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_TIME;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.SessionCommand;
@@ -34,16 +33,18 @@ public class SessionCommandParser implements Parser<SessionCommand> {
         if ((byName && !arguments.getPreamble().isEmpty()) || (!byName && arguments.getPreamble().isEmpty())) {
             throw new ParseException(SessionCommand.MESSAGE_INVALID_FORMAT);
         }
-        String name = null;
-        Index index = null;
         if (byName) {
-            name = ParserUtil.parseSessionClientName(arguments.getValue(PREFIX_NAME).orElseThrow());
-        } else {
-            index = ParserUtil.parseClientIndex(arguments.getPreamble(), SessionCommand.MESSAGE_INVALID_FORMAT);
+            String name = ParserUtil.parseSessionClientName(arguments.getValue(PREFIX_NAME).orElseThrow());
+            return new SessionCommand(name, parseNextSession(arguments));
         }
+        Index index = ParserUtil.parseClientIndex(arguments.getPreamble(), SessionCommand.MESSAGE_INVALID_FORMAT);
+        return new SessionCommand(index, parseNextSession(arguments));
+    }
+
+    /** Builds the stored, minute-precision session after validating its calendar date and time. */
+    private NextSession parseNextSession(ArgumentMultimap arguments) throws ParseException {
         LocalDate date = ParserUtil.parseCalendarDate(arguments.getValue(PREFIX_DATE).orElseThrow());
         LocalTime time = ParserUtil.parseSessionTime(arguments.getValue(PREFIX_TIME).orElseThrow());
-        NextSession session = new NextSession(date + " " + time.format(DateTimeFormatter.ofPattern("HH:mm")));
-        return byName ? new SessionCommand(name, session) : new SessionCommand(index, session);
+        return new NextSession(date + " " + time);
     }
 }
