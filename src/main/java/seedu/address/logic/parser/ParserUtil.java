@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -39,16 +40,16 @@ public class ParserUtil {
     public static final String MESSAGE_SESSION_DATE_FORMAT =
             "Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).";
     public static final String MESSAGE_INVALID_SESSION_DATE = "Date must be a valid calendar date.";
-    public static final String MESSAGE_PAST_SESSION_DATE = "Date cannot be in the past.";
-    public static final String MESSAGE_INVALID_SESSION_TIME = "Time must be a valid time in HHMM or HH:MM format.";
+    public static final String MESSAGE_INVALID_SESSION_TIME =
+            "Time must be a 24-hour time such as 930, 0930, 9:30 or 19:00.";
 
     // Groups of digits separated by one or more spaces, e.g. "9927 2758" as shown on the client card
     private static final String SPACED_DIGITS_REGEX = "\\d+( +\\d+)+";
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("uuuu-MM-dd")
             .withResolverStyle(ResolverStyle.STRICT);
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm")
-            .withResolverStyle(ResolverStyle.STRICT);
+    // One- or two-digit hour, optional colon, two-digit minute, e.g. 930, 0930, 9:30, 19:00.
+    private static final Pattern TIME_PATTERN = Pattern.compile("(\\d{1,2}):?(\\d{2})");
 
     private static final Pattern PREFIX_PATTERN = Pattern.compile("(?:^|\\s)([^\\s/]+/)");
 
@@ -80,19 +81,8 @@ public class ParserUtil {
     }
 
     /**
-     * Parses a session date, allowing today but rejecting past dates.
-     */
-    public static LocalDate parseSessionDate(String date) throws ParseException {
-        LocalDate parsed = parseCalendarDate(date);
-        if (parsed.isBefore(LocalDate.now())) {
-            throw new ParseException(MESSAGE_PAST_SESSION_DATE);
-        }
-        return parsed;
-    }
-
-    /**
-     * Parses a real YYYY-MM-DD date in years 0001-9999 without restricting it relative to today.
-     * Booking commands separately reject past dates; date filters may inspect retained past bookings.
+     * Parses a real YYYY-MM-DD date in years 0001-9999 without restricting it relative to today,
+     * so past sessions can be recorded and retained past bookings can be listed.
      */
     public static LocalDate parseCalendarDate(String date) throws ParseException {
         requireNonNull(date);
@@ -113,18 +103,17 @@ public class ParserUtil {
     }
 
     /**
-     * Parses a strict 24-hour time in HHMM or HH:MM format.
+     * Parses a 24-hour time in HMM, HHMM, H:MM or HH:MM format.
      */
     public static LocalTime parseSessionTime(String time) throws ParseException {
         requireNonNull(time);
-        String trimmed = time.trim();
-        if (!trimmed.matches("[0-9]{2}:?[0-9]{2}")) {
+        Matcher matcher = TIME_PATTERN.matcher(time.trim());
+        if (!matcher.matches()) {
             throw new ParseException(MESSAGE_INVALID_SESSION_TIME);
         }
-        String normalized = trimmed.length() == 4 ? trimmed.substring(0, 2) + ":" + trimmed.substring(2) : trimmed;
         try {
-            return LocalTime.parse(normalized, TIME_FORMATTER);
-        } catch (DateTimeParseException exception) {
+            return LocalTime.of(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2)));
+        } catch (DateTimeException exception) {
             throw new ParseException(MESSAGE_INVALID_SESSION_TIME);
         }
     }

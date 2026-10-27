@@ -498,12 +498,13 @@ Format: `session INDEX d/DATE t/TIME` or `session n/NAME d/DATE t/TIME`
 * `INDEX` is the positive number shown on the **current displayed list**, including a filtered list.
 * `NAME` must match a client's full name. Matching ignores case, leading/trailing whitespace, and repeated
   internal spaces. Names cannot be empty or contain `/`.
-* `DATE` must be a real date in `YYYY-MM-DD` format, such as `2026-12-15`, and cannot be before the current
-  system date. Today is accepted even if the specified time has passed.
-* `TIME` must use 24-hour `HHMM` or `HH:MM`, such as `1900` or `19:00`. Midnight is `0000`; `2400` is invalid.
+* `DATE` must be a real date in `YYYY-MM-DD` format, such as `2026-12-15`. A past date or time is accepted, so you
+  can record a session late; the message then adds `Note: this session is in the past, so it shows as "- (none upcoming)".`
+* `TIME` is a 24-hour time with an optional colon and a one- or two-digit hour, such as `930`, `0930`, `9:30` or
+  `19:00`. Midnight is `0000`; `2400` is invalid.
 * Supply exactly one identifier and one of each required prefix. Unknown or repeated prefixes are rejected.
 
-Examples (use today's date or a later date):
+Examples:
 
 * `session 1 d/2026-12-15 t/1900`
 * `session n/Sarah Lim d/2026-12-15 t/19:00`
@@ -544,8 +545,7 @@ Empty name | `Name cannot be empty.`
 Name containing a slash | `Name must not contain '/'.`
 Malformed date or component out of range | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`
 Impossible calendar date (e.g. 30 February) | `Date must be a valid calendar date.`
-Date before today | `Date cannot be in the past.`
-Invalid time | `Time must be a valid time in HHMM or HH:MM format.`
+Invalid time | `Time must be a 24-hour time such as 930, 0930, 9:30 or 19:00.`
 
 ### Cancelling a recorded session: `cancelsession`
 

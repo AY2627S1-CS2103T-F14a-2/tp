@@ -41,7 +41,7 @@ public class SessionCommandParser implements Parser<SessionCommand> {
         } else {
             index = ParserUtil.parseClientIndex(arguments.getPreamble(), SessionCommand.MESSAGE_INVALID_FORMAT);
         }
-        LocalDate date = ParserUtil.parseSessionDate(arguments.getValue(PREFIX_DATE).orElseThrow());
+        LocalDate date = ParserUtil.parseCalendarDate(arguments.getValue(PREFIX_DATE).orElseThrow());
         LocalTime time = ParserUtil.parseSessionTime(arguments.getValue(PREFIX_TIME).orElseThrow());
         NextSession session = new NextSession(date + " " + time.format(DateTimeFormatter.ofPattern("HH:mm")));
         return byName ? new SessionCommand(name, session) : new SessionCommand(index, session);

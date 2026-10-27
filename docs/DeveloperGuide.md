@@ -389,8 +389,8 @@ address book and the predicate captured before cancellation. This restores the b
 No constructor, JSON schema or UI-specific cancellation path is needed.
 
 `sessions d/DATE` uses `SessionsCommandParser` and `ParserUtil#parseCalendarDate` to validate one real calendar date.
-Unlike booking a session, filtering permits past dates so retained expired bookings can be found. The shared calendar
-validator preserves the existing booking errors; `parseSessionDate` adds the separate no-past-date rule for bookings.
+Booking and filtering share this validator, so both accept past dates: a late session can be recorded, and retained
+expired bookings can be found. `SessionCommand` notes a past booking in its message instead of rejecting it.
 `SessionsCommand` replaces the current predicate with `SessionOnDatePredicate` and reuses the normal session comparator.
 It returns a count or a no-matches message. As no client data changes, `LogicManager` does not save the file.
 
@@ -901,12 +901,11 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case resumes at step 3.
 
-* 3d. The given date is before the current system date.
+* 3d. The given date and time have already passed.
 
-    * 3d1. Spotter shows an error message stating that the date cannot be in the past. Today is accepted,
-      even when the supplied time has already passed.
+    * 3d1. Spotter records the session and notes that it is in the past.
 
-      Use case resumes at step 3.
+      Use case ends.
 
 * 3e. The client already has a next session.
 
