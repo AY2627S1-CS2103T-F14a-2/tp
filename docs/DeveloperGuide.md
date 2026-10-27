@@ -1042,7 +1042,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ## **Appendix: Instructions for manual testing**
 
-Given below are instructions to test the app manually.
+Given below are instructions to test the app manually. They cover every command, grouped by feature.
 
 <box type="info" seamless>
 
@@ -1050,31 +1050,117 @@ Given below are instructions to test the app manually.
 testers are expected to do more *exploratory* testing.
 </box>
 
-### Launch and shutdown
+Unless a section says otherwise:
+
+* Put a freshly built `spotter.jar` in an empty test folder and use Java 25. On first launch, Spotter shows six
+  fictional sample clients. To return to the sample data, close Spotter and delete `data/spotter.json` in that folder.
+* Use only fictional data.
+* An index refers to the currently displayed client list. Commands that change the list order or filter can change
+  which client an index refers to, so check the list before each index-based command.
+* Every rejected command leaves client data, the displayed list and the data file unchanged.
+
+### Launch, help and shutdown
 
 1. Initial launch
 
-   1. Download the JAR file and copy it into an empty folder.
-
-   1. Double-click the JAR file.<br>
-      Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
+   1. Open a terminal in the test folder and run `java -jar spotter.jar`.<br>
+      Expected: The Spotter window opens with six sample clients, starting with `Alex Yeoh`. The right side shows
+      `Upcoming sessions` with `No upcoming sessions.` The window size may not be optimal.
 
 1. Saving window preferences
 
    1. Resize the window to an optimal size. Move the window to a different location. Close the window.
 
-   1. Relaunch the app by double-clicking the JAR file.<br>
+   1. Relaunch the app.<br>
        Expected: The most recent window size and location are retained.
 
-1. Restoring the Help window
+1. Unknown commands
 
-   1. Enter `help`, minimize the Help window, return to Spotter and enter `help` again.<br>
+   1. Enter `hlep`.<br>
+      Expected: `Unknown command. Type "help" to see all commands.`
+
+1. Opening and restoring the Help window
+
+   1. Enter `help`.<br>
+      Expected: The result box shows `Opened help window.` The Help window shows the link to the Spotter User Guide
+      and a `Copy URL` button.
+
+   1. Minimize the Help window, return to Spotter and enter `help` again.<br>
       Expected: The same Help window is restored and brought forward.
 
    1. Repeat using the Help menu and `F1`, minimizing the window before each attempt.<br>
       Expected: Both routes restore the existing Help window and bring it forward.
 
-1. _{ more test cases … }_
+1. Shutdown
+
+   1. Enter `exit`.<br>
+      Expected: Spotter closes. Relaunching it shows the same clients as before.
+
+### Adding and listing clients
+
+Start from the sample data.
+
+1. Enter `add n/Sarah Lim p/9123 4567 e/sarah@example.com t/rehab`.<br>
+   Expected: `New client added: Sarah Lim; Phone: 9123 4567; Email: sarah@example.com`. Her card shows the
+   `rehab` tag and `Phone: 9123 4567`.
+1. Enter `add n/John Tan p/88776655`.<br>
+   Expected: `New client added: John Tan; Phone: 8877 6655`. His card shows `Email: -`.
+1. Enter `add n/sarah  lim p/99998888`.<br>
+   Expected: `This client already exists in Spotter.` Names are compared ignoring case and extra spaces.
+1. Enter `add n/Kim Lee p/12`, then `add n/Kim Lee`.<br>
+   Expected: An error explaining the phone-number rules, then `Invalid command format!` followed by the `add`
+   usage. No client is added.
+1. Enter `list`.<br>
+   Expected: `Listed 8 clients.`
+1. Enter `list all`.<br>
+   Expected: `"list" does not take any parameters.` followed by `Example: list`.
+
+### Editing a client
+
+Continue from the previous section.
+
+1. Enter `find sarah`, then `edit 1 p/9876 5432 t/`.<br>
+   Expected: `Edited client: Sarah Lim; Phone: 9876 5432; Email: sarah@example.com`. Her `rehab` tag is removed.
+   After a successful edit, the list shows all clients again.
+1. Enter `find sarah`, then `edit 1 e/`.<br>
+   Expected: `Edited client: Sarah Lim; Phone: 9876 5432`. Her card shows `Email: -`.
+1. Enter `find sarah`, then `edit 1` and `edit 1 n/John Tan`.<br>
+   Expected: `At least one field to edit must be provided.`, then `This client already exists in Spotter.`
+   Sarah's details are unchanged.
+
+### Finding and filtering clients
+
+Start from the sample data, or continue from the previous section.
+
+1. Enter `find alex david`.<br>
+   Expected: `Listed 2 clients.` The list shows `Alex Yeoh` and `David Li`.
+1. Enter `find ALEX`, then `find Ale`.<br>
+   Expected: `Listed 1 client.`, then `No clients found.` with an empty list, as only whole words match.
+1. Enter `filter t/friends`, then `filter t/FAMILY t/neighbours`.<br>
+   Expected: `Listed 2 clients.` each time: first `Alex Yeoh` and `Bernice Yu`, then `Charlotte Oliveiro` and
+   `David Li`.
+1. Enter `filter t/re-hab`, `filter t/` and `filter friends`.<br>
+   Expected: `Tag names should be alphanumeric`, `Tags to filter by cannot be empty.` and
+   `Invalid command format!`, each followed by the `filter` usage. The displayed list does not change.
+1. Enter `list`.<br>
+   Expected: All clients are shown again.
+
+### Deleting a client
+
+Start from the sample data.
+
+1. Enter `find irfan david`, then `delete 2`.<br>
+   Expected: `Deleted client: Irfan Ibrahim; Phone: 9249 2021; Email: irfan@example.com`. The search stays active,
+   so the list now shows only `David Li`.
+1. Enter `delete 0`, `delete 99` and `delete`.<br>
+   Expected: `The client index provided is invalid.` twice, then `Invalid command format!` followed by the
+   `delete` usage. No client is deleted.
+1. Deleting a client also removes their session and records. Step 8 of
+   [Upcoming sessions and viewing a client's history](#upcoming-sessions-and-viewing-a-client-s-history) checks this
+   for a client with a booking.
+
+<!-- AI assistance: Claude Code helped reorganise this appendix and draft the launch, help, client-management,
+past-booking and invalid-time tests; their expected results were checked against the running app. -->
 
 ### Clearing all clients
 
@@ -1084,39 +1170,83 @@ testers are expected to do more *exploratory* testing.
    and the data file are unchanged, including after restarting.
 3. Enter `clear` without parameters. Expected: All clients and their records are removed and remain absent after restart.
 
-### Launching from another directory
+### Booking, cancelling and listing sessions
 
-Use disposable folders and fictional data. Put the freshly built `spotter.jar` in an application folder such as
-`Spotter 100%`, and create two separate empty folders for launching it.
+Use a disposable folder containing the JAR and fictional data. Let `DATE` be tomorrow in `YYYY-MM-DD` format;
+replace `DATE` in every command below, and `TODAY` with today's date. Add unique test clients if the names already exist.
 
-1. Open a terminal in the first launch folder and run `java -jar "ABSOLUTE_PATH_TO_APP/spotter.jar"` using Java 25.
-   Add `add n/Storage Probe Client p/91234567`.<br>
-   Expected: The client appears and is saved. The data file, preferences and logs are inside the application folder;
-   the terminal's launch folder stays empty. The footer shows the data file's absolute path beside the JAR.
-1. Exit and launch the same JAR from the second launch folder. Run `find Storage Probe Client`.<br>
-   Expected: The saved client is found, with no files created in the second launch folder.
-1. Exit and back up the generated log files. Create a directory named `spotter.log.0` in the application folder,
-   then launch the JAR again.<br>
-   Expected: The console reports that file logging is unavailable and console logging is being used. Spotter still
-   opens and loads the saved client. No fallback log is created in the launch folder. After exiting, remove the
-   blocking directory and restore the backed-up logs before further testing.
+1. Enter `add n/SessionCancelAda p/91234567`, then `add n/SessionCancelZoe p/92345678`.
+   Book them with `session n/SessionCancelAda d/DATE t/0900` and `session n/SessionCancelZoe d/DATE t/1700`.
+1. Enter `find Nobody`, then `sessions d/DATE`.<br>
+   Expected: Both test clients are visible, Ada before Zoe, with consecutive indices. The date command searches all
+   clients, replacing the empty search. If other clients already have bookings that day, they also appear.
+1. Enter `find SessionCancelAda`, then `measure 1 d/TODAY t/weight v/72.4`.
+   Enter `find SessionCancelAda` again, then `performance 1 d/TODAY e/Squat s/3 r/5 w/100`.
+   Re-enter `sessions d/DATE` and note Ada's current index `INDEX` before continuing.
+1. Enter `cancelsession INDEX` for Ada.<br>
+   Expected: `Cancelled session on DATE 09:00 for SessionCancelAda. SessionCancelAda is no longer shown here; clients
+   below have moved up one place.` (with tomorrow's date). Ada disappears from the date view; Zoe remains.
+   Enter `list` and locate Ada. The card shows `Next session: - (none booked)` while both progress rows remain populated.
+   Close and restart Spotter. Ada remains unbooked and the contact/progress data are unchanged.
+1. Enter `find SessionCancelAda`, then try `cancelsession 1`.<br>
+   Expected: `No session is recorded for SessionCancelAda.` No client data or displayed results change.
+1. Enter `find SessionCancelAda`, then `cancelsession n/sessioncancelzoe`.<br>
+   Expected: Zoe's session is cancelled even though only Ada is displayed. The filter still shows Ada,
+   and Zoe's other data are preserved. Repeat the command: `No session is recorded for SessionCancelZoe.`
+   Try `cancelsession n/Unknown`: the unknown-name error is shown and nothing changes.
+1. Try `cancelsession 0`, `cancelsession 999999`, `cancelsession 1 2`, `sessions d/2026-02-30`,
+   `sessions d/DATE d/DATE` and `sessions d/DATE x/foo`.<br>
+   Expected: Invalid index, format or calendar errors, with no changes to clients, the current filter or saved data.
+1. Enter `sessions d/0001-01-01` in this test dataset.<br>
+   Expected: `No sessions recorded on 0001-01-01.` and an empty panel. `list` restores all clients.
+1. For a save-failure test, first book Ada again and display `sessions d/DATE`.
+   While Spotter is running, move `data/spotter.json` to a backup and create a directory named `data/spotter.json`.
+   Cancel Ada's current displayed index.<br>
+   Expected: `Unable to save Spotter data.` The booking and date-filtered list are restored with all progress intact.
+   Close Spotter, remove the empty blocking directory and restore the backup file before further testing.
+1. Book Ada at `session n/SessionCancelAda d/DATE t/0900`, then change it to
+   `session n/SessionCancelAda d/DATE t/1000`.<br>
+   Expected: The rescheduling message includes the old `09:00` and new `10:00` bookings. The full list scrolls
+   to the top. Repeat the second command: Spotter reports that the booking is already recorded.
+1. Keep Spotter open across a session's start time, then run `help`.<br>
+   Expected: Expired cards show `- (none upcoming)` and sort after future bookings. For an index-based command
+   entered before this refresh, the client shown at that index receives the change before the list is reordered.
+1. Book both Ada and Zoe for `DATE` at `1000`, using their full names.<br>
+   Expected: The second booking succeeds with a warning naming the other client. Both remain in `sessions d/DATE`.
+   Run `find SessionCancelAda`, then book Ada at `1000` again: the warning still names Zoe outside the filter.
+   Move Ada to `1001`: the warning disappears, because only exact start times are compared.
+1. Enter `add n/SessionPastEve p/93456789`, then `session n/SessionPastEve d/2020-01-01 t/0900`.<br>
+   Expected: `Recorded next session for SessionPastEve on 2020-01-01 at 09:00`, followed by
+   `Note: this session is in the past, so it shows as "- (none upcoming)".` The booking is kept, and Eve's card
+   shows `Next session: - (none upcoming)`. `sessions d/2020-01-01` lists Eve.
+1. Enter `session n/SessionPastEve d/DATE t/2400`.<br>
+   Expected: `Time must be a 24-hour time such as 930, 0930, 9:30 or 19:00.` Eve's booking is unchanged.
 
-### Deleting a person
+### Upcoming sessions and viewing a client's history
 
-1. Deleting a person while all persons are being shown
+Start from the sample data, which has no bookings. Booking a session moves that client to the top of the client
+list, so the indices below follow the list as it changes.
 
-   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
-
-   1. Test case: `delete 1`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
-
-   1. Test case: `delete 0`<br>
-      Expected: No person is deleted. The status message shows error details.
-
-   1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
-      Expected: Similar to previous.
-
-1. _{ more test cases … }_
+1. Launch Spotter.<br>
+   Expected: The right side shows `Upcoming sessions` with `No upcoming sessions.` and how to book one.
+1. Enter `session 1 d/2099-12-01 t/1800`, then `session 2 d/2099-11-30 t/0900`.<br>
+   Expected: Two cards appear, with the 30 Nov session above the 1 Dec one. The client list shows the same
+   two clients at indices 1 and 2.
+1. Enter `view 1`.<br>
+   Expected: The result box shows `Showing details and history of <name>.` The right side shows that client's
+   details and history instead of Upcoming sessions.
+1. Enter `measure 1 d/2026-10-20 t/weight v/70.5`.<br>
+   Expected: Without running `view` again, the history lists `2026-10-20  weight 70.5 kg` under `Measurements`.
+1. Enter `find zzz`.<br>
+   Expected: The client list is empty, but the history is still shown.
+1. Enter `list`.<br>
+   Expected: Upcoming sessions is back, and the 30 Nov card shows the new measurement as its latest.
+1. Enter `cancelsession 1`.<br>
+   Expected: The 30 Nov card disappears; the 1 Dec card remains.
+1. Enter `view 1`, then `delete 1`.<br>
+   Expected: Upcoming sessions is back and shows `No upcoming sessions.`
+1. Enter `view 0`.<br>
+   Expected: `The client index provided is invalid.` The right side does not change.
 
 ### Recording body measurements
 
@@ -1242,78 +1372,6 @@ run `list` and substitute that client's displayed index for `1` below. `NAME` is
 
 <!-- AI assistance: Claude (Anthropic) helped draft these gym-performance manual tests. -->
 
-### Cancelling and listing sessions
-
-Use a disposable folder containing the JAR and fictional data. Let `DATE` be tomorrow in `YYYY-MM-DD` format;
-replace `DATE` in every command below, and `TODAY` with today's date. Add unique test clients if the names already exist.
-
-1. Enter `add n/SessionCancelAda p/91234567`, then `add n/SessionCancelZoe p/92345678`.
-   Book them with `session n/SessionCancelAda d/DATE t/0900` and `session n/SessionCancelZoe d/DATE t/1700`.
-1. Enter `find Nobody`, then `sessions d/DATE`.<br>
-   Expected: Both test clients are visible, Ada before Zoe, with consecutive indices. The date command searches all
-   clients, replacing the empty search. If other clients already have bookings that day, they also appear.
-1. Enter `find SessionCancelAda`, then `measure 1 d/TODAY t/weight v/72.4`.
-   Enter `find SessionCancelAda` again, then `performance 1 d/TODAY e/Squat s/3 r/5 w/100`.
-   Re-enter `sessions d/DATE` and note Ada's current index `INDEX` before continuing.
-1. Enter `cancelsession INDEX` for Ada.<br>
-   Expected: `Cancelled session on DATE 09:00 for SessionCancelAda.` (with tomorrow's date).
-   Ada disappears from the date view; Zoe remains.
-   Enter `list` and locate Ada. The card shows `Next session: - (none booked)` while both progress rows remain populated.
-   Close and restart Spotter. Ada remains unbooked and the contact/progress data are unchanged.
-1. Enter `find SessionCancelAda`, then try `cancelsession 1`.<br>
-   Expected: `No session is recorded for SessionCancelAda.` No client data or displayed results change.
-1. Enter `find SessionCancelAda`, then `cancelsession n/sessioncancelzoe`.<br>
-   Expected: Zoe's session is cancelled even though only Ada is displayed. The filter still shows Ada,
-   and Zoe's other data are preserved. Repeat the command: `No session is recorded for SessionCancelZoe.`
-   Try `cancelsession n/Unknown`: the unknown-name error is shown and nothing changes.
-1. Try `cancelsession 0`, `cancelsession 999999`, `cancelsession 1 2`, `sessions d/2026-02-30`,
-   `sessions d/DATE d/DATE` and `sessions d/DATE x/foo`.<br>
-   Expected: Invalid index, format or calendar errors, with no changes to clients, the current filter or saved data.
-1. Enter `sessions d/0001-01-01` in this test dataset.<br>
-   Expected: `No sessions recorded on 0001-01-01.` and an empty panel. `list` restores all clients.
-1. For a save-failure test, first book Ada again and display `sessions d/DATE`.
-   While Spotter is running, move `data/spotter.json` to a backup and create a directory named `data/spotter.json`.
-   Cancel Ada's current displayed index.<br>
-   Expected: `Unable to save Spotter data.` The booking and date-filtered list are restored with all progress intact.
-   Close Spotter, remove the empty blocking directory and restore the backup file before further testing.
-1. Book Ada at `session n/SessionCancelAda d/DATE t/0900`, then change it to
-   `session n/SessionCancelAda d/DATE t/1000`.<br>
-   Expected: The rescheduling message includes the old `09:00` and new `10:00` bookings. The full list scrolls
-   to the top. Repeat the second command: Spotter reports that the booking is already recorded.
-1. Keep Spotter open across a session's start time, then run `help`.<br>
-   Expected: Expired cards show `- (none upcoming)` and sort after future bookings. For an index-based command
-   entered before this refresh, the client shown at that index receives the change before the list is reordered.
-1. Book both Ada and Zoe for `DATE` at `1000`, using their full names.<br>
-   Expected: The second booking succeeds with a warning naming the other client. Both remain in `sessions d/DATE`.
-   Run `find SessionCancelAda`, then book Ada at `1000` again: the warning still names Zoe outside the filter.
-   Move Ada to `1001`: the warning disappears, because only exact start times are compared.
-
-### Upcoming sessions and viewing a client's history
-
-Start from the sample data, which has no bookings. Booking a session moves that client to the top of the client
-list, so the indices below follow the list as it changes.
-
-1. Launch Spotter.<br>
-   Expected: The right side shows `Upcoming sessions` with `No upcoming sessions.` and how to book one.
-1. Enter `session 1 d/2099-12-01 t/1800`, then `session 2 d/2099-11-30 t/0900`.<br>
-   Expected: Two cards appear, with the 30 Nov session above the 1 Dec one. The client list shows the same
-   two clients at indices 1 and 2.
-1. Enter `view 1`.<br>
-   Expected: The result box shows `Showing details and history of <name>.` The right side shows that client's
-   details and history instead of Upcoming sessions.
-1. Enter `measure 1 d/2026-10-20 t/weight v/70.5`.<br>
-   Expected: Without running `view` again, the history lists `2026-10-20  weight 70.5 kg` under `Measurements`.
-1. Enter `find zzz`.<br>
-   Expected: The client list is empty, but the history is still shown.
-1. Enter `list`.<br>
-   Expected: Upcoming sessions is back, and the 30 Nov card shows the new measurement as its latest.
-1. Enter `cancelsession 1`.<br>
-   Expected: The 30 Nov card disappears; the 1 Dec card remains.
-1. Enter `view 1`, then `delete 1`.<br>
-   Expected: Upcoming sessions is back and shows `No upcoming sessions.`
-1. Enter `view 0`.<br>
-   Expected: `The client index provided is invalid.` The right side does not change.
-
 ### UI readability and feedback sizing
 
 Use fictional clients with tags, long names and email addresses, and enough records to require scrolling.
@@ -1395,3 +1453,20 @@ command changes client data; that command overwrites it with the current records
 </box>
 
 <!-- AI assistance: OpenAI Codex helped draft storage persistence and recovery acceptance tests. -->
+
+### Launching from another directory
+
+Use disposable folders and fictional data. Put the freshly built `spotter.jar` in an application folder such as
+`Spotter 100%`, and create two separate empty folders for launching it.
+
+1. Open a terminal in the first launch folder and run `java -jar "ABSOLUTE_PATH_TO_APP/spotter.jar"` using Java 25.
+   Add `add n/Storage Probe Client p/91234567`.<br>
+   Expected: The client appears and is saved. The data file, preferences and logs are inside the application folder;
+   the terminal's launch folder stays empty. The footer shows the data file's absolute path beside the JAR.
+1. Exit and launch the same JAR from the second launch folder. Run `find Storage Probe Client`.<br>
+   Expected: The saved client is found, with no files created in the second launch folder.
+1. Exit and back up the generated log files. Create a directory named `spotter.log.0` in the application folder,
+   then launch the JAR again.<br>
+   Expected: The console reports that file logging is unavailable and console logging is being used. Spotter still
+   opens and loads the saved client. No fallback log is created in the launch folder. After exiting, remove the
+   blocking directory and restore the backed-up logs before further testing.
