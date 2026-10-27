@@ -23,10 +23,12 @@ Spotter is a **desktop application for freelance personal trainers to manage the
 1. Copy the file to the folder you want to use as the _home folder_ for Spotter.
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar spotter.jar`.<br>
-   A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample client data.<br>
+   A GUI similar to the one below should appear in a few seconds. On first launch, Spotter starts with some sample
+   clients so that you can try the commands.<br>
    ![Ui](images/Ui.png)
 
-   The screenshot includes example bookings and progress records.
+   The screenshot shows Spotter with a few clients, their next sessions, measurements and performance records,
+   and one client's history opened with `view`.
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
