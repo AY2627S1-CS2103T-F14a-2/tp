@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Name;
@@ -23,7 +24,7 @@ public class SessionCommand extends Command {
     public static final String COMMAND_WORD = "session";
     public static final String MESSAGE_USAGE = "session INDEX d/DATE t/TIME or session n/NAME d/DATE t/TIME";
     public static final String MESSAGE_INVALID_FORMAT = "Invalid command format! Use: " + MESSAGE_USAGE;
-    public static final String MESSAGE_INVALID_INDEX = "The client index provided is invalid.";
+    public static final String MESSAGE_INVALID_INDEX = Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
     public static final String MESSAGE_NO_SUCH_NAME = "No client with that name exists in Spotter.";
     public static final String MESSAGE_EMPTY_NAME = "Name cannot be empty.";
     public static final String MESSAGE_NAME_SLASH = "Name must not contain '/'.";
@@ -76,15 +77,7 @@ public class SessionCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        Person target;
-        if (index != null) {
-            if (index.getZeroBased() >= model.getFilteredPersonList().size()) {
-                throw new CommandException(MESSAGE_INVALID_INDEX);
-            }
-            target = model.getFilteredPersonList().get(index.getZeroBased());
-        } else {
-            target = findClientByName(model, name);
-        }
+        Person target = findClient(model, index, name);
         String feedback = getFeedback(target) + getClashWarning(model, target);
         model.setPerson(target, target.withNextSession(nextSession));
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
@@ -98,7 +91,6 @@ public class SessionCommand extends Command {
 
     /**
      * Identifies a replacement explicitly so a trainer can check which booking was removed.
-     * AI assistance: Gabriel used OpenAI Codex for booking feedback and regression tests.
      */
     private String getFeedback(Person target) {
         if (target.getNextSession().isEmpty()) {
@@ -112,8 +104,18 @@ public class SessionCommand extends Command {
         return String.format(MESSAGE_RESCHEDULED, target.getName(), previous, nextSession);
     }
 
-    /** Resolves the same normalized full-name identity for booking and cancellation, across filters. */
-    static Person findClientByName(Model model, String name) throws CommandException {
+    /**
+     * Resolves a displayed index or normalized full name for both booking and cancellation.
+     * Indices use the current displayed list; names search all clients regardless of its filter.
+     */
+    static Person findClient(Model model, Index index, String name) throws CommandException {
+        assert (index == null) != (name == null) : "Exactly one client identifier must be supplied";
+        if (index != null) {
+            if (index.getZeroBased() >= model.getFilteredPersonList().size()) {
+                throw new CommandException(MESSAGE_INVALID_INDEX);
+            }
+            return model.getFilteredPersonList().get(index.getZeroBased());
+        }
         return model.getAddressBook().getPersonList().stream()
                 .filter(person -> person.getName().matches(name))
                 .findFirst().orElseThrow(() -> new CommandException(MESSAGE_NO_SUCH_NAME));
