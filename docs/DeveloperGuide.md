@@ -32,7 +32,7 @@
 * Gabriel Wan used OpenAI Codex to fix application file locations for issue #98, including JAR-home detection,
   logging fallback, packaged-JVM regression tests and the related documentation.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #64 changes (the `list` command messages, undoing changes when saving fails, the damaged data file warning, the client card phone and email rows, and the related tests and User Guide wording) on 2026-10-15. The changes were reviewed and tested by the author.
-* AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #79 changes (the tests for data files with invalid values, the `view` sequence diagram and "View client history" section, and the related manual testing steps) on 2026-10-22. The changes were reviewed and tested by the author.
+* AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the v1.4 and v1.5 work between 2026-10-22 and 2026-10-28: the `view` command (issue #78), the tests for data files with invalid values (#79), the `list` and `filter` polish and refactor (#159), and the related sections of this guide (#79, #163), including the `view` and `filter` sequence diagrams.
 * Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the client `add`/`delete` changes for v1.3 (removing address, optional email, name and phone limits, Spotter messages). All generated code was reviewed and tested before committing.
 * Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the v1.5 split-screen window
   (the Upcoming sessions panel and cards, showing a viewed client's history in its place, keeping both in sync in
@@ -245,6 +245,50 @@ see who is next and prepare. It adds no new session logic. Instead, it reuses wh
 `MainWindow` shows either this panel or the `ClientDetailPanel` in the same place, by binding each panel's
 visibility to whether `Logic#getViewedPerson()` holds a client (see [View client history](#view-client-history)).
 
+### Listing and filtering clients
+
+`list` shows every client, and `filter t/TAG [t/MORE_TAGS]...` shows only clients with at least one of the given
+tags. Neither changes client data, so `LogicManager` does not save after them.
+
+**The displayed list.** `ModelManager` shows clients through a `SortedList` (ordered by `PersonSessionComparator`)
+over a `FilteredList` of all clients. Both commands only replace the filter's predicate through
+`Model#updateFilteredPersonList(Predicate)`, which also re-sorts the list. `list` uses `PREDICATE_SHOW_ALL_PERSONS`
+and also stops viewing a client, so the Upcoming sessions panel shows again. The Upcoming sessions panel is built
+from all clients, so a filter never hides a booking there.
+
+**Parsing.** `AddressBookParser` rejects any text after `list` with `ListCommand.MESSAGE_EXTRA_PARAMETERS`.
+`FilterCommandParser` requires at least one `t/` and no text before it, rejects an empty tag, and rejects a tag that
+`Tag#isValidTagName` would not accept, since such a tag could never match a stored client. It trims each tag and
+creates a `TagContainsKeywordsPredicate`.
+
+<puml src="diagrams/FilterSequenceDiagram.puml" alt="Interactions Inside the Logic and Model Components for the `filter t/rehab` Command" />
+
+**Matching.** `TagContainsKeywordsPredicate` matches a client if any of their tags equals any keyword, ignoring case.
+It compares whole tag names, so `REHAB` matches `rehab` but `reh` does not, and several tags give an `OR` search.
+
+**Result messages.** `ListCommand#getResultMessage` and `Messages#getClientsListedMessage` (shared with `find`)
+choose the message from the number of displayed clients: `Listed N clients.`, `Listed 1 client.`, or, for an empty
+result, `You have no clients yet. Use "add" to add your first client.` for `list` and `No clients found.` for
+`filter`. Counts are formatted with `Locale.ROOT`, so they use ASCII digits on every system.
+
+**Scrolling and indices.** `list` returns a `CommandResult` with `scrollToTop` set, and `MainWindow` then scrolls the
+client list to the first client. Index-based commands resolve `INDEX` against `Model#getFilteredPersonList()`, so an
+index refers to a position in the list as currently displayed. After `list` or `filter`, the same client can have a
+different index, which is why the User Guide asks trainers to check the list before an index-based command.
+
+**Aspect: how `filter` interacts with the current list**
+
+* **Alternative 1 (current choice):** `filter` replaces any previous `find`, `filter` or `sessions` predicate.
+  * Pros: Only one filter is ever active, so the displayed list is easy to predict, and `list` always resets it.
+    Every command resolves indices against the same displayed list.
+  * Cons: Filters cannot be combined, e.g. clients named Alex who also have the `rehab` tag.
+* **Alternative 2:** `filter` narrows the current list, combining its predicate with the previous one.
+  * Pros: Lets a trainer narrow a long list step by step.
+  * Cons: The active filter becomes hidden state that the trainer must remember, a `filter` with no results may be
+    caused by an earlier command, and every filtering command would need a way to clear only part of the filter.
+
+<!-- AI assistance: Claude Code helped draft this section and its sequence diagram. -->
+
 ### View client history
 
 `view INDEX` shows one client's details followed by their full measurement and gym-performance history in the
@@ -275,7 +319,7 @@ Design notes:
 * **Non-UI formatter:** `ClientHistoryFormatter` is a plain class in `logic.commands` with no JavaFX dependency,
   so the panel's text can be checked in unit tests without starting the GUI. Its detail and record formatting
   methods supply separate labels in `ClientDetailPanel`. Measurements and performance have styled headings with
-  counts and a newest-first hint; the formatting and ordering rules are shared with the plain-text formatter.
+  counts and a newest-first hint, and the client card uses the same placeholders for a missing email or session.
 * **"Now" at drawing time:** whether the next session has passed is decided when the panel is drawn, as on the
   client card. `MainWindow` also redraws the panel after every successful command, so a session that passes
   while the panel is open is shown the same way as on the card.
@@ -847,7 +891,10 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 1.  Trainer requests to list all clients.
 2.  Spotter shows the list of clients.
 3.  Trainer requests to view the progress history of a specific client in the list.
-4.  Spotter shows the client's gym performance and body measurement records, sorted by date.
+4.  Spotter shows the client's details, gym performance and body measurement records, newest first, in place of the
+    upcoming sessions.
+
+    The history stays up to date when the client's records change, until the trainer lists all clients again.
 
     Use case ends.
 
@@ -855,7 +902,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 1a. Trainer wants to narrow down the list.
 
-    * 1a1. Trainer finds the client (UC02).
+    * 1a1. Trainer finds the client (UC02) or filters clients by tag (UC11).
 
       If matching clients are found, use case resumes at step 3; otherwise, the trainer retries the search or the use case ends.
 
@@ -970,6 +1017,65 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
       Use case ends.
 
 
+**Use case: UC10 - List all clients**
+
+**MSS**
+
+1.  Trainer requests to list all clients.
+2.  Spotter shows all clients, scrolled to the first client, and how many clients there are.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. Trainer types extra text after the command.
+
+    * 1a1. Spotter shows an error message stating that the command takes no parameters.
+
+      Use case resumes at step 1.
+
+* 2a. Spotter has no clients.
+
+    * 2a1. Spotter shows an empty list and suggests adding a client.
+
+      Use case ends.
+
+* 2b. A client's history was being viewed.
+
+    * 2b1. Spotter shows the upcoming sessions again in place of the history.
+
+      Use case ends.
+
+**Use case: UC11 - Filter clients by tag**
+
+**MSS**
+
+1.  Trainer requests to show clients that have any of one or more tags.
+    Matching is case-insensitive and compares whole tag names.
+2.  Spotter shows the matching clients and how many were found.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. No tag is given, a tag is empty, or there is text before the first tag.
+
+    * 1a1. Spotter shows an error message and the expected format.
+
+      Use case resumes at step 1.
+
+* 1b. A tag contains characters other than letters and digits.
+
+    * 1b1. Spotter shows an error message and the expected format.
+
+      Use case resumes at step 1.
+
+* 2a. No client has any of the tags.
+
+    * 2a1. Spotter shows an empty list and informs the trainer that no clients were found.
+
+      Use case ends.
+
 ### Non-Functional Requirements
 
 1. **Keyboard operation:** After launching Spotter, the trainer must be able to complete all core client-management, next-session and progress-recording workflows using the keyboard without requiring mouse interaction.
@@ -1064,7 +1170,7 @@ testers are expected to do more *exploratory* testing.
    1. Download the JAR file and copy it into an empty folder.
 
    1. Double-click the JAR file.<br>
-      Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
+      Expected: The GUI opens with a set of sample clients. The window size may not be optimal.
 
 1. Saving window preferences
 
@@ -1294,6 +1400,35 @@ replace `DATE` in every command below, and `TODAY` with today's date. Add unique
    Expected: The second booking succeeds with a warning naming the other client. Both remain in `sessions d/DATE`.
    Run `find SessionCancelAda`, then book Ada at `1000` again: the warning still names Zoe outside the filter.
    Move Ada to `1001`: the warning disappears, because only exact start times are compared.
+
+### Listing and filtering clients
+
+Start from the sample data, which has six clients and no bookings, so the list is in alphabetical order.
+`Alex Yeoh` and `Bernice Yu` have the `friends` tag, `Bernice Yu` and `Roy Balakrishnan` have `colleagues`,
+and `David Li` has `family`.
+
+1. Enter `list`.<br>
+   Expected: All six clients are shown, starting from the first. The result box shows `Listed 6 clients.`
+1. Enter `list extra`.<br>
+   Expected: The result box shows `"list" does not take any parameters.` and `Example: list`. The list is unchanged.
+1. Enter `filter t/friends`.<br>
+   Expected: Only `Alex Yeoh` and `Bernice Yu` are shown. The result box shows `Listed 2 clients.`
+1. Enter `filter t/FAMILY`.<br>
+   Expected: Only `David Li` is shown, as matching ignores case. The result box shows `Listed 1 client.`
+1. Enter `filter t/friends t/colleagues`.<br>
+   Expected: `Alex Yeoh`, `Bernice Yu` and `Roy Balakrishnan` are shown. The result box shows `Listed 3 clients.`
+1. Enter `filter t/rehab`.<br>
+   Expected: The client list is empty. The result box shows `No clients found.`
+1. Enter `filter t/re-hab`, then `filter t/`, then `filter friends`.<br>
+   Expected: Each is rejected, the list is unchanged, and the result box shows, in turn,
+   `Tag names should be alphanumeric`, `Tags to filter by cannot be empty.` and `Invalid command format!`,
+   each followed by the expected format.
+1. Enter `list`, then `view 1`, then `filter t/family`.<br>
+   Expected: Only `David Li` is listed, but the right side still shows `Alex Yeoh`'s history.
+1. In a disposable dataset, enter `clear`, then `list`.<br>
+   Expected: The result box shows `You have no clients yet. Use "add" to add your first client.`
+1. Enter `add n/Test Client p/91234567`, then `list`.<br>
+   Expected: The result box shows `Listed 1 client.`
 
 ### Upcoming sessions and viewing a client's history
 

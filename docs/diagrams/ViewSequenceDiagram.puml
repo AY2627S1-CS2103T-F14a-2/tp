@@ -78,7 +78,7 @@ ViewCommand --> LogicManager : r
 deactivate ViewCommand
 
 note right of LogicManager
-  The address book is unchanged,
+  Client data is unchanged,
   so no save to Storage happens.
 end note
 
