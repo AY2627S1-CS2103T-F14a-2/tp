@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.AddressBook;
@@ -25,6 +27,22 @@ import seedu.address.testutil.PersonBuilder;
 public class MeasurementStorageTest {
     @TempDir
     public Path temporaryFolder;
+
+    @Test
+    public void load_invalidDateYears_rejectsFileWithoutChangingIt() throws Exception {
+        Person client = new PersonBuilder().build();
+        Path file = temporaryFolder.resolve("invalid-year.json");
+        for (String date : List.of("0000-01-01", "-0001-01-01", "+10000-01-01", "10000-01-01")) {
+            JsonAdaptedMeasurement record = new JsonAdaptedMeasurement(date, "weight", "72");
+            assertThrows(IllegalValueException.class, record::toModelType);
+            JsonAdaptedPerson adapted = new JsonAdaptedPerson(client.getName().fullName, client.getPhone().value,
+                    client.getEmail().map(email -> email.value).orElse(null), List.of(), null, List.of(record));
+            String json = JsonUtil.toJsonString(new JsonSerializableAddressBook(List.of(adapted)));
+            Files.writeString(file, json);
+            assertThrows(DataLoadingException.class, () -> new JsonAddressBookStorage(file).readAddressBook());
+            assertEquals(json, Files.readString(file));
+        }
+    }
 
     @Test
     public void saveAndReload_multipleRecords_preservesMeasurements() throws Exception {
@@ -70,6 +88,7 @@ public class MeasurementStorageTest {
         for (JsonAdaptedMeasurement record : List.of(
                 new JsonAdaptedMeasurement(null, "weight", "72"),
                 new JsonAdaptedMeasurement("2026-02-30", "weight", "72"),
+                new JsonAdaptedMeasurement("2025-02-29", "weight", "72"),
                 new JsonAdaptedMeasurement("2026-09-12", "height", "72"),
                 new JsonAdaptedMeasurement("2026-09-12", "weight", "NaN"),
                 new JsonAdaptedMeasurement("2026-09-12", "weight", "501"),
