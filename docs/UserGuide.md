@@ -63,7 +63,7 @@ Spotter is a **desktop application for freelance personal trainers to manage the
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Extraneous parameters for `help`, `exit`, and `clear` are ignored.<br>
+* Extraneous parameters for `help` and `exit` are ignored. `clear` rejects extra parameters.<br>
   For example, `help 123` is interpreted as `help`. `list` does not accept any extra text (see [`list`](#listing-all-clients-list)).
 
 * Tabs pasted into the command box become spaces, preserving separators in commands copied from tabular notes.
@@ -483,6 +483,9 @@ Clears all clients from Spotter.
 
 Format: `clear`
 
+`clear` takes no parameters. Inputs such as `clear 1` or `clear all` are rejected without changing clients,
+their records, the current view or the saved data. To remove one client, use `delete INDEX`.
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -501,12 +504,13 @@ Format: `session INDEX d/DATE t/TIME` or `session n/NAME d/DATE t/TIME`
 * `INDEX` is the positive number shown on the **current displayed list**, including a filtered list.
 * `NAME` must match a client's full name. Matching ignores case, leading/trailing whitespace, and repeated
   internal spaces. Names cannot be empty or contain `/`.
-* `DATE` must be a real date in `YYYY-MM-DD` format, such as `2026-12-15`, and cannot be before the current
-  system date. Today is accepted even if the specified time has passed.
-* `TIME` must use 24-hour `HHMM` or `HH:MM`, such as `1900` or `19:00`. Midnight is `0000`; `2400` is invalid.
+* `DATE` must be a real date in `YYYY-MM-DD` format, such as `2026-12-15`. A past date or time is accepted, so you
+  can record a session late; the message then adds `Note: this session is in the past, so it shows as "- (none upcoming)".`
+* `TIME` is a 24-hour time with an optional colon and a one- or two-digit hour, such as `930`, `0930`, `9:30` or
+  `19:00`. Midnight is `0000`; `2400` is invalid.
 * Supply exactly one identifier and one of each required prefix. Unknown or repeated prefixes are rejected.
 
-Examples (use today's date or a later date):
+Examples:
 
 * `session 1 d/2026-12-15 t/1900`
 * `session n/Sarah Lim d/2026-12-15 t/19:00`
@@ -547,8 +551,7 @@ Empty name | `Name cannot be empty.`
 Name containing a slash | `Name must not contain '/'.`
 Malformed date or component out of range | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`
 Impossible calendar date (e.g. 30 February) | `Date must be a valid calendar date.`
-Date before today | `Date cannot be in the past.`
-Invalid time | `Time must be a valid time in HHMM or HH:MM format.`
+Invalid time | `Time must be a 24-hour time such as 930, 0930, 9:30 or 19:00.`
 
 ### Cancelling a recorded session: `cancelsession`
 
@@ -604,9 +607,18 @@ No matches (empty panel) | `No sessions recorded on 2026-12-15.`
 
 Spotter saves your data automatically to `[JAR file location]/data/spotter.json` after each command that changes it. You do not need to save manually.
 
+The folder containing `spotter.jar` is Spotter's home folder. The same folder holds `preferences.json`
+(window settings) and the rotating `spotter.log.*` files. Launching the JAR from a terminal in another folder
+still uses these files beside the JAR. The save-location footer shows the absolute data-file path.
+
 * If saving fails (e.g., the data file or folder is read-only), the change is undone and Spotter shows `Unable to save Spotter data.`
 * If the data file is missing, Spotter starts with sample data.
 * If the data file is damaged, Spotter starts with no clients and shows `Unable to load saved Spotter data. The existing data file has not been modified.` The damaged file is left untouched until your next successful command that changes data, which overwrites it.
+
+When moving Spotter, close it and move the JAR together with its `data` folder. Copy `preferences.json` too
+if you want to retain window settings. If an older build saved your clients in a different terminal folder,
+back up that data file and copy it to `[JAR file location]/data/spotter.json` while Spotter is closed.
+Back up any existing destination file before replacing it. Spotter does not search other folders for old data.
 
 ### Editing the data file
 

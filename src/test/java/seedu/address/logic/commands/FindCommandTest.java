@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static seedu.address.logic.commands.CommandTestUtil.getInArabicFormatLocale;
 import static seedu.address.testutil.TypicalPersons.CARL;
 import static seedu.address.testutil.TypicalPersons.ELLE;
 import static seedu.address.testutil.TypicalPersons.FIONA;
@@ -80,6 +81,12 @@ public class FindCommandTest {
         expectedModel.updateFilteredPersonList(predicate);
         assertCommandSuccess(command, model, expectedMessage, expectedModel);
         assertEquals(List.of(CARL), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_arabicFormatLocale_usesLatinDigits() {
+        FindCommand command = new FindCommand(preparePredicate("Kurz Elle Kunz"));
+        assertEquals("Listed 3 clients.", getInArabicFormatLocale(() -> command.execute(model).getFeedbackToUser()));
     }
 
     @Test
