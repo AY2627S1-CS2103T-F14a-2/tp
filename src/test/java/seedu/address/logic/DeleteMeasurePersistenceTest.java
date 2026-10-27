@@ -38,6 +38,24 @@ public class DeleteMeasurePersistenceTest {
     public Path temporaryFolder;
 
     @Test
+    public void execute_boundaryYearRecordsFromFile_canBeDeletedAndPersisted() throws Exception {
+        Person original = new PersonBuilder().build();
+        for (LocalDate date : List.of(LocalDate.of(1, 1, 1), LocalDate.of(9999, 12, 31),
+                LocalDate.of(2024, 2, 29))) {
+            Person client = original.withMeasurement(new Measurement(date, MeasurementType.WEIGHT,
+                    new BigDecimal("72.4")));
+            AddressBook book = new AddressBook();
+            book.addPerson(client);
+            JsonAddressBookStorage data = new JsonAddressBookStorage(temporaryFolder.resolve("boundary-year.json"));
+            data.saveAddressBook(book);
+            Model model = new ModelManager(data.readAddressBook().orElseThrow(), new UserPrefs());
+            assertEquals(List.of(client), model.getFilteredPersonList());
+            createLogic(model, data).execute("deletemeasure 1 d/" + date + " t/weight");
+            assertEquals(List.of(original), data.readAddressBook().orElseThrow().getPersonList());
+        }
+    }
+
+    @Test
     public void execute_replaceDeleteAndRecordAgain_persistsAndKeepsOtherClientData() throws Exception {
         Person original = new PersonBuilder().withNextSession("2026-10-23 17:00")
                 .withGymPerformances(SQUAT).build();
