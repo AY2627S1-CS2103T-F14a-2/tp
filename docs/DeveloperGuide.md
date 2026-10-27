@@ -4,7 +4,7 @@
   pageNav: 3
 ---
 
-# AB-3 Developer Guide
+# Spotter Developer Guide
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -12,6 +12,11 @@
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Acknowledgements**
+
+* Spotter is based on [AddressBook-Level3](https://se-education.org/addressbook-level3/) (AB3), the sample project
+  of the [SE-EDU initiative](https://se-education.org).
+* Spotter uses [JavaFX](https://openjfx.io/) for its GUI, [Jackson](https://github.com/FasterXML/jackson) to read
+  and write its JSON data file, and [JUnit 5](https://junit.org/junit5/) for its tests.
 
 * Helen (He Jingqi) used OpenAI Codex to assist with implementing, testing and documenting
   the v1.4 measurement deletion feature for issue #84, including its model operation, command, parser,
@@ -135,7 +140,7 @@ How the `Logic` component works:
 
 1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
 1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
-1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
+1. The command can communicate with the `Model` when it is executed (e.g. to delete a client).<br>
    Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
 1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
 
@@ -155,9 +160,9 @@ How the parsing works:
 
 The `Model` component,
 
-* stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
+* stores all client data, i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
-* stores the clients with an upcoming session, soonest first, in a separate list built from the whole address book (so `find` and `filter` do not affect it). It is exposed as an unmodifiable `ObservableList<Person>` for the UI's Upcoming sessions panel.
+* stores the clients with an upcoming session, soonest first, in a separate list built from all clients (so `find` and `filter` do not affect it). It is exposed as an unmodifiable `ObservableList<Person>` for the UI's Upcoming sessions panel.
 * stores the client shown by `view` (or none) and exposes it as an `ObservableValue<Person>`, so that the UI's detail panel can follow that client.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
@@ -178,7 +183,7 @@ The `Model` component,
 <puml src="diagrams/StorageClassDiagram.puml" width="550" />
 
 The `Storage` component,
-* can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
+* can save both client data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
@@ -214,7 +219,7 @@ relaunch behaviour and a blocked log file without changing the test JVM's workin
 The right side of the window shows the clients with an upcoming session, soonest first, so that a trainer can
 see who is next and prepare. It adds no new session logic. Instead, it reuses what the client list already has:
 
-* `ModelManager` keeps a `SortedList` over a `FilteredList` of the whole address book. The filter keeps clients
+* `ModelManager` keeps a `SortedList` over a `FilteredList` of all clients. The filter keeps clients
   whose `NextSession` is not before "now", which is the same rule that the client card uses to show
   `- (none upcoming)`. The sort is the existing `PersonSessionComparator`, so the panel and the client list
   order sessions in the same way.
@@ -249,7 +254,7 @@ parses the index, and `ViewCommand` looks the client up in `Model#getFilteredPer
 
 <puml src="diagrams/ViewSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `view 1` Command" />
 
-`view` is read-only. As `LogicManager` only saves when a command changes the address book, executing `view`
+`view` is read-only. As `LogicManager` only saves when a command changes client data, executing `view`
 never writes the data file.
 
 **Keeping the panel up to date.** `ModelManager` holds the viewed client in an `ObservableValue<Person>`, which
@@ -262,7 +267,7 @@ instead, so the panel follows the client without any command knowing about the p
 
 In the same way, `Model#deletePerson` and `Model#setAddressBook` (used by `clear`) stop viewing a client that
 no longer exists, and `ListCommand` stops viewing any client. The Upcoming sessions panel then shows again.
-If saving fails, `LogicManager` restores the viewed client together with the address book and the filter, so
+If saving fails, `LogicManager` restores the viewed client together with the client data and the filter, so
 the panel matches the restored data.
 
 Design notes:
@@ -322,7 +327,7 @@ never holds two records for the same exercise on the same date. Exercise names a
 `Person#withGymPerformance`, which replaces any record for the same exercise and date. `DeletePerformanceCommand`
 finds the record through `PerformanceHistory#find` and calls `Person#withoutGymPerformance`; a missing record raises a
 `CommandException` before any state changes. Either way, the command replaces the client through `Model#setPerson`,
-and `LogicManager` saves the address book.
+and `LogicManager` saves the client data.
 
 Both commands log rejected indices, missing records and successful changes at `INFO` level. The log records the
 displayed index, exercise and date, but not the client's name or contact details.
@@ -350,8 +355,8 @@ previously formatted history result is a snapshot and must be requested again af
 
 <puml src="diagrams/DeleteMeasureSequenceDiagram.puml" alt="Measurement deletion sequence" />
 
-`LogicManager` saves the changed address book using the existing storage format. If saving fails,
-it restores the previous address book and filter and reports `Unable to save Spotter data.`
+`LogicManager` saves the changed client data using the existing storage format. If saving fails,
+it restores the previous client data and filter and reports `Unable to save Spotter data.`
 No storage schema change or separate cached record count is needed. Keeping counts derived from the
 measurement list avoids stale summary data after deletion.
 
@@ -360,7 +365,7 @@ measurement list avoids stale summary data after deletion.
 `session` distinguishes first bookings, rescheduling and an unchanged booking in its feedback. A replacement
 includes both old and new timestamps, so the trainer can verify the overwritten slot. Successful bookings
 restore the full client list and scroll to the top, including after an unchanged booking.
-Before replacing the booking, the command checks the whole address book for other clients at the same
+Before replacing the booking, the command checks all clients for others booked at the same
 timestamp, excluding the target client. The feedback names these clients alphabetically and keeps both
 bookings. The check uses exact timestamps: the model has no duration with which to infer an overlapping range.
 
@@ -373,7 +378,7 @@ never save the data file; rejected commands retain the displayed list.
 `cancelsession INDEX` or `cancelsession n/NAME` removes a client's single recorded session.
 `CancelSessionCommandParser` accepts exactly one index or full name. `CancelSessionCommand` resolves indices against
 `Model#getFilteredPersonList()`, so indices refer to the sorted/filtered UI rather than JSON order.
-Names use the booking command's case-insensitive, whitespace-normalized matching across the whole address book.
+Names use the booking command's case-insensitive, whitespace-normalized matching across all clients.
 This lets a trainer cancel a known client's booking even after indices change or a filter hides the client,
 while preserving the current filter. Mixed identifiers, empty names and slashes are rejected during parsing.
 It rejects an invalid index or a client without a recorded session before changing the model.
@@ -391,7 +396,7 @@ refresh sorting. A session-date predicate no longer matches the cancelled client
 search/tag filters remain active. The observable list updates the UI and `CommandResult` requests scrolling to the top.
 
 `LogicManager` handles saving. If storage throws an `IOException`, its existing transaction restores both the original
-address book and the predicate captured before cancellation. This restores the booking and the date-filtered view.
+client data and the predicate captured before cancellation. This restores the booking and the date-filtered view.
 No constructor, JSON schema or UI-specific cancellation path is needed.
 
 `sessions d/DATE` uses `SessionsCommandParser` and `ParserUtil#parseCalendarDate` to validate one real calendar date.
@@ -439,11 +444,11 @@ Step 1. The user launches the application for the first time. The `VersionedAddr
 
 <puml src="diagrams/UndoRedoState0.puml" alt="UndoRedoState0" />
 
-Step 2. The user executes `delete 5` command to delete the 5th person in the address book. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
+Step 2. The user executes `delete 5` command to delete the 5th client. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
 
 <puml src="diagrams/UndoRedoState1.puml" alt="UndoRedoState1" />
 
-Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
+Step 3. The user executes `add n/David …​` to add a new client. The `add` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
 
 <puml src="diagrams/UndoRedoState2.puml" alt="UndoRedoState2" />
 
@@ -452,7 +457,7 @@ Step 3. The user executes `add n/David …​` to add a new person. The `add` co
 **Note:** If a command fails its execution, it will not call `Model#commitAddressBook()`, so the address book state will not be saved into the `addressBookStateList`.
 </box>
 
-Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
+Step 4. The user now decides that adding the client was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
 
 <puml src="diagrams/UndoRedoState3.puml" alt="UndoRedoState3" />
 
@@ -505,7 +510,7 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 * **Alternative 2:** Individual command knows how to undo/redo by
   itself.
-  * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
+  * Pros: Will use less memory (e.g. for `delete`, just save the client being deleted).
   * Cons: We must ensure that the implementation of each individual command is correct.
 
 _{more aspects and alternatives to be added}_
@@ -1103,17 +1108,17 @@ Use disposable folders and fictional data. Put the freshly built `spotter.jar` i
    opens and loads the saved client. No fallback log is created in the launch folder. After exiting, remove the
    blocking directory and restore the backed-up logs before further testing.
 
-### Deleting a person
+### Deleting a client
 
-1. Deleting a person while all persons are being shown
+1. Deleting a client while all clients are being shown
 
-   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
+   1. Prerequisites: List all clients using the `list` command, with multiple clients in the list.
 
    1. Test case: `delete 1`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
+      Expected: The first client is deleted from the list. The status message shows the deleted client's details.
 
    1. Test case: `delete 0`<br>
-      Expected: No person is deleted. The status message shows error details.
+      Expected: No client is deleted. The status message shows error details.
 
    1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
       Expected: Similar to previous.
