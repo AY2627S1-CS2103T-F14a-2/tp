@@ -194,9 +194,13 @@ Format: `filter t/TAG [t/MORE_TAGS]...`
   symbols are not allowed, e.g. `t/re-hab` is rejected.
 * Matching is case-insensitive and requires the whole tag name: `REHAB` matches `rehab`, but `reh` does not.
 * Multiple tags use an `OR` search. `filter t/rehab t/strength` shows clients with either tag or both.
+  A tag repeated in a different case, e.g. `t/rehab t/REHAB`, counts once.
 * The command searches all clients and replaces any previous `find`, `filter` or `sessions` results.
   Clients without tags do not match. If no clients match, the displayed list is empty.
-* Like `find`, Spotter shows `Listed N clients.`, `Listed 1 client.`, or `No clients found.` when no client matches.
+* Spotter names the tags you searched for, as you typed them: `Listed N clients tagged rehab or knee.`,
+  `Listed 1 client tagged rehab.`, or `No clients tagged rehab or knee. Use "list" to show all clients.` when no
+  client matches. Three or more tags are listed as `rehab, knee or strength`.
+* The client list scrolls back to the top, so the first match is visible.
 * Filtering does not change client data. Use the indices in the filtered list for subsequent commands,
   and run `list` to show all clients again.
 
@@ -206,9 +210,9 @@ Examples:
 
 | Input problem | Message |
 | --- | --- |
-| No `t/` prefix, or text before the first prefix, e.g. `filter rehab` | `Invalid command format!` followed by the expected format |
-| An empty tag, e.g. `filter t/` or `filter t/rehab t/` | `Tags to filter by cannot be empty.` followed by the expected format |
-| A tag that is not alphanumeric, e.g. `filter t/re-hab` or `filter t/best friends` | `Tag names should be alphanumeric` followed by the expected format |
+| No `t/` prefix, or text before the first prefix, e.g. `filter rehab` | `Invalid command format!`, then `Use: filter t/TAG [t/MORE_TAGS]...` and `Example: filter t/rehab t/strength` |
+| An empty tag, e.g. `filter t/` or `filter t/rehab t/` | `Tags to filter by cannot be empty.`, then `Use: filter t/TAG [t/MORE_TAGS]...` |
+| A tag that is not alphanumeric, e.g. `filter t/re-hab`, `filter t/best friends`, or extra text after a tag such as `filter t/rehab extra` | `Tags can contain only letters and digits, e.g. t/rehab.`, then `Use: filter t/TAG [t/MORE_TAGS]...` |
 
 <!-- AI assistance: Helen used OpenAI Codex to draft the filter documentation and update UG terminology and the command summary. -->
 

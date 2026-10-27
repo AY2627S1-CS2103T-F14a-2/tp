@@ -23,6 +23,13 @@ public class TagContainsKeywordsPredicate implements Predicate<Person> {
         this.keywords = List.copyOf(keywords);
     }
 
+    /**
+     * Returns the tag keywords in the order given, for use in messages.
+     */
+    public List<String> getKeywords() {
+        return keywords;
+    }
+
     @Override
     public boolean test(Person person) {
         return person.getTags().stream().anyMatch(this::matchesAnyKeyword);

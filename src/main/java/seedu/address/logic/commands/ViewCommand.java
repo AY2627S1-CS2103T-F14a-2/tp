@@ -21,11 +21,8 @@ public class ViewCommand extends Command {
 
     public static final String COMMAND_WORD = "view";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Shows the full details and history of the client identified by the index number "
-            + "used in the displayed client list.\n"
-            + "Parameters: INDEX (must be a positive integer)\n"
-            + "Example: " + COMMAND_WORD + " 1";
+    public static final String MESSAGE_USAGE = COMMAND_WORD + " INDEX";
+    public static final String MESSAGE_INVALID_FORMAT = Messages.withUsage("Invalid command format!", MESSAGE_USAGE);
 
     public static final String MESSAGE_VIEW_SUCCESS = "Showing details and history of %1$s.";
 

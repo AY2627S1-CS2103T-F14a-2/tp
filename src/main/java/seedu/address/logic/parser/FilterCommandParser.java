@@ -1,10 +1,11 @@
 package seedu.address.logic.parser;
 
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.TagContainsKeywordsPredicate;
@@ -15,10 +16,11 @@ import seedu.address.model.tag.Tag;
  */
 public class FilterCommandParser implements Parser<FilterCommand> {
 
-    public static final String MESSAGE_EMPTY_TAG = "Tags to filter by cannot be empty.\n"
-            + FilterCommand.MESSAGE_USAGE;
-    public static final String MESSAGE_INVALID_TAG = Tag.MESSAGE_CONSTRAINTS + "\n"
-            + FilterCommand.MESSAGE_USAGE;
+    public static final String MESSAGE_EMPTY_TAG =
+            Messages.withUsage("Tags to filter by cannot be empty.", FilterCommand.MESSAGE_USAGE);
+    // Filter's own wording; Tag.MESSAGE_CONSTRAINTS stays as add and edit show it
+    public static final String MESSAGE_INVALID_TAG =
+            Messages.withUsage("Tags can contain only letters and digits, e.g. t/rehab.", FilterCommand.MESSAGE_USAGE);
 
     /**
      * Parses the given {@code String} of arguments in the context of the FilterCommand
@@ -31,7 +33,7 @@ public class FilterCommandParser implements Parser<FilterCommand> {
         List<String> tagKeywords = argMultimap.getAllValues(PREFIX_TAG);
 
         if (!argMultimap.getPreamble().isEmpty() || tagKeywords.isEmpty()) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FilterCommand.MESSAGE_USAGE));
+            throw new ParseException(FilterCommand.MESSAGE_INVALID_FORMAT);
         }
 
         if (tagKeywords.stream().anyMatch(String::isBlank)) {
@@ -44,6 +46,13 @@ public class FilterCommandParser implements Parser<FilterCommand> {
             throw new ParseException(MESSAGE_INVALID_TAG);
         }
 
-        return new FilterCommand(new TagContainsKeywordsPredicate(trimmedTags));
+        // Repeated tags would only repeat themselves in the result message, so keep the first spelling of each
+        List<String> uniqueTags = new ArrayList<>();
+        for (String tag : trimmedTags) {
+            if (uniqueTags.stream().noneMatch(tag::equalsIgnoreCase)) {
+                uniqueTags.add(tag);
+            }
+        }
+        return new FilterCommand(new TagContainsKeywordsPredicate(uniqueTags));
     }
 }
