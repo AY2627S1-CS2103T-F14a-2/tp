@@ -1,5 +1,6 @@
 package seedu.address.ui;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import javafx.fxml.FXML;
@@ -38,7 +39,8 @@ public class UpcomingSessionCard extends UiPart<Region> {
         sessionTime.setText(person.getNextSession().get().toDisplayString(LocalDateTime.now()));
         name.setText(person.getName().fullName);
         phone.setText(PersonCard.PHONE_LABEL + PhoneDisplayFormatter.format(person.getPhone().value));
-        latestMeasurement.setText(PersonCard.formatLatestMeasurement(person.getMeasurements()));
-        latestPerformance.setText(PersonCard.formatLatestPerformance(person.getPerformanceHistory()));
+        LocalDate today = LocalDate.now();
+        latestMeasurement.setText(PersonCard.formatLatestMeasurement(person.getMeasurements(), today));
+        latestPerformance.setText(PersonCard.formatLatestPerformance(person.getPerformanceHistory(), today));
     }
 }
