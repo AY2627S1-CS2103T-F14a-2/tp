@@ -129,21 +129,22 @@ Examples:
 
 ### Listing all clients: `list`
 
-Shows a list of all clients in Spotter, clearing any `find` or `filter` results.
+Shows a list of all clients in Spotter, clearing any `find`, `filter` or `sessions` results.
 
 Format: `list`
 
 * Type `list` with nothing after it. Extra spaces are fine, but any other text is rejected with:<br>
   `"list" does not take any parameters.`<br>
   `Example: list`
-* On success, Spotter shows `Listed N clients.` (or `Listed 1 client.` when you have exactly one client).
+* On success, Spotter shows `Listed N clients.` (or `Listed 1 client.` when you have exactly one client), and the
+  client list scrolls back to the 1st client.
 * If you have no clients, Spotter shows `You have no clients yet. Use "add" to add your first client.`
 * If a client's history is shown with [`view`](#viewing-a-clients-history-view), the right side goes back to
   Upcoming sessions.
 
 <box type="tip" seamless>
 
-**Tip:** Index numbers change when the displayed list changes (e.g., after `find`, `filter`, `add`, or `delete`). Re-run `list` before using an index-based command such as `edit` or `delete`, so that the index refers to the client you expect.
+**Tip:** Index numbers change when the displayed list changes (e.g., after `find`, `filter`, `sessions`, `add`, or `delete`). Re-run `list` before using an index-based command such as `edit` or `delete`, so that the index refers to the client you expect.
 </box>
 
 ### Editing a client: `edit`
@@ -434,11 +435,14 @@ Format: `view INDEX`
 * Upcoming sessions comes back when you enter `list`, delete that client, or clear all data.
 * Measurements and performance have separate headings with record counts. Each section lists records with the
   newest date first, so the most recent ones are always at the top.
-  * Measurements on the same date are listed in the order weight, body fat, waist.
+  * Measurements on the same date are listed in the order `weight`, `bodyfat`, `waist`.
   * Performances on the same date are listed with the one recorded last first, so the first performance line
     always matches the card's `Latest performance`.
-* `Next session` shows the same text as the client's card.
+* `Next session` shows the same text as the client's card: `- (none booked)` if no session is booked, or
+  `- (none upcoming)` once the booked session has passed.
 * Tags are listed alphabetically. A client with no email or no tags shows `-`.
+* If the history is too long to fit, scroll inside the panel. Viewing a different client starts at the top, while
+  updates to the client you are viewing keep your scroll position.
 
 Examples:
 * `list` followed by `view 2` shows the history of the 2nd client in Spotter.
