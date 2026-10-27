@@ -17,6 +17,7 @@ import seedu.address.model.session.NextSession;
  * Parses the two session command forms and rejects missing, duplicate, and unknown prefixes.
  */
 public class SessionCommandParser implements Parser<SessionCommand> {
+    // @@author gabriel-wan
     @Override
     public SessionCommand parse(String args) throws ParseException {
         requireNonNull(args);
@@ -40,6 +41,7 @@ public class SessionCommandParser implements Parser<SessionCommand> {
         Index index = ParserUtil.parseClientIndex(arguments.getPreamble(), SessionCommand.MESSAGE_INVALID_FORMAT);
         return new SessionCommand(index, parseNextSession(arguments));
     }
+    // @@author
 
     /** Builds the stored, minute-precision session after validating its calendar date and time. */
     private NextSession parseNextSession(ArgumentMultimap arguments) throws ParseException {

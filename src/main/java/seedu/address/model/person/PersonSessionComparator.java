@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 
+// @@author gabriel-wan
 /**
  * Orders upcoming sessions by time and then name, followed by expired bookings and unbooked clients.
  * A fixed reference time keeps comparisons consistent throughout each sort.
@@ -32,3 +33,4 @@ public class PersonSessionComparator implements Comparator<Person> {
         return person.getNextSession().map(session -> session.value.isBefore(now) ? 1 : 0).orElse(2);
     }
 }
+// @@author

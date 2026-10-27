@@ -60,6 +60,7 @@ public class NextSession {
         }
     }
 
+    // @@author gabriel-wan
     /**
      * Formats the card row in English, retaining the distinction between expired and unbooked sessions.
      */
@@ -68,6 +69,7 @@ public class NextSession {
         if (value.isBefore(now)) {
             return "- (none upcoming)";
         }
+        // @@author
         // The year is shown only when it differs from now, so a booking next year isn't read as this year's.
         DateTimeFormatter formatter = value.getYear() == now.getYear() ? CARD_FORMATTER : CARD_WITH_YEAR_FORMATTER;
         return value.format(formatter)

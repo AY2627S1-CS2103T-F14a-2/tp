@@ -21,6 +21,7 @@ import seedu.address.model.session.NextSession;
  * Records or replaces one client's next session, identified by displayed index or full name.
  */
 public class SessionCommand extends Command {
+    // @@author gabriel-wan
     public static final String COMMAND_WORD = "session";
     public static final String MESSAGE_USAGE = "session INDEX d/DATE t/TIME or session n/NAME d/DATE t/TIME";
     public static final String MESSAGE_INVALID_FORMAT = "Invalid command format! Use: " + MESSAGE_USAGE;
@@ -32,6 +33,7 @@ public class SessionCommand extends Command {
     public static final String MESSAGE_RESCHEDULED = "Rescheduled next session for %s from %s to %s.";
     public static final String MESSAGE_UNCHANGED = "Next session for %s is already recorded on %s.";
     public static final String MESSAGE_CLASH = "\nWarning: This time is also booked for %s. All bookings are kept.";
+    // @@author
     public static final String MESSAGE_PAST_SESSION =
             "Note: this session is in the past, so it shows as \"- (none upcoming)\".";
 
@@ -74,6 +76,7 @@ public class SessionCommand extends Command {
         this.clock = requireNonNull(clock);
     }
 
+    // @@author gabriel-wan
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
@@ -81,6 +84,7 @@ public class SessionCommand extends Command {
         String feedback = getFeedback(target) + getClashWarning(model, target);
         model.setPerson(target, target.withNextSession(nextSession));
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        // @@author
         // Past sessions are kept for record-keeping; warn rather than block, as the booking is not upcoming.
         // Same rule as the card: a session exactly at "now" has not passed yet.
         if (nextSession.value.isBefore(LocalDateTime.now(clock))) {
@@ -135,6 +139,7 @@ public class SessionCommand extends Command {
         return names.isEmpty() ? "" : String.format(MESSAGE_CLASH, names);
     }
 
+    // @@author gabriel-wan
     @Override
     public boolean equals(Object other) {
         if (other == this) {
@@ -145,4 +150,5 @@ public class SessionCommand extends Command {
                 && Objects.equals(name, command.name)
                 && nextSession.equals(command.nextSession);
     }
+    // @@author
 }
