@@ -19,6 +19,7 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -113,6 +114,16 @@ public class LogicManagerTest {
         Path dataFile = temporaryFolder.resolve("addressBook.json");
         logic.execute(ADD_AMY_COMMAND);
         assertTrue(Files.exists(dataFile));
+    }
+
+    @Test
+    public void execute_addWithEmptyEmail_savesClientWithoutEmail() throws Exception {
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+
+        logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + " e/");
+
+        ReadOnlyAddressBook savedData = new JsonAddressBookStorage(dataFile).readAddressBook().orElseThrow();
+        assertEquals(Optional.empty(), savedData.getPersonList().get(0).getEmail());
     }
 
     @Test

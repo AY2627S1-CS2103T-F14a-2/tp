@@ -74,6 +74,10 @@ public class AddCommandParserTest {
         assertParseFailure(parser, EMAIL_DESC_AMY + validExpectedPersonString,
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_EMAIL));
 
+        // an empty repeated email is still a duplicate
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " " + PREFIX_EMAIL + "a@b.com " + PREFIX_EMAIL,
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_EMAIL));
+
         // multiple fields repeated
         assertParseFailure(parser,
                 validExpectedPersonString + PHONE_DESC_AMY + EMAIL_DESC_AMY + NAME_DESC_AMY
@@ -127,6 +131,12 @@ public class AddCommandParserTest {
         // no email
         Person expectedPersonNoEmail = new PersonBuilder(AMY).withoutEmail().withTags().build();
         assertParseSuccess(parser, NAME_DESC_AMY + PHONE_DESC_AMY, new AddCommand(expectedPersonNoEmail));
+
+        // empty or blank email, as in edit
+        assertParseSuccess(parser, NAME_DESC_AMY + PHONE_DESC_AMY + " " + PREFIX_EMAIL,
+                new AddCommand(expectedPersonNoEmail));
+        assertParseSuccess(parser, NAME_DESC_AMY + PHONE_DESC_AMY + " " + PREFIX_EMAIL + "   ",
+                new AddCommand(expectedPersonNoEmail));
     }
 
     @Test
@@ -157,8 +167,9 @@ public class AddCommandParserTest {
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + INVALID_EMAIL_DESC
                 + TAG_DESC_HUSBAND + TAG_DESC_FRIEND, Email.MESSAGE_CONSTRAINTS);
 
-        // empty email
-        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " " + PREFIX_EMAIL, Email.MESSAGE_CONSTRAINTS);
+        // email without @
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " " + PREFIX_EMAIL + "notanemail",
+                Email.MESSAGE_CONSTRAINTS);
 
         // invalid tag
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB

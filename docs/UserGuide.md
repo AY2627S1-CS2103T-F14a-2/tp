@@ -113,6 +113,7 @@ Format: `add n/NAME p/PHONE [e/EMAIL] [t/TAG]...`
   number the way Spotter displays it: `9927 2758` is stored as `99272758`. Other characters, such as `-` or `+`, are
   not accepted.
 * `EMAIL` is optional. A client without an email shows `-` in place of it.
+  Entering `e/` without an email after it also adds the client without an email, as in `edit`.
 * A client whose name matches an existing client's, ignoring case and extra spaces, is rejected as a duplicate. For example, `john tan` is a duplicate of `John Tan`.
 
 <box type="tip" seamless>
