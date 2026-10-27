@@ -571,6 +571,8 @@ Format: `cancelsession INDEX` or `cancelsession n/NAME`
 * The current filter stays active. A cancelled client disappears from a `sessions` date view, but remains in Spotter.
   In the full list, their card shows `Next session: - (none booked)` and moves to the unbooked group.
 * Indices may change after cancellation. Check the displayed list before entering the next index-based command.
+  If the cancelled client disappears from the displayed list, the message adds
+  `NAME is no longer shown here; clients below have moved up one place.`
 * A client with no recorded session is rejected with `No session is recorded for NAME.`
   An invalid index shows `The client index provided is invalid.`
   Missing, non-numeric or mixed identifiers show
@@ -578,10 +580,16 @@ Format: `cancelsession INDEX` or `cancelsession n/NAME`
   Unknown names show `No client with that name exists in Spotter.`; empty names and slashes use the booking errors above.
 * If saving fails, the original session and displayed list are restored and `Unable to save Spotter data.` is shown.
 
+<box type="tip" seamless>
+
+**Tip:** In a `sessions` date view, prefer `cancelsession n/NAME`; index numbers shift after each cancellation.
+</box>
+
 Example: `cancelsession 1` cancels the first displayed client's session.
 Alternatively, `cancelsession n/Sarah Lim` cancels Sarah's booking without relying on a changing list index.
 Success: `Cancelled session on 2026-12-15 09:00 for Sarah Lim.` (when that is her recorded booking).
 The confirmation includes the removed booking's date and 24-hour time, including for expired bookings.
+In a `sessions` date view, it continues: `Sarah Lim is no longer shown here; clients below have moved up one place.`
 
 ### Listing sessions on a date: `sessions`
 
@@ -598,6 +606,11 @@ Format: `sessions d/DATE`
   An expired booking's card continues to show `- (none upcoming)`.
 * The panel scrolls to the top and displayed indices start at 1. The command changes no client data and does not save the file.
 * Use `list` to show all clients again. Use the indices in the current results for `cancelsession`, `edit` or `delete`.
+
+<box type="tip" seamless>
+
+**Tip:** In a `sessions` date view, prefer `cancelsession n/NAME`; index numbers shift after each cancellation.
+</box>
 
 Example: `sessions d/2026-12-15`.
 
@@ -688,7 +701,7 @@ Action     | Format, Examples
 **Filter** | `filter t/TAG [t/MORE_TAGS]...`<br> e.g., `filter t/rehab t/strength`
 **List**   | `list`
 **Session** | `session INDEX d/DATE t/TIME` or `session n/NAME d/DATE t/TIME`<br> e.g., `session 1 d/2026-12-15 t/1900`
-**Cancel session** | `cancelsession INDEX` or `cancelsession n/NAME`<br> e.g., `cancelsession n/Sarah Lim`
+**Cancel session** | `cancelsession INDEX` or `cancelsession n/NAME`<br> e.g., `cancelsession 1`, `cancelsession n/Sarah Lim`
 **Sessions on date** | `sessions d/DATE`<br> e.g., `sessions d/2026-12-15`
 **Measure** | `measure INDEX d/DATE t/TYPE v/VALUE`<br> e.g., `measure 1 d/2026-09-12 t/weight v/72.4`
 **Performance** | `performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`<br> e.g., `performance 2 d/2026-09-18 e/Bench Press s/3 r/8 w/60`

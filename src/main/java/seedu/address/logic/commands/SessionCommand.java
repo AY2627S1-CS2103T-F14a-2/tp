@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
@@ -36,23 +37,40 @@ public class SessionCommand extends Command {
     private final Index index;
     private final String name;
     private final NextSession nextSession;
+    private final Clock clock;
 
     /**
      * Identifies the client using their position in the currently displayed list.
      */
     public SessionCommand(Index index, NextSession nextSession) {
+        this(index, nextSession, Clock.systemDefaultZone());
+    }
+
+    /**
+     * Identifies the client by displayed index, using {@code clock} for the current time so tests can fix "now".
+     */
+    SessionCommand(Index index, NextSession nextSession, Clock clock) {
         this.index = requireNonNull(index);
         this.name = null;
         this.nextSession = requireNonNull(nextSession);
+        this.clock = requireNonNull(clock);
     }
 
     /**
      * Identifies the client by their full name, ignoring case and repeated spaces.
      */
     public SessionCommand(String name, NextSession nextSession) {
+        this(name, nextSession, Clock.systemDefaultZone());
+    }
+
+    /**
+     * Identifies the client by full name, using {@code clock} for the current time so tests can fix "now".
+     */
+    SessionCommand(String name, NextSession nextSession, Clock clock) {
         this.index = null;
         this.name = Name.normalizeSpaces(name);
         this.nextSession = requireNonNull(nextSession);
+        this.clock = requireNonNull(clock);
     }
 
     @Override
@@ -71,7 +89,8 @@ public class SessionCommand extends Command {
         model.setPerson(target, target.withNextSession(nextSession));
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
         // Past sessions are kept for record-keeping; warn rather than block, as the booking is not upcoming.
-        if (nextSession.value.isBefore(LocalDateTime.now())) {
+        // Same rule as the card: a session exactly at "now" has not passed yet.
+        if (nextSession.value.isBefore(LocalDateTime.now(clock))) {
             feedback += "\n" + MESSAGE_PAST_SESSION;
         }
         return new CommandResult(feedback, false, false, true);
