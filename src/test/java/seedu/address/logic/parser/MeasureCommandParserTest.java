@@ -57,11 +57,38 @@ public class MeasureCommandParserTest {
         }
     }
 
+    // AI assistance: Helen used OpenAI Codex to add index-classification regressions for issue #166.
+    @Test
+    public void parse_malformedIndex_rejectsFormat() {
+        for (String index : new String[] {"", "one", "+1", "1.5", "1 extra", "1 2"}) {
+            String args = index + " d/2026-09-12 t/weight v/72";
+            assertEquals(MeasureCommand.MESSAGE_INVALID_FORMAT,
+                    assertThrows(ParseException.class, () -> parser.parse(args)).getMessage());
+            assertEquals(MeasureCommand.MESSAGE_INVALID_FORMAT,
+                    assertThrows(ParseException.class, () -> new AddressBookParser()
+                            .parseCommand("measure " + args)).getMessage());
+        }
+    }
+
+    @Test
+    public void parse_invalidNumericIndex_showsClientIndexErrorWithUsage() {
+        for (String index : new String[] {"0", "-1", "2147483648", "999999999999999999999"}) {
+            assertError(index + " d/2026-09-12 t/weight v/72", MeasureCommand.MESSAGE_INVALID_INDEX);
+        }
+    }
+
+    @Test
+    public void parse_largestIndex_acceptsForCommandValidation() throws Exception {
+        assertEquals(new MeasureCommand(Index.fromOneBased(Integer.MAX_VALUE),
+                new Measurement(LocalDate.of(2026, 9, 12), MeasurementType.WEIGHT, new BigDecimal("72"))),
+                parser.parse(Integer.MAX_VALUE + " d/2026-09-12 t/weight v/72"));
+    }
+
     @Test
     public void parse_invalidValues_rejectsWithUsage() {
         String[] invalidArguments = {
             "0 d/2026-09-12 t/weight v/72", "-1 d/2026-09-12 t/weight v/72",
-            "2147483648 d/2026-09-12 t/weight v/72", "1 extra d/2026-09-12 t/weight v/72",
+            "2147483648 d/2026-09-12 t/weight v/72",
             "1 d/2026-02-30 t/weight v/72", "1 d/12/9/2026 t/weight v/72",
             "1 d/2026-9-12 t/weight v/72", "1 d/" + LocalDate.now().plusDays(1) + " t/weight v/72",
             "1 d/2026-09-12 t/height v/72", "1 d/2026-09-12 t/ v/72",
