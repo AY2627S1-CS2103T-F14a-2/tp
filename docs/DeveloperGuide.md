@@ -13,27 +13,6 @@
 
 ## **Acknowledgements**
 
-* Helen (He Jingqi) used OpenAI Codex to assist with implementing, testing and documenting
-  the v1.4 measurement deletion feature for issue #84, including its model operation, command, parser,
-  persistence tests and sequence diagram.
-
-* Gabriel Wan used [OpenAI Codex](https://openai.com/codex/) to assist with implementing, testing,
-  and documenting the v1.3 next-session feature, including parsing, client integration, JSON storage, sorting,
-  and the client card row, and the v1.4 session cancellation/date-filter commands, tests, documentation,
-  and release preparation. For v1.5, Gabriel used Codex for cancellation by full name, rescheduling feedback,
-  refreshing session order after commands, exact-time clash warnings, and the related tests and documentation.
-* Gabriel Wan used OpenAI Codex to assist with the v1.5 UI polish: adaptive feedback sizing, card spacing and
-  styling, separate history sections, GUI tests, documentation, screenshots and alpha-test fixes.
-* Gabriel Wan used OpenAI Codex to fix application file locations for issue #98, including JAR-home detection,
-  logging fallback, packaged-JVM regression tests and the related documentation.
-* AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #64 changes (the `list` command messages, undoing changes when saving fails, the damaged data file warning, the client card phone and email rows, and the related tests and User Guide wording) on 2026-10-15. The changes were reviewed and tested by the author.
-* AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #79 changes (the tests for data files with invalid values, the `view` sequence diagram and "View client history" section, and the related manual testing steps) on 2026-10-22. The changes were reviewed and tested by the author.
-* Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the client `add`/`delete` changes for v1.3 (removing address, optional email, name and phone limits, Spotter messages). All generated code was reviewed and tested before committing.
-* Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the v1.5 split-screen window
-  (the Upcoming sessions panel and cards, showing a viewed client's history in its place, keeping both in sync in
-  `ModelManager` and `LogicManager`, the related tests, the User Guide "The Spotter window" and `view` sections, and the
-  "Upcoming sessions panel" and "View client history" sections of this guide). All generated code was reviewed and
-  tested before committing.
 * The GUI tests use [TestFX](https://github.com/TestFX/TestFX) to run JavaFX UI parts in tests.
 
 --------------------------------------------------------------------------------------------------------------------
@@ -43,8 +22,6 @@
 Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
 --------------------------------------------------------------------------------------------------------------------
-
-<!-- AI assistance: Helen used OpenAI Codex to retarget implementation source links for issue #127. -->
 
 ## **Design**
 
@@ -302,8 +279,6 @@ Design notes:
   * Cons: An edited client cannot be matched reliably, e.g. after its name changes, and the logic would be in
     GUI code that is hard to test.
 
-<!-- AI assistance: Claude Code helped draft this section and its sequence diagrams. -->
-
 ### Recording and deleting gym performances
 
 `performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD` records one result for the client at the displayed index,
@@ -330,8 +305,6 @@ displayed index, exercise and date, but not the client's name or contact details
 **Design choice:** The client card's latest performance and record count are derived from `PerformanceHistory`
 rather than stored separately, so they cannot become stale after a replacement or deletion. Keeping the recording
 order means the record entered last is treated as the latest when several share a date.
-
-<!-- AI assistance: Claude Code helped draft this section and its class diagram. -->
 
 ### Deleting body measurements
 
@@ -418,8 +391,6 @@ and performance history, and replaces the original through `Model#setPerson`.
 `removeEmail` reset each other, so an edit can never both replace and remove the email; `EditCommand` asserts this.
 The alternative, an `Optional<Email>` field that is null when unchanged, made `getEmail()` return
 `Optional<Optional<Email>>`, which reviewers found hard to read.
-
-<!-- AI assistance: Claude Code helped draft this section and its sequence diagram. -->
 
 ### \[Proposed\] Undo/redo feature
 
@@ -620,8 +591,6 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
       Use case ends.
 
 **Use case: UC02 - Find a client**
-
-<!-- AI assistance: Helen used OpenAI Codex to correct UC02's name-matching description for issue #124. -->
 
 **MSS**
 
@@ -1150,8 +1119,6 @@ run `list` and substitute that client's displayed index for `1` below.
 1. Resize the window and check long card rows.<br>
    Expected: The measurement row remains readable and does not overlap neighbouring cards.
 
-<!-- AI assistance: OpenAI Codex helped draft measurement acceptance tests. -->
-
 ### Deleting body measurements
 
 Use fictional data in a disposable test folder. Run `list`, choose a client, and substitute that client's
@@ -1241,8 +1208,6 @@ run `list` and substitute that client's displayed index for `1` below. `NAME` is
       The card shows `Latest performance: -`.
    1. Enter `exit` and relaunch Spotter.<br>
       Expected: The card still shows `Latest performance: -`, while the session and measurement remain.
-
-<!-- AI assistance: Claude (Anthropic) helped draft these gym-performance manual tests. -->
 
 ### Cancelling and listing sessions
 
@@ -1395,5 +1360,3 @@ editing the file. Keep the backup until all tests are complete.
 Preserve a backup before testing corrupted data. The damaged file is retained only until a successful
 command changes client data; that command overwrites it with the current records.
 </box>
-
-<!-- AI assistance: OpenAI Codex helped draft storage persistence and recovery acceptance tests. -->
