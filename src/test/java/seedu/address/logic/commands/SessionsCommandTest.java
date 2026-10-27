@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.commands.CommandTestUtil.getInArabicFormatLocale;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -62,6 +63,12 @@ public class SessionsCommandTest {
         assertTrue(model.getFilteredPersonList().isEmpty());
         assertEquals("No sessions recorded on " + date + ".",
                 new SessionsCommand(date).execute(new ModelManager()).getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_arabicFormatLocale_usesLatinDigits() {
+        assertEquals("Listed 3 clients with sessions on " + date + ".",
+                getInArabicFormatLocale(() -> new SessionsCommand(date).execute(model).getFeedbackToUser()));
     }
 
     @Test

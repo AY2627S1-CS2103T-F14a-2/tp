@@ -68,7 +68,7 @@ public class AddressBookParser {
             case ViewCommand.COMMAND_WORD -> new ViewCommandParser().parse(arguments);
             case MeasureCommand.COMMAND_WORD -> new MeasureCommandParser().parse(arguments);
             case DeleteMeasureCommand.COMMAND_WORD -> new DeleteMeasureCommandParser().parse(arguments);
-            case ClearCommand.COMMAND_WORD -> new ClearCommand();
+            case ClearCommand.COMMAND_WORD -> parseClearCommand(arguments);
             case FindCommand.COMMAND_WORD -> new FindCommandParser().parse(arguments);
             case FilterCommand.COMMAND_WORD -> new FilterCommandParser().parse(arguments);
             case SessionCommand.COMMAND_WORD -> new SessionCommandParser().parse(arguments);
@@ -93,6 +93,14 @@ public class AddressBookParser {
             throw new ParseException(ListCommand.MESSAGE_EXTRA_PARAMETERS);
         }
         return new ListCommand();
+    }
+
+    /** Rejects accidental indices or other arguments before a destructive clear can execute. */
+    private ClearCommand parseClearCommand(String arguments) throws ParseException {
+        if (!arguments.isBlank()) {
+            throw new ParseException(ClearCommand.MESSAGE_EXTRA_PARAMETERS);
+        }
+        return new ClearCommand();
     }
 
 }

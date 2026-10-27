@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static seedu.address.logic.commands.CommandTestUtil.getInArabicFormatLocale;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -90,6 +91,11 @@ public class ListCommandTest {
         assertEquals("Listed 1 client.", ListCommand.getResultMessage(1));
         assertEquals("Listed 2 clients.", ListCommand.getResultMessage(2));
         assertEquals("Listed 7 clients.", ListCommand.getResultMessage(7));
+    }
+
+    @Test
+    public void getResultMessage_arabicFormatLocale_usesLatinDigits() {
+        assertEquals("Listed 7 clients.", getInArabicFormatLocale(() -> ListCommand.getResultMessage(7)));
     }
 
     @Test

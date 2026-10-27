@@ -3,6 +3,8 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
+import java.util.Locale;
+
 import seedu.address.model.Model;
 
 /**
@@ -38,6 +40,6 @@ public class ListCommand extends Command {
         if (clientCount == 1) {
             return MESSAGE_SUCCESS_ONE_CLIENT;
         }
-        return String.format(MESSAGE_SUCCESS, clientCount);
+        return String.format(Locale.ROOT, MESSAGE_SUCCESS, clientCount);
     }
 }

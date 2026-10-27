@@ -3,6 +3,7 @@ package seedu.address.ui;
 import static seedu.address.logic.commands.ClientHistoryFormatter.NO_EMAIL;
 import static seedu.address.logic.commands.ClientHistoryFormatter.NO_SESSION;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
@@ -34,6 +35,8 @@ public class PersonCard extends UiPart<Region> {
     // Shared by the measurement and performance rows. An English locale keeps month names,
     // e.g. "Sep", the same on every system.
     private static final DateTimeFormatter CARD_DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMM", Locale.ENGLISH);
+    private static final DateTimeFormatter CARD_DATE_WITH_YEAR_FORMATTER =
+            DateTimeFormatter.ofPattern("d MMM uuuu", Locale.ENGLISH);
 
     /**
      * Note: Certain keywords such as "location" and "resources" are reserved keywords in JavaFX.
@@ -76,24 +79,34 @@ public class PersonCard extends UiPart<Region> {
         email.setText(EMAIL_LABEL + getEmailDisplay(person));
         nextSession.setText("Next session: " + person.getNextSession()
                 .map(session -> session.toDisplayString(LocalDateTime.now())).orElse(NO_SESSION));
-        latestMeasurement.setText(formatLatestMeasurement(person.getMeasurements()));
+        LocalDate today = LocalDate.now();
+        latestMeasurement.setText(formatLatestMeasurement(person.getMeasurements(), today));
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
         // AI assistance: Gabriel used OpenAI Codex to remove empty tag-row spacing.
         tags.setVisible(!tags.getChildren().isEmpty());
         tags.managedProperty().bind(tags.visibleProperty());
-        latestPerformance.setText(formatLatestPerformance(person.getPerformanceHistory()));
+        latestPerformance.setText(formatLatestPerformance(person.getPerformanceHistory(), today));
+    }
+
+    /**
+     * Returns the card date, adding the year when it differs from {@code today}'s so old records don't look recent.
+     */
+    private static String formatCardDate(LocalDate date, LocalDate today) {
+        return date.format(date.getYear() == today.getYear() ? CARD_DATE_FORMATTER : CARD_DATE_WITH_YEAR_FORMATTER);
     }
 
     /**
      * Returns the card row for the client's latest gym performance and total number of records,
      * e.g. "Latest performance: 15 Sep - Squat, 3 sets of 5 reps at 100 kg (9 records)".
      * Kept separate from the JavaFX constructor so that it can be tested without starting JavaFX.
+     *
+     * @param today The current date. The record's year is shown only if it differs from this year.
      */
-    static String formatLatestPerformance(PerformanceHistory history) {
+    static String formatLatestPerformance(PerformanceHistory history, LocalDate today) {
         return history.getLatest()
-                .map(latest -> PERFORMANCE_ROW_PREFIX + latest.getDate().format(CARD_DATE_FORMATTER)
+                .map(latest -> PERFORMANCE_ROW_PREFIX + formatCardDate(latest.getDate(), today)
                         + " - " + latest.getSummary() + " (" + history.size()
                         + (history.size() == 1 ? " record)" : " records)"))
                 .orElse(PERFORMANCE_ROW_PREFIX + "-");
@@ -102,15 +115,17 @@ public class PersonCard extends UiPart<Region> {
     /**
      * Formats the newest record; same-date ties prefer weight, then body fat, then waist.
      * AI assistance: OpenAI Codex helped implement the measurement card row and tests.
+     *
+     * @param today The current date. The record's year is shown only if it differs from this year.
      */
-    static String formatLatestMeasurement(List<Measurement> measurements) {
+    static String formatLatestMeasurement(List<Measurement> measurements, LocalDate today) {
         if (measurements.isEmpty()) {
             return "Latest measurement: -";
         }
         Measurement latest = measurements.stream().min(Comparator.comparing(Measurement::getDate).reversed()
                 .thenComparing(Measurement::getType)).orElseThrow();
         int count = measurements.size();
-        return "Latest measurement: " + latest.getDate().format(CARD_DATE_FORMATTER)
+        return "Latest measurement: " + formatCardDate(latest.getDate(), today)
                 + " - " + latest.getType() + " " + latest.getValue().toPlainString()
                 + " " + latest.getType().getUnit() + " (" + count + (count == 1 ? " record)" : " records)");
     }

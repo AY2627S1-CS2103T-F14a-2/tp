@@ -64,7 +64,9 @@ public class NextSession {
         if (value.isBefore(now)) {
             return "- (none upcoming)";
         }
-        return value.format(DateTimeFormatter.ofPattern("EEE d MMM, h:mm", Locale.ENGLISH))
+        // The year is shown only when it differs from now, so a booking next year isn't read as this year's.
+        String pattern = value.getYear() == now.getYear() ? "EEE d MMM, h:mm" : "EEE d MMM uuuu, h:mm";
+        return value.format(DateTimeFormatter.ofPattern(pattern, Locale.ENGLISH))
                 + (value.getHour() < 12 ? "am" : "pm");
     }
 
