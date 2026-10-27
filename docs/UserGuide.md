@@ -601,9 +601,18 @@ No matches (empty panel) | `No sessions recorded on 2026-12-15.`
 
 Spotter saves your data automatically to `[JAR file location]/data/spotter.json` after each command that changes it. You do not need to save manually.
 
+The folder containing `spotter.jar` is Spotter's home folder. The same folder holds `preferences.json`
+(window settings) and the rotating `spotter.log.*` files. Launching the JAR from a terminal in another folder
+still uses these files beside the JAR. The save-location footer shows the absolute data-file path.
+
 * If saving fails (e.g., the data file or folder is read-only), the change is undone and Spotter shows `Unable to save Spotter data.`
 * If the data file is missing, Spotter starts with sample data.
 * If the data file is damaged, Spotter starts with no clients and shows `Unable to load saved Spotter data. The existing data file has not been modified.` The damaged file is left untouched until your next successful command that changes data, which overwrites it.
+
+When moving Spotter, close it and move the JAR together with its `data` folder. Copy `preferences.json` too
+if you want to retain window settings. If an older build saved your clients in a different terminal folder,
+back up that data file and copy it to `[JAR file location]/data/spotter.json` while Spotter is closed.
+Back up any existing destination file before replacing it. Spotter does not search other folders for old data.
 
 ### Editing the data file
 

@@ -24,6 +24,8 @@
   refreshing session order after commands, exact-time clash warnings, and the related tests and documentation.
 * Gabriel Wan used OpenAI Codex to assist with the v1.5 UI polish: adaptive feedback sizing, card spacing and
   styling, separate history sections, GUI tests, documentation and screenshots.
+* Gabriel Wan used OpenAI Codex to fix application file locations for issue #98, including JAR-home detection,
+  logging fallback, packaged-JVM regression tests and the related documentation.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #64 changes (the `list` command messages, undoing changes when saving fails, the damaged data file warning, the client card phone and email rows, and the related tests and User Guide wording) on 2026-10-15. The changes were reviewed and tested by the author.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #79 changes (the tests for data files with invalid values, the `view` sequence diagram and "View client history" section, and the related manual testing steps) on 2026-10-22. The changes were reviewed and tested by the author.
 * Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the client `add`/`delete` changes for v1.3 (removing address, optional email, name and phone limits, Spotter messages). All generated code was reviewed and tested before committing.
@@ -187,6 +189,23 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 ## **Implementation**
 
 This section describes some noteworthy details on how certain features are implemented.
+
+### Application file locations
+
+`AppPaths` resolves the home folder from its class's `CodeSource`: a packaged application uses the archive's
+containing folder, while exploded classes used by IntelliJ or Gradle use the configured working directory.
+Converting the code-location URL through a URI preserves folder names containing spaces, Unicode and percent signs.
+An unknown or non-local code location fails explicitly, preventing writes to an unintended fallback folder.
+
+`MainApp` passes absolute paths for `preferences.json` and `data/spotter.json` to the existing storage classes.
+`LogsCenter` uses the same home folder during static initialization, before `MainApp#init` runs. Its
+`FileHandler` pattern escapes literal percent signs so folder names cannot be interpreted as logging tokens.
+If the log file cannot be opened, the already-installed console handler reports the error and remains usable.
+Client-data save failures retain the existing rollback behaviour.
+
+The path tests package the real resolver and logger into a small executable JAR and launch it in separate JVMs
+from unrelated folders. This verifies archive detection, special-character paths, existing-data preservation,
+relaunch behaviour and a blocked log file without changing the test JVM's working directory.
 
 ### Upcoming sessions panel
 
@@ -1049,6 +1068,23 @@ testers are expected to do more *exploratory* testing.
       Expected: Both routes restore the existing Help window and bring it forward.
 
 1. _{ more test cases … }_
+
+### Launching from another directory
+
+Use disposable folders and fictional data. Put the freshly built `spotter.jar` in an application folder such as
+`Spotter 100%`, and create two separate empty folders for launching it.
+
+1. Open a terminal in the first launch folder and run `java -jar "ABSOLUTE_PATH_TO_APP/spotter.jar"` using Java 25.
+   Add `add n/Storage Probe Client p/91234567`.<br>
+   Expected: The client appears and is saved. The data file, preferences and logs are inside the application folder;
+   the terminal's launch folder stays empty. The footer shows the data file's absolute path beside the JAR.
+1. Exit and launch the same JAR from the second launch folder. Run `find Storage Probe Client`.<br>
+   Expected: The saved client is found, with no files created in the second launch folder.
+1. Exit and back up the generated log files. Create a directory named `spotter.log.0` in the application folder,
+   then launch the JAR again.<br>
+   Expected: The console reports that file logging is unavailable and console logging is being used. Spotter still
+   opens and loads the saved client. No fallback log is created in the launch folder. After exiting, remove the
+   blocking directory and restore the backed-up logs before further testing.
 
 ### Deleting a person
 
