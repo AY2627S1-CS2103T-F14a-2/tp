@@ -80,6 +80,9 @@ public class PersonCard extends UiPart<Region> {
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+        // AI assistance: Gabriel used OpenAI Codex to remove empty tag-row spacing.
+        tags.setVisible(!tags.getChildren().isEmpty());
+        tags.managedProperty().bind(tags.visibleProperty());
         latestPerformance.setText(formatLatestPerformance(person.getPerformanceHistory()));
     }
 

@@ -6,6 +6,7 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -26,6 +27,9 @@ public class SessionCommand extends Command {
     public static final String MESSAGE_EMPTY_NAME = "Name cannot be empty.";
     public static final String MESSAGE_NAME_SLASH = "Name must not contain '/'.";
     public static final String MESSAGE_SUCCESS = "Recorded next session for %s on %s at %s";
+    public static final String MESSAGE_RESCHEDULED = "Rescheduled next session for %s from %s to %s.";
+    public static final String MESSAGE_UNCHANGED = "Next session for %s is already recorded on %s.";
+    public static final String MESSAGE_CLASH = "\nWarning: This time is also booked for %s. All bookings are kept.";
     public static final String MESSAGE_PAST_SESSION =
             "Note: this session is in the past, so it shows as \"- (none upcoming)\".";
 
@@ -61,17 +65,53 @@ public class SessionCommand extends Command {
             }
             target = model.getFilteredPersonList().get(index.getZeroBased());
         } else {
-            target = model.getAddressBook().getPersonList().stream()
-                    .filter(person -> person.getName().matches(name))
-                    .findFirst().orElseThrow(() -> new CommandException(MESSAGE_NO_SUCH_NAME));
+            target = findClientByName(model, name);
         }
+        String feedback = getFeedback(target) + getClashWarning(model, target);
         model.setPerson(target, target.withNextSession(nextSession));
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-        String message = String.format(MESSAGE_SUCCESS, target.getName(), nextSession.value.toLocalDate(),
-                nextSession.value.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm")));
         // Past sessions are kept for record-keeping; warn rather than block, as the booking is not upcoming.
-        boolean isPast = nextSession.value.isBefore(LocalDateTime.now());
-        return new CommandResult(isPast ? message + "\n" + MESSAGE_PAST_SESSION : message);
+        if (nextSession.value.isBefore(LocalDateTime.now())) {
+            feedback += "\n" + MESSAGE_PAST_SESSION;
+        }
+        return new CommandResult(feedback, false, false, true);
+    }
+
+    /**
+     * Identifies a replacement explicitly so a trainer can check which booking was removed.
+     * AI assistance: Gabriel used OpenAI Codex for booking feedback and regression tests.
+     */
+    private String getFeedback(Person target) {
+        if (target.getNextSession().isEmpty()) {
+            return String.format(MESSAGE_SUCCESS, target.getName(), nextSession.value.toLocalDate(),
+                    nextSession.value.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm")));
+        }
+        NextSession previous = target.getNextSession().orElseThrow();
+        if (previous.equals(nextSession)) {
+            return String.format(MESSAGE_UNCHANGED, target.getName(), nextSession);
+        }
+        return String.format(MESSAGE_RESCHEDULED, target.getName(), previous, nextSession);
+    }
+
+    /** Resolves the same normalized full-name identity for booking and cancellation, across filters. */
+    static Person findClientByName(Model model, String name) throws CommandException {
+        return model.getAddressBook().getPersonList().stream()
+                .filter(person -> person.getName().matches(name))
+                .findFirst().orElseThrow(() -> new CommandException(MESSAGE_NO_SUCH_NAME));
+    }
+
+    /**
+     * Warns about exact-time clashes across all clients, including those outside the displayed filter.
+     * Session duration is not recorded, so this does not attempt to infer overlapping time ranges.
+     */
+    private String getClashWarning(Model model, Person target) {
+        String names = model.getAddressBook().getPersonList().stream()
+                .filter(person -> !person.isSamePerson(target))
+                .filter(person -> person.getNextSession().filter(nextSession::equals).isPresent())
+                .map(person -> person.getName().fullName)
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .collect(Collectors.joining(", "));
+        return names.isEmpty() ? "" : String.format(MESSAGE_CLASH, names);
     }
 
     @Override

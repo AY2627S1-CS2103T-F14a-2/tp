@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Messages;
+import seedu.address.logic.commands.SessionCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
@@ -42,10 +43,42 @@ public class ParserUtil {
     public static final String MESSAGE_INVALID_SESSION_TIME =
             "Time must be a 24-hour time such as 930, 0930, 9:30 or 19:00.";
 
+    // Groups of digits separated by one or more spaces, e.g. "9927 2758" as shown on the client card
+    private static final String SPACED_DIGITS_REGEX = "\\d+( +\\d+)+";
+
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("uuuu-MM-dd")
             .withResolverStyle(ResolverStyle.STRICT);
     // One- or two-digit hour, optional colon, two-digit minute, e.g. 930, 0930, 9:30, 19:00.
     private static final Pattern TIME_PATTERN = Pattern.compile("(\\d{1,2}):?(\\d{2})");
+
+    private static final Pattern PREFIX_PATTERN = Pattern.compile("(?:^|\\s)([^\\s/]+/)");
+
+    /** Rejects prefix-shaped arguments outside the command's accepted fields. */
+    public static void rejectUnsupportedPrefixes(String arguments, String message, Prefix... allowed)
+            throws ParseException {
+        Matcher matcher = PREFIX_PATTERN.matcher(arguments);
+        Set<String> prefixes = new HashSet<>();
+        for (Prefix prefix : allowed) {
+            prefixes.add(prefix.getPrefix());
+        }
+        while (matcher.find()) {
+            if (!prefixes.contains(matcher.group(1))) {
+                throw new ParseException(message);
+            }
+        }
+    }
+
+    /** Normalizes and validates the full-name identifier shared by session commands. */
+    public static String parseSessionClientName(String value) throws ParseException {
+        String name = Name.normalizeSpaces(requireNonNull(value));
+        if (name.isEmpty()) {
+            throw new ParseException(SessionCommand.MESSAGE_EMPTY_NAME);
+        }
+        if (name.contains("/")) {
+            throw new ParseException(SessionCommand.MESSAGE_NAME_SLASH);
+        }
+        return name;
+    }
 
     /**
      * Parses a real YYYY-MM-DD date in years 0001-9999 without restricting it relative to today,
@@ -57,10 +90,7 @@ public class ParserUtil {
         if (!trimmed.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}")) {
             throw new ParseException(MESSAGE_SESSION_DATE_FORMAT);
         }
-        int year = Integer.parseInt(trimmed.substring(0, 4));
-        int month = Integer.parseInt(trimmed.substring(5, 7));
-        int day = Integer.parseInt(trimmed.substring(8, 10));
-        if (year == 0 || month < 1 || month > 12 || day < 1 || day > 31) {
+        if (trimmed.startsWith("0000") || !hasValidMonthAndDay(trimmed)) {
             throw new ParseException(MESSAGE_SESSION_DATE_FORMAT);
         }
         LocalDate parsed;
@@ -170,7 +200,8 @@ public class ParserUtil {
     public static LocalDate parseExistingRecordDate(String date) throws ParseException {
         requireNonNull(date);
         String trimmedDate = date.trim();
-        if (!trimmedDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
+        // A month or day out of range, e.g. 2026-13-01, is a format error rather than a nonexistent date
+        if (!trimmedDate.matches("\\d{4}-\\d{2}-\\d{2}") || !hasValidMonthAndDay(trimmedDate)) {
             throw new ParseException(MESSAGE_INVALID_RECORD_DATE);
         }
         // The format is right from here on, so any remaining problem is a date that does not exist
@@ -185,6 +216,15 @@ public class ParserUtil {
             throw new ParseException(nonexistentDateMessage);
         }
         return parsedDate;
+    }
+
+    /**
+     * Returns true if the month and day of a {@code yyyy-MM-dd} string are within 01-12 and 01-31.
+     */
+    private static boolean hasValidMonthAndDay(String date) {
+        int month = Integer.parseInt(date.substring(5, 7));
+        int day = Integer.parseInt(date.substring(8, 10));
+        return month >= 1 && month <= 12 && day >= 1 && day <= 31;
     }
 
     /**
@@ -205,13 +245,17 @@ public class ParserUtil {
 
     /**
      * Parses a {@code String phone} into a {@code Phone}.
-     * Leading and trailing whitespaces will be trimmed.
+     * Leading and trailing whitespaces will be trimmed, and spaces between digits are removed so that a number
+     * typed as displayed (e.g. "9927 2758") is stored as digits only.
      *
      * @throws ParseException if the given {@code phone} is invalid.
      */
     public static Phone parsePhone(String phone) throws ParseException {
         requireNonNull(phone);
         String trimmedPhone = phone.trim();
+        if (trimmedPhone.matches(SPACED_DIGITS_REGEX)) {
+            trimmedPhone = trimmedPhone.replace(" ", "");
+        }
         if (!Phone.isValidPhone(trimmedPhone)) {
             throw new ParseException(Phone.isTooLong(trimmedPhone)
                     ? Phone.MESSAGE_LENGTH_CONSTRAINTS : Phone.MESSAGE_CONSTRAINTS);

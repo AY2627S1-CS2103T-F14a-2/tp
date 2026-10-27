@@ -1,9 +1,12 @@
 package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static seedu.address.testutil.TypicalGymPerformances.BENCH_PRESS;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
@@ -18,6 +21,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.stage.Stage;
 import seedu.address.logic.commands.ClientHistoryFormatter;
+import seedu.address.model.person.Measurement;
+import seedu.address.model.person.MeasurementType;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 
@@ -38,7 +43,9 @@ public class ClientDetailPanelTest {
     @Test
     public void refresh_noClientViewed_showsNothing() {
         assertEquals("", labelText("#name"));
-        assertEquals("", labelText("#history"));
+        assertEquals("", labelText("#details"));
+        assertEquals("", labelText("#measurements"));
+        assertEquals("", labelText("#performances"));
     }
 
     @Test
@@ -46,7 +53,11 @@ public class ClientDetailPanelTest {
         robot.interact(() -> viewedPerson.set(ALICE));
 
         assertEquals("Alice Pauline", labelText("#name"));
-        assertEquals(ClientHistoryFormatter.format(ALICE, LocalDateTime.now()), labelText("#history"));
+        assertEquals(ClientHistoryFormatter.formatDetails(ALICE, LocalDateTime.now()), labelText("#details"));
+        assertEquals("Measurements · 0 records", labelText("#measurementHeading"));
+        assertEquals("Performance · 0 records", labelText("#performanceHeading"));
+        assertEquals("None recorded yet.", labelText("#measurements"));
+        assertEquals("None recorded yet.", labelText("#performances"));
     }
 
     @Test
@@ -65,6 +76,20 @@ public class ClientDetailPanelTest {
         robot.interact(() -> viewedPerson.set(new PersonBuilder(ALICE).withPhone("99998888").build()));
 
         assertEquals(1, panel.getVvalue());
+    }
+
+    @Test
+    public void viewedPersonChanged_newRecords_updatesRowsAndSectionCounts(FxRobot robot) {
+        robot.interact(() -> viewedPerson.set(ALICE));
+        Person recorded = ALICE.withMeasurement(new Measurement(LocalDate.of(2026, 10, 20),
+                MeasurementType.WEIGHT, new BigDecimal("72.4"))).withGymPerformance(BENCH_PRESS);
+
+        robot.interact(() -> viewedPerson.set(recorded));
+
+        assertEquals("Measurements · 1 record", labelText("#measurementHeading"));
+        assertEquals("2026-10-20  weight 72.4 kg", labelText("#measurements"));
+        assertEquals("Performance · 1 record", labelText("#performanceHeading"));
+        assertEquals("2026-09-18  Bench Press, 3 sets of 8 reps at 60 kg", labelText("#performances"));
     }
 
     private String labelText(String selector) {

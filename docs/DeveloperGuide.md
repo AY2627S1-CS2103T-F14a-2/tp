@@ -20,7 +20,12 @@
 * Gabriel Wan used [OpenAI Codex](https://openai.com/codex/) to assist with implementing, testing,
   and documenting the v1.3 next-session feature, including parsing, client integration, JSON storage, sorting,
   and the client card row, and the v1.4 session cancellation/date-filter commands, tests, documentation,
-  and release preparation.
+  and release preparation. For v1.5, Gabriel used Codex for cancellation by full name, rescheduling feedback,
+  refreshing session order after commands, exact-time clash warnings, and the related tests and documentation.
+* Gabriel Wan used OpenAI Codex to assist with the v1.5 UI polish: adaptive feedback sizing, card spacing and
+  styling, separate history sections, GUI tests, documentation and screenshots.
+* Gabriel Wan used OpenAI Codex to fix application file locations for issue #98, including JAR-home detection,
+  logging fallback, packaged-JVM regression tests and the related documentation.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #64 changes (the `list` command messages, undoing changes when saving fails, the damaged data file warning, the client card phone and email rows, and the related tests and User Guide wording) on 2026-10-15. The changes were reviewed and tested by the author.
 * AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #79 changes (the tests for data files with invalid values, the `view` sequence diagram and "View client history" section, and the related manual testing steps) on 2026-10-22. The changes were reviewed and tested by the author.
 * Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the client `add`/`delete` changes for v1.3 (removing address, optional email, name and phone limits, Spotter messages). All generated code was reviewed and tested before committing.
@@ -97,6 +102,14 @@ The `UI` component,
 * listens for changes to `Model` data so that the UI can be updated with the modified data.
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
 * depends on some classes in the `Model` component because it displays `Person` objects from the model.
+
+`ResultDisplay` measures its wrapped text with a JavaFX `Text` using the feedback area's font and available width.
+Its preferred height ranges from 44 to 112 logical pixels, freeing space for the lists after short confirmations.
+Longer messages remain complete in a wrapping, selectable, read-only `TextArea` with scrolling. Resizing the
+window recalculates the height. The surrounding placeholder has no fixed height.
+
+Card typography, selection borders and tag contrast are defined in `DarkTheme.css`. Both card layouts use the
+same padding and line spacing. Names, email addresses and record summaries wrap within the card width.
 
 ### Logic component
 
@@ -177,6 +190,23 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Application file locations
+
+`AppPaths` resolves the home folder from its class's `CodeSource`: a packaged application uses the archive's
+containing folder, while exploded classes used by IntelliJ or Gradle use the configured working directory.
+Converting the code-location URL through a URI preserves folder names containing spaces, Unicode and percent signs.
+An unknown or non-local code location fails explicitly, preventing writes to an unintended fallback folder.
+
+`MainApp` passes absolute paths for `preferences.json` and `data/spotter.json` to the existing storage classes.
+`LogsCenter` uses the same home folder during static initialization, before `MainApp#init` runs. Its
+`FileHandler` pattern escapes literal percent signs so folder names cannot be interpreted as logging tokens.
+If the log file cannot be opened, the already-installed console handler reports the error and remains usable.
+Client-data save failures retain the existing rollback behaviour.
+
+The path tests package the real resolver and logger into a small executable JAR and launch it in separate JVMs
+from unrelated folders. This verifies archive detection, special-character paths, existing-data preservation,
+relaunch behaviour and a blocked log file without changing the test JVM's working directory.
+
 ### Upcoming sessions panel
 
 The right side of the window shows the clients with an upcoming session, soonest first, so that a trainer can
@@ -236,8 +266,9 @@ the panel matches the restored data.
 Design notes:
 
 * **Non-UI formatter:** `ClientHistoryFormatter` is a plain class in `logic.commands` with no JavaFX dependency,
-  so the panel's text can be checked in unit tests without starting the GUI. The panel only shows the client's
-  name as its title and the formatter's text below it.
+  so the panel's text can be checked in unit tests without starting the GUI. Its detail and record formatting
+  methods supply separate labels in `ClientDetailPanel`. Measurements and performance have styled headings with
+  counts and a newest-first hint; the formatting and ordering rules are shared with the plain-text formatter.
 * **"Now" at drawing time:** whether the next session has passed is decided when the panel is drawn, as on the
   client card. `MainWindow` also redraws the panel after every successful command, so a session that passes
   while the panel is open is shown the same way as on the card.
@@ -322,9 +353,25 @@ measurement list avoids stale summary data after deletion.
 
 ### Session cancellation and date filtering
 
-`cancelsession INDEX` removes the current displayed client's single recorded session.
-`CancelSessionCommandParser` accepts exactly one index and `CancelSessionCommand` resolves it against
+`session` distinguishes first bookings, rescheduling and an unchanged booking in its feedback. A replacement
+includes both old and new timestamps, so the trainer can verify the overwritten slot. Successful bookings
+restore the full client list and scroll to the top, including after an unchanged booking.
+Before replacing the booking, the command checks the whole address book for other clients at the same
+timestamp, excluding the target client. The feedback names these clients alphabetically and keeps both
+bookings. The check uses exact timestamps: the model has no duration with which to infer an overlapping range.
+
+After a command executes, `LogicManager` calls `Model#updateSessionLists` with the current time to refresh the
+session comparator while preserving the current filter. This also refreshes client card rows through `PersonListPanel`'s existing
+comparator listener. Refreshing after execution preserves the meaning of displayed indices: a booking that expires
+while the trainer types must not cause an index-based command to act on a different client. Read-only refreshes
+never save the data file; rejected commands retain the displayed list.
+
+`cancelsession INDEX` or `cancelsession n/NAME` removes a client's single recorded session.
+`CancelSessionCommandParser` accepts exactly one index or full name. `CancelSessionCommand` resolves indices against
 `Model#getFilteredPersonList()`, so indices refer to the sorted/filtered UI rather than JSON order.
+Names use the booking command's case-insensitive, whitespace-normalized matching across the whole address book.
+This lets a trainer cancel a known client's booking even after indices change or a filter hides the client,
+while preserving the current filter. Mixed identifiers, empty names and slashes are rejected during parsing.
 It rejects an invalid index or a client without a recorded session before changing the model.
 
 The following partial model diagram shows the session field, the date predicate and the progress data that must survive
@@ -868,7 +915,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 4a. Another client's next session is at the same date and time.
 
-    * 4a1. Spotter keeps both sessions; the MVP does not warn about clashes.
+    * 4a1. Spotter keeps both sessions and warns the trainer, naming the other clients booked at that exact time.
 
       Use case ends.
 
@@ -1011,7 +1058,32 @@ testers are expected to do more *exploratory* testing.
    1. Relaunch the app by double-clicking the JAR file.<br>
        Expected: The most recent window size and location are retained.
 
+1. Restoring the Help window
+
+   1. Enter `help`, minimize the Help window, return to Spotter and enter `help` again.<br>
+      Expected: The same Help window is restored and brought forward.
+
+   1. Repeat using the Help menu and `F1`, minimizing the window before each attempt.<br>
+      Expected: Both routes restore the existing Help window and bring it forward.
+
 1. _{ more test cases … }_
+
+### Launching from another directory
+
+Use disposable folders and fictional data. Put the freshly built `spotter.jar` in an application folder such as
+`Spotter 100%`, and create two separate empty folders for launching it.
+
+1. Open a terminal in the first launch folder and run `java -jar "ABSOLUTE_PATH_TO_APP/spotter.jar"` using Java 25.
+   Add `add n/Storage Probe Client p/91234567`.<br>
+   Expected: The client appears and is saved. The data file, preferences and logs are inside the application folder;
+   the terminal's launch folder stays empty. The footer shows the data file's absolute path beside the JAR.
+1. Exit and launch the same JAR from the second launch folder. Run `find Storage Probe Client`.<br>
+   Expected: The saved client is found, with no files created in the second launch folder.
+1. Exit and back up the generated log files. Create a directory named `spotter.log.0` in the application folder,
+   then launch the JAR again.<br>
+   Expected: The console reports that file logging is unavailable and console logging is being used. Spotter still
+   opens and loads the saved client. No fallback log is created in the launch folder. After exiting, remove the
+   blocking directory and restore the backed-up logs before further testing.
 
 ### Deleting a person
 
@@ -1031,6 +1103,11 @@ testers are expected to do more *exploratory* testing.
 1. _{ more test cases … }_
 
 ### Recording body measurements
+
+To check copied command separators, use a disposable dataset and copy a `measure` or `performance` command
+from a text editor with literal tabs between its prefixes. Paste into Spotter's command field.
+Expected: Tabs become visible spaces; pressing Enter records the measurement or performance normally.
+Repeat while replacing selected text, and check Undo/Redo before pressing Enter.
 
 Use fictional data in a disposable test folder. Start with a client without measurements,
 run `list` and substitute that client's displayed index for `1` below.
@@ -1085,6 +1162,11 @@ from storage and rollback of records, the active filter and the saved file after
 `PersonCardTest` checks latest-record fallback, same-date ties, singular/plural counts and the final empty state.
 
 ### Recording and deleting gym performances
+
+To check equipment labels, use a disposable client and today's date: record `e/Row (Cable)` with
+`performance INDEX d/DATE e/Row (Cable) s/3 r/8 w/30`, then repeat using `e/row   (cable)` and a different load.
+Expected: One record remains. Restart Spotter and delete it with `deleteperformance INDEX d/DATE e/ROW (CABLE)`.
+The record is removed, while the client's other data is preserved.
 
 Use fictional data in a disposable test folder. Start with a client without performance records,
 run `list` and substitute that client's displayed index for `1` below. `NAME` is that client's name.
@@ -1164,6 +1246,10 @@ replace `DATE` in every command below, and `TODAY` with today's date. Add unique
    Close and restart Spotter. Ada remains unbooked and the contact/progress data are unchanged.
 1. Enter `find SessionCancelAda`, then try `cancelsession 1`.<br>
    Expected: `No session is recorded for SessionCancelAda.` No client data or displayed results change.
+1. Enter `find SessionCancelAda`, then `cancelsession n/sessioncancelzoe`.<br>
+   Expected: Zoe's session is cancelled even though only Ada is displayed. The filter still shows Ada,
+   and Zoe's other data are preserved. Repeat the command: `No session is recorded for SessionCancelZoe.`
+   Try `cancelsession n/Unknown`: the unknown-name error is shown and nothing changes.
 1. Try `cancelsession 0`, `cancelsession 999999`, `cancelsession 1 2`, `sessions d/2026-02-30`,
    `sessions d/DATE d/DATE` and `sessions d/DATE x/foo`.<br>
    Expected: Invalid index, format or calendar errors, with no changes to clients, the current filter or saved data.
@@ -1174,6 +1260,17 @@ replace `DATE` in every command below, and `TODAY` with today's date. Add unique
    Cancel Ada's current displayed index.<br>
    Expected: `Unable to save Spotter data.` The booking and date-filtered list are restored with all progress intact.
    Close Spotter, remove the empty blocking directory and restore the backup file before further testing.
+1. Book Ada at `session n/SessionCancelAda d/DATE t/0900`, then change it to
+   `session n/SessionCancelAda d/DATE t/1000`.<br>
+   Expected: The rescheduling message includes the old `09:00` and new `10:00` bookings. The full list scrolls
+   to the top. Repeat the second command: Spotter reports that the booking is already recorded.
+1. Keep Spotter open across a session's start time, then run `help`.<br>
+   Expected: Expired cards show `- (none upcoming)` and sort after future bookings. For an index-based command
+   entered before this refresh, the client shown at that index receives the change before the list is reordered.
+1. Book both Ada and Zoe for `DATE` at `1000`, using their full names.<br>
+   Expected: The second booking succeeds with a warning naming the other client. Both remain in `sessions d/DATE`.
+   Run `find SessionCancelAda`, then book Ada at `1000` again: the warning still names Zoe outside the filter.
+   Move Ada to `1001`: the warning disappears, because only exact start times are compared.
 
 ### Upcoming sessions and viewing a client's history
 
@@ -1200,6 +1297,26 @@ list, so the indices below follow the list as it changes.
    Expected: Upcoming sessions is back and shows `No upcoming sessions.`
 1. Enter `view 0`.<br>
    Expected: `The client index provided is invalid.` The right side does not change.
+
+### UI readability and feedback sizing
+
+Use fictional clients with tags, long names and email addresses, and enough records to require scrolling.
+Check the main window at 1920x1080 with 100% and 125% scaling, and 1280x720 with 150% scaling.
+
+1. Enter `list`.<br>
+   Expected: A compact confirmation leaves room for both lists. Names and session times stand out from
+   supporting details. Tags and selected cards remain readable.
+1. Enter `edit` without parameters.<br>
+   Expected: The feedback area grows to show more of the usage message. Lines wrap; any remaining text is
+   reachable by scrolling inside the feedback area. Resizing the window keeps the message readable.
+1. Enter `list` again.<br>
+   Expected: The feedback area returns to its compact height and starts at the beginning of the new message.
+1. Enter `view 1`, then add or remove a measurement for that client.<br>
+   Expected: Distinct Measurements and Performance headings show the correct counts, with records below them
+   newest first. An empty section shows `None recorded yet.` and a single record uses `1 record`.
+1. Scroll the history, then view another client.<br>
+   Expected: The other client's history opens at the top. Updating the same client's records preserves the
+   history's scroll position.
 
 ### Saving data
 
