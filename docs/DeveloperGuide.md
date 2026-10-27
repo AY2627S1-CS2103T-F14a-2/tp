@@ -34,6 +34,11 @@
   `ModelManager` and `LogicManager`, the related tests, the User Guide "The Spotter window" and `view` sections, and the
   "Upcoming sessions panel" and "View client history" sections of this guide). All generated code was reviewed and
   tested before committing.
+* Dai Yangjie (Dai-yangjie) used Claude Code (Anthropic) to help implement, test and document the gym-performance
+  feature (`performance` and `deleteperformance`, the `progress` model classes, their parsers and storage), including
+  the exercise-name rules, the code-quality pass on that code and its tests, the "Recording and deleting gym
+  performances" section and its diagrams, UC10 and the related User Guide sections and FAQ entries. Claude Code
+  also helped fix the client-count message, phone-spacing and tag-validation issues (#113, #114, #115).
 * The GUI tests use [TestFX](https://github.com/TestFX/TestFX) to run JavaFX UI parts in tests.
 
 --------------------------------------------------------------------------------------------------------------------
@@ -308,6 +313,14 @@ Design notes:
 and `deleteperformance INDEX d/DATE e/EXERCISE` removes one. Both follow the usual `Logic` flow: the parser validates
 the fields, and the command resolves the index against `Model#getFilteredPersonList()`.
 
+Both parsers first check the command's shape: an integer index followed by each prefix exactly once
+(`ArgumentMultimap#hasEachPrefixOnce`). A shape error gives the invalid-format message. Otherwise the values are parsed
+in command order, so only the first invalid value is reported, followed by the expected format. Sets and repetitions
+share one counting rule, and the parser and `JsonAdaptedGymPerformance` both reuse the `GymPerformance` and `Load`
+checks, so commands and the data file accept the same values, except that the parser first trims surrounding spaces.
+The other difference is the date: `performance` uses `ParserUtil#parseRecordDate`, which rejects future dates, while `deleteperformance` and
+storage accept them so that a future-dated record in an edited data file can still be loaded and deleted.
+
 The following partial diagram shows how the records are stored and which classes change them. Contact fields and the
 other progress data are omitted.
 
@@ -324,6 +337,11 @@ finds the record through `PerformanceHistory#find` and calls `Person#withoutGymP
 `CommandException` before any state changes. Either way, the command replaces the client through `Model#setPerson`,
 and `LogicManager` saves the address book.
 
+The sequence diagram below shows a successful `deleteperformance` command. Saving, and restoring the previous state
+if saving fails, is the same as for `deletemeasure`.
+
+<puml src="diagrams/DeletePerformanceSequenceDiagram.puml" alt="Interactions for the `deleteperformance 1 d/2026-09-18 e/Bench Press` command" />
+
 Both commands log rejected indices, missing records and successful changes at `INFO` level. The log records the
 displayed index, exercise and date, but not the client's name or contact details.
 
@@ -331,7 +349,7 @@ displayed index, exercise and date, but not the client's name or contact details
 rather than stored separately, so they cannot become stale after a replacement or deletion. Keeping the recording
 order means the record entered last is treated as the latest when several share a date.
 
-<!-- AI assistance: Claude Code helped draft this section and its class diagram. -->
+<!-- AI assistance: Claude Code helped draft this section and its class and sequence diagrams. -->
 
 ### Deleting body measurements
 
@@ -565,6 +583,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *` | busy user | receive a warning when I schedule two sessions at the same time | I can avoid double-booking myself |
 | `* * *` | user | record a client's body measurements | I can track changes in their measurements over time |
 | `* * *` | user | record a client's gym performance | I can track changes in their performance over time |
+| `* *` | user | delete a wrongly recorded gym performance | a client's progress history stays accurate |
 | `* *` | user | add a note after a session | I can remember what we did when preparing for the next session |
 | `* *` | user | view a client's progress history | I can assess how their measurements and performance have changed over time |
 | `* *` | user | record a client's goal | I can plan their training with that goal in mind |
@@ -961,6 +980,43 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
     * 3b1. Spotter informs the trainer that the client has no next session to cancel.
 
       Use case ends.
+
+**Use case: UC10 - Delete a client's gym performance record**
+
+**MSS**
+
+1.  Trainer views a specific client's progress history (UC07).
+2.  Trainer requests to delete that client's record for an exercise on a date.
+3.  Spotter deletes the record and shows the deleted record. The client's latest performance and record count are
+    recalculated from the remaining records.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The specified client is not in the list.
+
+    * 2a1. Spotter shows an error message.
+
+      Use case resumes at step 2.
+
+* 2b. A required detail is missing or given more than once.
+
+    * 2b1. Spotter shows an error message with the expected input format.
+
+      Use case resumes at step 2.
+
+* 2c. The given date or exercise name is invalid.
+
+    * 2c1. Spotter shows an error message stating which detail is wrong and the expected format.
+
+      Use case resumes at step 2.
+
+* 2d. The client has no record for that exercise on that date.
+
+    * 2d1. Spotter informs the trainer that no matching record was found, and leaves all records unchanged.
+
+      Use case resumes at step 2.
 
 
 ### Non-Functional Requirements
