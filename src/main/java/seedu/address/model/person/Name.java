@@ -12,15 +12,13 @@ public class Name {
     public static final int MAX_LENGTH = 100;
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Names should only contain alphanumeric characters and spaces, and it should not be blank";
+            "Names must start with a Latin letter or digit and contain only Latin letters, accents, digits, "
+                    + "spaces, apostrophes, hyphens, full stops and slashes.";
     public static final String MESSAGE_LENGTH_CONSTRAINTS =
             "Names should be at most " + MAX_LENGTH + " characters long";
 
-    /*
-     * The first character of the name must not be a whitespace,
-     * otherwise " " (a blank string) becomes a valid input.
-     */
-    public static final String VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} ]{0," + (MAX_LENGTH - 1) + "}";
+    // Combining accents preserve decomposed Latin names without changing the existing identity rule.
+    public static final String VALIDATION_REGEX = "[\\p{IsLatin}0-9][\\p{IsLatin}\\p{M}0-9 '’./-]*";
 
     public final String fullName;
 
@@ -39,7 +37,8 @@ public class Name {
      * Returns true if a given string is a valid name once trimmed and its internal spaces collapsed.
      */
     public static boolean isValidName(String test) {
-        return normalizeSpaces(test).matches(VALIDATION_REGEX);
+        String normalized = normalizeSpaces(test);
+        return normalized.length() <= MAX_LENGTH && normalized.matches(VALIDATION_REGEX);
     }
 
     /**

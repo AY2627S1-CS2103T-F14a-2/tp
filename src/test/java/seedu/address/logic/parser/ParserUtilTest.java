@@ -23,7 +23,7 @@ import seedu.address.model.tag.Tag;
 
 public class ParserUtilTest {
     private static final String INVALID_NAME = "R@chel";
-    private static final String INVALID_PHONE = "+651234";
+    private static final String INVALID_PHONE = "123/456";
     private static final String INVALID_EMAIL = "example.com";
     private static final String INVALID_TAG = "#friend";
 
@@ -245,9 +245,15 @@ public class ParserUtilTest {
     }
 
     @Test
-    public void parsePhone_spacesWithOtherCharacters_throwsFormatMessage() {
-        assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> ParserUtil.parsePhone("9927-2758"));
-        assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> ParserUtil.parsePhone("+65 9927 2758"));
+    public void parsePhone_formattedNumbers_preservesFormat() throws Exception {
+        assertEquals("9927-2758", ParserUtil.parsePhone("9927-2758").value);
+        assertEquals("+65 9927 2758", ParserUtil.parsePhone(" +65  9927 2758 ").value);
+        assertEquals("1234 5678 (HP) 1111-3333 (Office)",
+                ParserUtil.parsePhone("1234 5678 (HP) 1111-3333 (Office)").value);
+    }
+
+    @Test
+    public void parsePhone_missingDigits_throwsFormatMessage() {
         assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> ParserUtil.parsePhone("   "));
         assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> ParserUtil.parsePhone("1 2")); // 2 digits
     }

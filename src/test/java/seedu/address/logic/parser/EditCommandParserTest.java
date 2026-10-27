@@ -156,6 +156,14 @@ public class EditCommandParserTest {
     }
 
     @Test
+    public void parse_realisticNameAndPhone_success() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName("Mary-Jane O'Brien")
+                .withPhone("1234 5678 (HP) 1111-3333 (Office)").build();
+        assertParseSuccess(parser, "1 n/Mary-Jane O'Brien p/1234 5678 (HP) 1111-3333 (Office)",
+                new EditCommand(INDEX_FIRST_PERSON, descriptor));
+    }
+
+    @Test
     public void parse_multipleRepeatedFields_failure() {
         // More extensive testing of duplicate parameter detections is done in
         // AddCommandParserTest#parse_repeatedNonTagValue_failure()

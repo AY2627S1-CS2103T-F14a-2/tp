@@ -122,6 +122,15 @@ public class AddCommandParserTest {
     }
 
     @Test
+    public void parse_realisticNameAndPhone_success() {
+        Person expected = new PersonBuilder().withName("Raju s/o Kumar").withPhone("+65 9123 4567 (HP)")
+                .withoutEmail().withTags().build();
+        assertParseSuccess(parser, " n/Raju s/o Kumar p/+65  9123 4567 (HP)", new AddCommand(expected));
+        assertParseFailure(parser, " n/-Bob p/123", Name.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " n/Bob p/12", Phone.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
     public void parse_optionalFieldsMissing_success() {
         // zero tags
         Person expectedPerson = new PersonBuilder(AMY).withTags().build();
