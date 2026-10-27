@@ -138,6 +138,10 @@ public class EditCommandParserTest {
         expectedCommand = new EditCommand(targetIndex, descriptor);
         assertParseSuccess(parser, userInput, expectedCommand);
 
+        // phone with spaces between digits, as displayed on the client card
+        userInput = targetIndex.getOneBased() + " " + PREFIX_PHONE + "1111 1111";
+        assertParseSuccess(parser, userInput, expectedCommand);
+
         // email
         userInput = targetIndex.getOneBased() + EMAIL_DESC_AMY;
         descriptor = new EditPersonDescriptorBuilder().withEmail(VALID_EMAIL_AMY).build();

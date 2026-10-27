@@ -42,6 +42,26 @@ public class TrainingRecordsIntegrationTest {
     public Path folder;
 
     @Test
+    public void execute_parenthesizedExercise_replacesReloadsAndDeletesByNormalizedName() throws Exception {
+        ModelManager model = new ModelManager();
+        model.addPerson(new PersonBuilder().withName("Sarah Lim").build());
+        JsonAddressBookStorage json = new JsonAddressBookStorage(folder.resolve("parentheses.json"));
+        LogicManager logic = createLogic(model, json);
+
+        logic.execute("performance 1 d/" + TODAY + " e/Row (Cable) s/3 r/8 w/30");
+        logic.execute("performance 1 d/" + TODAY + " e/row   (cable) s/4 r/6 w/35");
+        Person saved = json.readAddressBook().orElseThrow().getPersonList().getFirst();
+        assertEquals(1, saved.getPerformanceHistory().size());
+        assertEquals(new ExerciseName("Row (Cable)"),
+                saved.getPerformanceHistory().getNewestFirst().getFirst().getExerciseName());
+
+        ModelManager restarted = new ModelManager(json.readAddressBook().orElseThrow(), new UserPrefs());
+        createLogic(restarted, json).execute("deleteperformance 1 d/" + TODAY + " e/ROW (CABLE)");
+        assertEquals(0, json.readAddressBook().orElseThrow().getPersonList().getFirst()
+                .getPerformanceHistory().size());
+    }
+
+    @Test
     public void execute_sessionMeasurementPerformanceAndEdit_preservesAllThreeAfterRestart() throws Exception {
         ModelManager model = new ModelManager();
         model.addPerson(new PersonBuilder().withName("Sarah Lim").build());

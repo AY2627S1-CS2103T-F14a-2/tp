@@ -3,8 +3,8 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static seedu.address.logic.Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static seedu.address.logic.commands.CommandTestUtil.getInArabicFormatLocale;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.DANIEL;
@@ -53,7 +53,7 @@ public class FilterCommandTest {
 
     @Test
     public void execute_noMatchingTag_noPersonFound() {
-        String expectedMessage = String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 0);
+        String expectedMessage = "No clients found.";
         TagContainsKeywordsPredicate predicate = new TagContainsKeywordsPredicate(List.of("rehab"));
         FilterCommand command = new FilterCommand(predicate);
         expectedModel.updateFilteredPersonList(predicate);
@@ -63,7 +63,7 @@ public class FilterCommandTest {
 
     @Test
     public void execute_singleTagDifferentCase_multiplePersonsFound() {
-        String expectedMessage = String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 3);
+        String expectedMessage = "Listed 3 clients.";
         TagContainsKeywordsPredicate predicate = new TagContainsKeywordsPredicate(List.of("FRIENDS"));
         FilterCommand command = new FilterCommand(predicate);
         expectedModel.updateFilteredPersonList(predicate);
@@ -73,12 +73,18 @@ public class FilterCommandTest {
 
     @Test
     public void execute_multipleTags_personsWithAnyTagFound() {
-        String expectedMessage = String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1);
+        String expectedMessage = "Listed 1 client.";
         TagContainsKeywordsPredicate predicate = new TagContainsKeywordsPredicate(List.of("owesMoney", "rehab"));
         FilterCommand command = new FilterCommand(predicate);
         expectedModel.updateFilteredPersonList(predicate);
         assertCommandSuccess(command, model, expectedMessage, expectedModel);
         assertEquals(List.of(BENSON), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_arabicFormatLocale_usesLatinDigits() {
+        FilterCommand command = new FilterCommand(new TagContainsKeywordsPredicate(List.of("friends")));
+        assertEquals("Listed 3 clients.", getInArabicFormatLocale(() -> command.execute(model).getFeedbackToUser()));
     }
 
     @Test
