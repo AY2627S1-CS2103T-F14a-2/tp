@@ -314,7 +314,9 @@ other progress data are omitted.
 <puml src="diagrams/PerformanceModelClassDiagram.puml" alt="Classes used to store and change a client's gym-performance records" />
 
 Each `Person` owns one immutable `PerformanceHistory`, which keeps the records in the order they were recorded and
-never holds two records for the same exercise on the same date. `PerformanceCommand` calls
+never holds two records for the same exercise on the same date. Exercise names are compared through
+`ExerciseName#equals`, which ignores letter case, repeated spaces and the difference between straight (`'`) and curly
+(`’`) apostrophes, so a name pasted from formatted text does not split a client's history. `PerformanceCommand` calls
 `Person#withGymPerformance`, which replaces any record for the same exercise and date. `DeletePerformanceCommand`
 finds the record through `PerformanceHistory#find` and calls `Person#withoutGymPerformance`; a missing record raises a
 `CommandException` before any state changes. Either way, the command replaces the client through `Model#setPerson`,
