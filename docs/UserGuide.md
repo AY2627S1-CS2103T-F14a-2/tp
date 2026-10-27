@@ -175,6 +175,8 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * The search considers only names.
 * Only full words match; for example, `Han` does not match `Hans`.
 * Clients matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+* Spotter shows how many clients were found: `Listed N clients.`, `Listed 1 client.`, or `No clients found.` when
+  no client matches.
 
 Examples:
 * `find John` returns `john` and `John Doe`
@@ -194,6 +196,7 @@ Format: `filter t/TAG [t/MORE_TAGS]...`
 * Multiple tags use an `OR` search. `filter t/rehab t/strength` shows clients with either tag or both.
 * The command searches all clients and replaces any previous `find`, `filter` or `sessions` results.
   Clients without tags do not match. If no clients match, the displayed list is empty.
+* Like `find`, Spotter shows `Listed N clients.`, `Listed 1 client.`, or `No clients found.` when no client matches.
 * Filtering does not change client data. Use the indices in the filtered list for subsequent commands,
   and run `list` to show all clients again.
 
