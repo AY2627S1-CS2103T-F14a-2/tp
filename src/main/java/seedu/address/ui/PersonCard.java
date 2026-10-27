@@ -79,14 +79,15 @@ public class PersonCard extends UiPart<Region> {
         email.setText(EMAIL_LABEL + getEmailDisplay(person));
         nextSession.setText("Next session: " + person.getNextSession()
                 .map(session -> session.toDisplayString(LocalDateTime.now())).orElse(NO_SESSION));
-        latestMeasurement.setText(formatLatestMeasurement(person.getMeasurements(), LocalDate.now()));
+        LocalDate today = LocalDate.now();
+        latestMeasurement.setText(formatLatestMeasurement(person.getMeasurements(), today));
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
         // AI assistance: Gabriel used OpenAI Codex to remove empty tag-row spacing.
         tags.setVisible(!tags.getChildren().isEmpty());
         tags.managedProperty().bind(tags.visibleProperty());
-        latestPerformance.setText(formatLatestPerformance(person.getPerformanceHistory(), LocalDate.now()));
+        latestPerformance.setText(formatLatestPerformance(person.getPerformanceHistory(), today));
     }
 
     /**
@@ -100,6 +101,8 @@ public class PersonCard extends UiPart<Region> {
      * Returns the card row for the client's latest gym performance and total number of records,
      * e.g. "Latest performance: 15 Sep - Squat, 3 sets of 5 reps at 100 kg (9 records)".
      * Kept separate from the JavaFX constructor so that it can be tested without starting JavaFX.
+     *
+     * @param today The current date. The record's year is shown only if it differs from this year.
      */
     static String formatLatestPerformance(PerformanceHistory history, LocalDate today) {
         return history.getLatest()
@@ -112,6 +115,8 @@ public class PersonCard extends UiPart<Region> {
     /**
      * Formats the newest record; same-date ties prefer weight, then body fat, then waist.
      * AI assistance: OpenAI Codex helped implement the measurement card row and tests.
+     *
+     * @param today The current date. The record's year is shown only if it differs from this year.
      */
     static String formatLatestMeasurement(List<Measurement> measurements, LocalDate today) {
         if (measurements.isEmpty()) {
