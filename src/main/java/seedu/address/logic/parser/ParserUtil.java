@@ -34,12 +34,10 @@ public class ParserUtil {
     // Numeric-looking input uses the client-index error; other input uses the caller's format error.
     // A leading "+" is a format error, so "+1" is not reported as an invalid index when client 1 exists.
     public static final String INTEGER_REGEX = "-?\\d+";
-    public static final String MESSAGE_INVALID_RECORD_DATE = "The date must use the format yyyy-MM-dd.";
-    public static final String MESSAGE_NONEXISTENT_RECORD_DATE = "%s is not a real date.";
+    public static final String MESSAGE_NONEXISTENT_DATE = "%s is not a real date.";
 
-    public static final String MESSAGE_SESSION_DATE_FORMAT =
+    public static final String MESSAGE_DATE_FORMAT =
             "Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).";
-    public static final String MESSAGE_INVALID_SESSION_DATE = "Date must be a valid calendar date.";
     public static final String MESSAGE_INVALID_SESSION_TIME =
             "Time must be a 24-hour time such as 930, 0930, 9:30 or 19:00.";
 
@@ -82,22 +80,23 @@ public class ParserUtil {
 
     /**
      * Parses a real YYYY-MM-DD date in years 0001-9999 without restricting it relative to today,
-     * so past sessions can be recorded and retained past bookings can be listed.
+     * for recording, deleting, booking and filtering. Callers apply any relative-date policy.
      */
+    // AI assistance: Helen used OpenAI Codex to unify calendar validation and tests for issue #164.
     public static LocalDate parseCalendarDate(String date) throws ParseException {
         requireNonNull(date);
         String trimmed = date.trim();
         if (!trimmed.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}")) {
-            throw new ParseException(MESSAGE_SESSION_DATE_FORMAT);
+            throw new ParseException(MESSAGE_DATE_FORMAT);
         }
         if (trimmed.startsWith("0000") || !hasValidMonthAndDay(trimmed)) {
-            throw new ParseException(MESSAGE_SESSION_DATE_FORMAT);
+            throw new ParseException(MESSAGE_DATE_FORMAT);
         }
         LocalDate parsed;
         try {
             parsed = LocalDate.parse(trimmed, DATE_FORMATTER);
         } catch (DateTimeParseException exception) {
-            throw new ParseException(MESSAGE_INVALID_SESSION_DATE);
+            throw new ParseException(String.format(MESSAGE_NONEXISTENT_DATE, trimmed), exception);
         }
         return parsed;
     }
@@ -182,38 +181,9 @@ public class ParserUtil {
      */
     public static LocalDate parseRecordDate(String date, String futureDateMessage) throws ParseException {
         requireNonNull(futureDateMessage);
-        LocalDate parsedDate = parseExistingRecordDate(date);
+        LocalDate parsedDate = parseCalendarDate(date);
         if (parsedDate.isAfter(LocalDate.now())) {
             throw new ParseException(futureDateMessage);
-        }
-        return parsedDate;
-    }
-
-    /**
-     * Parses the date that identifies an existing progress record, ignoring surrounding whitespace.
-     * The date must be a real calendar date in yyyy-MM-dd format with a year from 0001.
-     * Unlike {@link #parseRecordDate(String, String)}, future dates are accepted, because a record with a
-     * future date may have been loaded from an edited data file and must still be removable.
-     *
-     * @throws ParseException if the date is malformed or does not exist.
-     */
-    public static LocalDate parseExistingRecordDate(String date) throws ParseException {
-        requireNonNull(date);
-        String trimmedDate = date.trim();
-        // A month or day out of range, e.g. 2026-13-01, is a format error rather than a nonexistent date
-        if (!trimmedDate.matches("\\d{4}-\\d{2}-\\d{2}") || !hasValidMonthAndDay(trimmedDate)) {
-            throw new ParseException(MESSAGE_INVALID_RECORD_DATE);
-        }
-        // The format is right from here on, so any remaining problem is a date that does not exist
-        String nonexistentDateMessage = String.format(MESSAGE_NONEXISTENT_RECORD_DATE, trimmedDate);
-        final LocalDate parsedDate;
-        try {
-            parsedDate = LocalDate.parse(trimmedDate, DATE_FORMATTER);
-        } catch (DateTimeParseException e) {
-            throw new ParseException(nonexistentDateMessage, e);
-        }
-        if (parsedDate.getYear() == 0) {
-            throw new ParseException(nonexistentDateMessage);
         }
         return parsedDate;
     }

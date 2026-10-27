@@ -101,11 +101,11 @@ public class PerformanceCommandParserTest {
 
     @Test
     public void parse_invalidDate_failure() {
-        String formatMessage = withUsage(ParserUtil.MESSAGE_INVALID_RECORD_DATE);
+        String formatMessage = withUsage(ParserUtil.MESSAGE_DATE_FORMAT);
 
         assertParseFailure(parser, "1 d/18-09-2026" + EXERCISE + SETS + REPS + LOAD, formatMessage);
         assertParseFailure(parser, "1 d/2026-02-30" + EXERCISE + SETS + REPS + LOAD,
-                withUsage(String.format(ParserUtil.MESSAGE_NONEXISTENT_RECORD_DATE, "2026-02-30")));
+                withUsage(String.format(ParserUtil.MESSAGE_NONEXISTENT_DATE, "2026-02-30")));
         assertParseFailure(parser, "1 d/" + EXERCISE + SETS + REPS + LOAD, formatMessage); // empty
 
         // tomorrow is in the future
@@ -152,7 +152,7 @@ public class PerformanceCommandParserTest {
     public void parse_severalInvalidValues_reportsFirstInCommandOrder() {
         // invalid date and load: the date is reported first
         assertParseFailure(parser, "1 d/2026-13-01" + EXERCISE + SETS + REPS + " w/abc",
-                withUsage(ParserUtil.MESSAGE_INVALID_RECORD_DATE));
+                withUsage(ParserUtil.MESSAGE_DATE_FORMAT));
     }
 
     private static String withUsage(String message) {
