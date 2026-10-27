@@ -33,7 +33,7 @@ You can reach us through our [issue tracker](https://github.com/AY2627S1-CS2103T
 
 <img src="images/ekulnich.png" width="200px">
 
-[[github](https://github.com/EkulNich)] [[portfolio](team/johndoe.md)]
+[[github](https://github.com/EkulNich)] [[portfolio](team/ekulnich.md)]
 
 * Role: Developer
 * Responsibilities: Target-user profile, value proposition, and user stories
