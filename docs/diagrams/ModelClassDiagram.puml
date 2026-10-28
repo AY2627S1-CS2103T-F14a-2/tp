@@ -1,4 +1,5 @@
 @startuml
+' AI assistance: Helen used OpenAI Codex to update the client-record relationships for issue #160.
 !include style.puml
 skinparam arrowThickness 1.1
 skinparam arrowColor MODEL_COLOR
@@ -14,11 +15,17 @@ Class UserPrefs
 
 Class UniquePersonList
 Class Person
-Class Address
 Class Email
 Class Name
 Class Phone
 Class Tag
+Class NextSession
+Class Measurement
+Enum MeasurementType
+Class PerformanceHistory
+Class GymPerformance
+Class ExerciseName
+Class Load
 
 Class I #FFFFFF
 }
@@ -39,16 +46,21 @@ AddressBook *--> "1" UniquePersonList
 UniquePersonList --> "~* all" Person
 Person *--> Name
 Person *--> Phone
-Person *--> Email
-Person *--> Address
+Person *--> "0..1" Email
 Person *--> "*" Tag
+Person *--> "0..1" NextSession
+Person *--> "*" Measurement : measurements
+Measurement --> "1" MeasurementType : type
+Person *--> "1" PerformanceHistory : performanceHistory
+PerformanceHistory *--> "*" GymPerformance : records
+GymPerformance *--> "1" ExerciseName
+GymPerformance *--> "1" Load
 
 Person -[hidden]up--> I
 UniquePersonList -[hidden]right-> I
 
 Name -[hidden]right-> Phone
-Phone -[hidden]right-> Address
-Address -[hidden]right-> Email
+Phone -[hidden]right-> Email
 
 ModelManager --> "~* filtered" Person
 @enduml
