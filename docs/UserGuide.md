@@ -268,14 +268,15 @@ Recorded measurement for Alex Tan: weight = 72.4 kg on 2026-09-12.
 Updated measurement for Alex Tan: weight = 71.8 kg on 2026-09-12.
 ```
 
+<!-- AI assistance: Helen used OpenAI Codex to clarify measurement index errors for issue #166. -->
 <!-- AI assistance: Helen used OpenAI Codex to align date-error examples for issue #164. -->
 
 Common errors:
 
 | Input problem | Message |
 | --- | --- |
-| Missing or repeated prefix | `Invalid command format. Use: measure INDEX d/DATE t/TYPE v/VALUE` |
-| Invalid client index | `The client index provided is invalid.` |
+| Missing or repeated prefix, missing or malformed index (e.g. `one`, `+1`, `1.5`) | `Invalid command format. Use: measure INDEX d/DATE t/TYPE v/VALUE` |
+| Zero, negative, overflowing or out-of-range index | `The client index provided is invalid.` |
 | Date not in `yyyy-MM-dd` format, or year, month or day out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).` |
 | Date in the right format that does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.` |
 | Future date | `The measurement date cannot be in the future.` |
