@@ -3,6 +3,8 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.text.Normalizer;
+
 /**
  * Represents a Person's name in the address book.
  * Guarantees: immutable; is valid as declared in {@link #isValidName(String)}
@@ -12,41 +14,40 @@ public class Name {
     public static final int MAX_LENGTH = 100;
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Names should only contain alphanumeric characters and spaces, and it should not be blank";
+            "Names must start with a Latin letter or digit and contain only Latin letters, accents, digits, "
+                    + "spaces, apostrophes, hyphens, full stops and slashes.";
     public static final String MESSAGE_LENGTH_CONSTRAINTS =
             "Names should be at most " + MAX_LENGTH + " characters long";
 
-    /*
-     * The first character of the name must not be a whitespace,
-     * otherwise " " (a blank string) becomes a valid input.
-     */
-    public static final String VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} ]{0," + (MAX_LENGTH - 1) + "}";
+    // Combining accents support Latin names whose accents have no precomposed Unicode form.
+    public static final String VALIDATION_REGEX = "[\\p{IsLatin}0-9][\\p{IsLatin}\\p{M}0-9 '’./-]*";
 
     public final String fullName;
 
     /**
-     * Constructs a {@code Name}, trimming it and collapsing repeated internal spaces.
+     * Constructs a {@code Name}, normalizing equivalent accents and whitespace.
      *
      * @param name A valid name.
      */
     public Name(String name) {
         requireNonNull(name);
         checkArgument(isValidName(name), MESSAGE_CONSTRAINTS);
-        fullName = normalizeSpaces(name);
+        fullName = normalize(name);
     }
 
     /**
-     * Returns true if a given string is a valid name once trimmed and its internal spaces collapsed.
+     * Returns true if a given string is a valid name after accent and whitespace normalization.
      */
     public static boolean isValidName(String test) {
-        return normalizeSpaces(test).matches(VALIDATION_REGEX);
+        String normalized = normalize(test);
+        return normalized.length() <= MAX_LENGTH && normalized.matches(VALIDATION_REGEX);
     }
 
     /**
-     * Returns true if a given string is longer than {@code MAX_LENGTH} once trimmed and its internal spaces collapsed.
+     * Returns true if a given string exceeds {@code MAX_LENGTH} after accent and whitespace normalization.
      */
     public static boolean isTooLong(String test) {
-        return normalizeSpaces(test).length() > MAX_LENGTH;
+        return normalize(test).length() > MAX_LENGTH;
     }
 
     /**
@@ -62,7 +63,15 @@ public class Name {
      */
     public boolean matches(String candidate) {
         return candidate != null
-                && normalizeSpaces(fullName).equalsIgnoreCase(normalizeSpaces(candidate));
+                && fullName.equalsIgnoreCase(normalize(candidate));
+    }
+
+    /**
+     * Returns a canonical spelling for storage, validation and name-based lookup.
+     * NFC unifies equivalent accent encodings without removing accents or transliterating scripts.
+     */
+    public static String normalize(String name) {
+        return Normalizer.normalize(normalizeSpaces(name), Normalizer.Form.NFC);
     }
 
     /**

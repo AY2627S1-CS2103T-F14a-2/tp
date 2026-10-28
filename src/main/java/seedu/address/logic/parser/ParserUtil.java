@@ -41,9 +41,6 @@ public class ParserUtil {
     public static final String MESSAGE_INVALID_SESSION_TIME =
             "Time must be a 24-hour time such as 930, 0930, 9:30 or 19:00.";
 
-    // Groups of digits separated by one or more spaces, e.g. "9927 2758" as shown on the client card
-    private static final String SPACED_DIGITS_REGEX = "\\d+( +\\d+)+";
-
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("uuuu-MM-dd")
             .withResolverStyle(ResolverStyle.STRICT);
     // One- or two-digit hour, optional colon, two-digit minute, e.g. 930, 0930, 9:30, 19:00.
@@ -215,22 +212,17 @@ public class ParserUtil {
 
     /**
      * Parses a {@code String phone} into a {@code Phone}.
-     * Leading and trailing whitespaces will be trimmed, and spaces between digits are removed so that a number
-     * typed as displayed (e.g. "9927 2758") is stored as digits only.
+     * The phone model normalizes spacing consistently for commands and manually edited data files.
      *
      * @throws ParseException if the given {@code phone} is invalid.
      */
     public static Phone parsePhone(String phone) throws ParseException {
         requireNonNull(phone);
-        String trimmedPhone = phone.trim();
-        if (trimmedPhone.matches(SPACED_DIGITS_REGEX)) {
-            trimmedPhone = trimmedPhone.replace(" ", "");
-        }
-        if (!Phone.isValidPhone(trimmedPhone)) {
-            throw new ParseException(Phone.isTooLong(trimmedPhone)
+        if (!Phone.isValidPhone(phone)) {
+            throw new ParseException(Phone.isTooLong(phone)
                     ? Phone.MESSAGE_LENGTH_CONSTRAINTS : Phone.MESSAGE_CONSTRAINTS);
         }
-        return new Phone(trimmedPhone);
+        return new Phone(phone);
     }
 
     /**
