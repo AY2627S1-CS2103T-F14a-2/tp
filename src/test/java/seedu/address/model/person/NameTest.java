@@ -23,7 +23,7 @@ public class NameTest {
     }
 
     @Test
-    public void isValidName_nameFormats_validatesCharacters() {
+    public void isValidName() {
         // null name
         assertThrows(NullPointerException.class, () -> Name.isValidName(null));
 
@@ -32,6 +32,7 @@ public class NameTest {
         assertFalse(Name.isValidName(" ")); // spaces only
         assertFalse(Name.isValidName("^")); // only non-alphanumeric characters
         assertFalse(Name.isValidName("peter*")); // contains non-alphanumeric characters
+        assertFalse(Name.isValidName("a".repeat(Name.MAX_LENGTH + 1))); // too long
 
         // valid name
         assertTrue(Name.isValidName("peter jack")); // alphabets only
@@ -39,12 +40,13 @@ public class NameTest {
         assertTrue(Name.isValidName("peter the 2nd")); // alphanumeric characters
         assertTrue(Name.isValidName("Capital Tan")); // with capital letters
         assertTrue(Name.isValidName("David Roger Jackson Ray Jr 2nd")); // long names
+        assertTrue(Name.isValidName("a".repeat(Name.MAX_LENGTH))); // maximum length
         assertTrue(Name.isValidName(" " + "a".repeat(Name.MAX_LENGTH - 2) + "  b ")); // within limit once collapsed
     }
 
     @ParameterizedTest
     @ValueSource(strings = {"Raju s/o Kumar", "Mary-Jane O'Brien", "José Tan", "Dr. Lim", "O’Brien",
-        "Jose\u0301 Tan", "R2 D2"})
+        "R2 D2"})
     public void constructor_realisticName_acceptsName(String name) {
         assertEquals(name, new Name(name).fullName);
     }
@@ -63,7 +65,32 @@ public class NameTest {
     }
 
     @Test
-    public void isTooLong_normalizedLength_enforcesLimit() {
+    public void constructor_equivalentAccentEncodings_normalizesIdentity() {
+        Name composed = new Name("Jos\u00e9 Tan");
+        Name decomposed = new Name("Jose\u0301 Tan");
+        assertEquals("Jos\u00e9 Tan", decomposed.fullName);
+        assertEquals(composed, decomposed);
+        assertEquals(composed.hashCode(), decomposed.hashCode());
+        assertTrue(composed.isSameName(decomposed));
+        assertTrue(composed.matches("  JOSE\u0301   TAN "));
+        assertFalse(composed.matches("Jose Tan"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {99, 100, 101})
+    public void isValidName_decomposedAccentBoundary_usesNormalizedLength(int length) {
+        String name = "e\u0301".repeat(length);
+        assertEquals(length <= Name.MAX_LENGTH, Name.isValidName(name));
+        assertEquals(length > Name.MAX_LENGTH, Name.isTooLong(name));
+        if (length <= Name.MAX_LENGTH) {
+            assertEquals("\u00e9".repeat(length), new Name(name).fullName);
+        } else {
+            assertThrows(IllegalArgumentException.class, () -> new Name(name));
+        }
+    }
+
+    @Test
+    public void isTooLong() {
         assertFalse(Name.isTooLong("a".repeat(Name.MAX_LENGTH))); // maximum length
         assertFalse(Name.isTooLong("a".repeat(Name.MAX_LENGTH) + "   ")); // within limit once trimmed
         assertTrue(Name.isTooLong("a".repeat(Name.MAX_LENGTH + 1)));
@@ -75,7 +102,7 @@ public class NameTest {
     }
 
     @Test
-    public void isSameName_caseAndSpacing_ignoresDifferences() {
+    public void isSameName() {
         Name name = new Name("John Doe");
 
         // same value -> returns true
@@ -110,14 +137,14 @@ public class NameTest {
     }
 
     @Test
-    public void normalizeSpaces_whitespace_preservesCaseAndCollapsesWhitespace() {
+    public void normalizeSpaces_preservesCaseAndCollapsesWhitespace() {
         assertEquals("Sarah Lim", Name.normalizeSpaces(" \tSarah   Lim\t "));
         assertEquals("", Name.normalizeSpaces(" \t "));
         assertThrows(NullPointerException.class, () -> Name.normalizeSpaces(null));
     }
 
     @Test
-    public void equals_sameAndDifferentNames_comparesValues() {
+    public void equals() {
         Name name = new Name("Valid Name");
 
         // same values -> returns true
