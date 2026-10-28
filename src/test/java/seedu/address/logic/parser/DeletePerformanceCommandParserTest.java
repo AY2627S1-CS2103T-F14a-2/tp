@@ -79,13 +79,13 @@ public class DeletePerformanceCommandParserTest {
 
     @Test
     public void parse_invalidDate_failure() {
-        String expectedMessage = withUsage(ParserUtil.MESSAGE_INVALID_RECORD_DATE);
+        String expectedMessage = withUsage(ParserUtil.MESSAGE_DATE_FORMAT);
 
         assertParseFailure(parser, "1 d/18-09-2026" + EXERCISE, expectedMessage); // wrong format
         assertParseFailure(parser, "1 d/2026-02-30" + EXERCISE,
-                withUsage(String.format(ParserUtil.MESSAGE_NONEXISTENT_RECORD_DATE, "2026-02-30"))); // not a real date
+                withUsage(String.format(ParserUtil.MESSAGE_NONEXISTENT_DATE, "2026-02-30"))); // not a real date
         assertParseFailure(parser, "1 d/0000-01-01" + EXERCISE,
-                withUsage(String.format(ParserUtil.MESSAGE_NONEXISTENT_RECORD_DATE, "0000-01-01"))); // year 0
+                expectedMessage); // year 0
         assertParseFailure(parser, "1 d/" + EXERCISE, expectedMessage); // empty
     }
 
