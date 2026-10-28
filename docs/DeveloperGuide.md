@@ -34,11 +34,6 @@
   `ModelManager` and `LogicManager`, the related tests, the User Guide "The Spotter window" and `view` sections, and the
   "Upcoming sessions panel" and "View client history" sections of this guide). All generated code was reviewed and
   tested before committing.
-* Dai Yangjie (Dai-yangjie) used Claude Code (Anthropic) to help implement, test and document the gym-performance
-  feature (`performance` and `deleteperformance`, the `progress` model classes, their parsers and storage), including
-  the exercise-name rules, the code-quality pass on that code and its tests, the "Recording and deleting gym
-  performances" section and its diagrams, UC10 and the related User Guide sections and FAQ entries. Claude Code
-  also helped fix the client-count message, phone-spacing and tag-validation issues (#113, #114, #115).
 * The GUI tests use [TestFX](https://github.com/TestFX/TestFX) to run JavaFX UI parts in tests.
 
 --------------------------------------------------------------------------------------------------------------------
@@ -350,8 +345,6 @@ displayed index, exercise and date, but not the client's name or contact details
 **Design choice:** The client card's latest performance and record count are derived from `PerformanceHistory`
 rather than stored separately, so they cannot become stale after a replacement or deletion. Keeping the recording
 order means the record entered last is treated as the latest when several share a date.
-
-<!-- AI assistance: Claude Code helped draft this section and its class and sequence diagrams. -->
 
 ### Deleting body measurements
 
