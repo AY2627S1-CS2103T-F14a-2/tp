@@ -57,11 +57,11 @@ public class MeasurePersistenceTest {
         assertEquals(List.of(selected), model.getFilteredPersonList());
     }
 
-    private void assertMeasurementRollback(IOException failure, boolean replacing) throws Exception {
+    private void assertMeasurementRollback(IOException failure, boolean isReplacing) throws Exception {
         Model model = new ModelManager();
         model.addPerson(new PersonBuilder().withName("Fictional One").build());
         Person selected = new PersonBuilder().withName("Fictional Two").build();
-        if (replacing) {
+        if (isReplacing) {
             selected = selected.withMeasurement(new Measurement(LocalDate.of(2026, 9, 12),
                     MeasurementType.WEIGHT, new BigDecimal("73")));
         }

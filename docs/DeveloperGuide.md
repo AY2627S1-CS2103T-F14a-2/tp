@@ -150,7 +150,13 @@ How the parsing works:
 ### Model component
 **API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-F14a-2/tp/blob/master/src/main/java/seedu/address/model/Model.java)
 
-<puml src="diagrams/ModelClassDiagram.puml" width="450" />
+<!-- AI assistance: Helen used OpenAI Codex to update the Model and Storage diagrams and their explanations for issue #160. -->
+<puml src="diagrams/ModelClassDiagram.puml" width="900" alt="Spotter Model component and client training records" />
+
+Each `Person` holds contact details, tags, an optional `NextSession`, an immutable list of `Measurement`
+records and a `PerformanceHistory`. Each measurement has a `MeasurementType`; the performance history
+holds `GymPerformance` records with an `ExerciseName` and `Load`. Email is optional, and a client may have
+no session or progress records. The diagram shows the current model; there is no postal-address field.
 
 
 The `Model` component,
@@ -175,7 +181,13 @@ The `Model` component,
 
 **API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-F14a-2/tp/blob/master/src/main/java/seedu/address/storage/Storage.java)
 
-<puml src="diagrams/StorageClassDiagram.puml" width="550" />
+<puml src="diagrams/StorageClassDiagram.puml" width="800" alt="Spotter JSON storage and progress-record adapters" />
+
+`JsonAdaptedPerson` stores tags, measurements and gym performances as collections of `JsonAdaptedTag`,
+`JsonAdaptedMeasurement` and `JsonAdaptedGymPerformance` respectively. The optional next session is
+stored directly as a `String`, rather than through a separate adapter. On loading, these values are
+validated and converted into the corresponding client fields and records; older files without progress
+collections load with empty histories.
 
 The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
@@ -337,8 +349,12 @@ order means the record entered last is treated as the latest when several share 
 
 `deletemeasure INDEX d/DATE t/TYPE` removes one measurement from the client at the displayed index.
 `DeleteMeasureCommandParser` validates the index, date and measurement type. The shared
-`ParserUtil#parseExistingRecordDate` accepts future dates because human-edited storage can contain them;
+`ParserUtil#parseCalendarDate` accepts future dates because human-edited storage can contain them;
 `parseRecordDate` adds the existing future-date restriction for recording measurements and performances.
+The same calendar parser validates session bookings and date filters, so all date-taking commands share
+format and impossible-date messages while retaining command-specific usage guidance.
+
+<!-- AI assistance: Helen used OpenAI Codex to update shared date-validation documentation for issue #164. -->
 
 `DeleteMeasureCommand` looks up the client through `Model#getFilteredPersonList()` and finds the record
 by date and type. A missing record raises a `CommandException` before any state changes.
@@ -622,15 +638,20 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 **Use case: UC02 - Find a client**
 
 <!-- AI assistance: Helen used OpenAI Codex to correct UC02's name-matching description for issue #124. -->
+<!-- AI assistance: v1-nce used AI assistance for issue #173's substring-search implementation, regression tests,
+User Guide find section, UC02 and manual testing instructions. -->
 
 **MSS**
 
-1.  Trainer requests to find clients using one or more whole-word keywords from their names.
-    Matching is case-insensitive, and clients matching at least one keyword are returned.
-    For example, `find Alex` matches `Alex Yeoh`, but `find Ale` does not.
+1.  Trainer requests to find clients using one or more keywords from their names.
+    Each keyword can match any part of a name. Matching is case-insensitive and independent of the system locale;
+    clients matching at least one keyword are returned. Only names are searched.
+    For example, `find han` and `find HAN` both match `Hans Gruber`, and `find han bo` also matches `Bo Yang`.
 2.  Spotter shows the list of matching clients.
 
     Use case ends.
+
+*Note:* search matches the stored NFC-composed spelling, so equivalent accent encodings are not yet folded in search keywords. This is a planned future enhancement; duplicate detection already treats the two forms as the same client.
 
 **Extensions**
 
@@ -1074,7 +1095,22 @@ Unless a section says otherwise:
    1. Resize the window to an optimal size. Move the window to a different location. Close the window.
 
    1. Relaunch the app.<br>
-       Expected: The most recent window size and location are retained.
+      Expected: The most recent window size and location are retained if they fit an available screen.
+
+1. Recovering saved window bounds
+
+   1. Close Spotter and change the saved window coordinates in `preferences.json` to `x: 100000` and
+      `y: 100000`, keeping the JSON syntax valid. Relaunch.<br>
+      Expected: The default-sized window is centered on the primary screen, reduced if needed to fit
+      the usable desktop area. The preferences file does not need to be deleted.
+
+   1. Move the window partly beyond the right or bottom screen edge, close it, then relaunch.<br>
+      Expected: The entire window is moved into the usable area and resized only if necessary.
+
+   1. With a secondary monitor connected, place the window fully within that monitor and restart.<br>
+      Expected: Its size and position are preserved, including negative desktop coordinates.
+      Close Spotter, disconnect that monitor, then relaunch.<br>
+      Expected: If the saved window no longer overlaps any screen, it is restored on the primary screen.
 
 1. Unknown commands
 
@@ -1112,8 +1148,11 @@ Start from the sample data.
 1. Enter `add n/Kim Lee p/12`, then `add n/Kim Lee`.<br>
    Expected: An error explaining the phone-number rules, then `Invalid command format!` followed by the `add`
    usage. No client is added.
+1. Enter `add n/Kim Lee p/8877 6655`.<br>
+   Expected: `New client added: Kim Lee; Phone: 8877 6655`, followed by
+   `Warning: John Tan also has this phone number.` The warning does not block the command, so Kim Lee is added.
 1. Enter `list`.<br>
-   Expected: `Listed 8 clients.`
+   Expected: `Listed 9 clients.`
 1. Enter `list all`.<br>
    Expected: `"list" does not take any parameters.` followed by `Example: list`.
 
@@ -1136,8 +1175,13 @@ Start from the sample data, or continue from the previous section.
 
 1. Enter `find alex david`.<br>
    Expected: `Listed 2 clients.` The list shows `Alex Yeoh` and `David Li`.
-1. Enter `find ALEX`, then `find Ale`.<br>
-   Expected: `Listed 1 client.`, then `No clients found.` with an empty list, as only whole words match.
+1. Enter `find ALEX`, `find ale`, then `find iveir`.<br>
+   Expected: `Listed 1 client.` each time: first `Alex Yeoh` twice, then `Charlotte Oliveiro`. A keyword can match
+   any part of a name, ignoring case.
+1. Enter `find 8743`, `find example`, then `find friends`.<br>
+   Expected: `No clients found.` with an empty list each time, as phone numbers, emails and tags are not searched.
+1. Enter `find`.<br>
+   Expected: `Invalid command format!` followed by the `find` usage. The displayed list does not change.
 1. Enter `filter t/friends`, then `filter t/FAMILY t/neighbours`.<br>
    Expected: `Listed 2 clients.` each time: first `Alex Yeoh` and `Bernice Yu`, then `Charlotte Oliveiro` and
    `David Li`.
@@ -1342,7 +1386,8 @@ run `list` and substitute that client's displayed index for `1` below. `NAME` is
       Expected: `No performance record for Squat on 2026-09-18 was found for NAME.`, then the same message for
       2026-09-14. The expected command format is not shown, and the card is unchanged.
    1. Enter `deleteperformance 1 d/15-09-2026 e/Squat`, then `deleteperformance 1 d/2026-02-30 e/Squat`.<br>
-      Expected: `The date must use the format yyyy-MM-dd.`, then `2026-02-30 is not a real date.`,
+      Expected: `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`,
+      then `2026-02-30 is not a real date.`,
       each followed by the expected command format. The card is unchanged.
    1. Try a missing `e/` prefix, a repeated `d/` prefix, and an index outside the displayed list.<br>
       Expected: Each command is rejected with an error and the expected command format, without changing records.

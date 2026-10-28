@@ -13,11 +13,14 @@ import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 
 import javafx.event.ActionEvent;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
+import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.LogicManager;
 import seedu.address.model.ModelManager;
 
@@ -47,6 +50,30 @@ public class MainWindowTest {
 
         enter(robot, "list");
         assertEquals(List.of(true, false), sidePanelVisibilities());
+    }
+
+    @Test
+    public void launch_offscreenSavedBounds_restoresVisibleDefaults(FxRobot robot) {
+        robot.interact(() -> {
+            ModelManager model = new ModelManager();
+            model.setGuiSettings(new GuiSettings(900, 700, Integer.MAX_VALUE, Integer.MAX_VALUE));
+            Stage restoredStage = new Stage();
+            MainWindow restored = new MainWindow(restoredStage, new LogicManager(model, null),
+                    Path.of("spotter.json"));
+            Rectangle2D visual = Screen.getPrimary().getVisualBounds();
+            Rectangle2D expected = WindowBounds.resolve(new GuiSettings(), List.of(visual), visual,
+                    restoredStage.getMinWidth(), restoredStage.getMinHeight());
+            try {
+                restored.show();
+                // Native window managers may round fractional desktop coordinates.
+                assertEquals(expected.getMinX(), restoredStage.getX(), 1);
+                assertEquals(expected.getMinY(), restoredStage.getY(), 1);
+                assertEquals(expected.getWidth(), restoredStage.getWidth(), 1);
+                assertEquals(expected.getHeight(), restoredStage.getHeight(), 1);
+            } finally {
+                restoredStage.hide();
+            }
+        });
     }
 
     /**

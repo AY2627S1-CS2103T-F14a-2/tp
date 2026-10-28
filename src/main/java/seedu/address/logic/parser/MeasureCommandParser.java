@@ -16,6 +16,7 @@ import seedu.address.model.person.MeasurementType;
 
 /**
  * Parses the displayed client index and required measurement arguments.
+ * AI assistance: Helen used OpenAI Codex to consolidate exception handling for issue #175.
  */
 public class MeasureCommandParser implements Parser<MeasureCommand> {
     public static final String MESSAGE_NON_NUMERIC = "Measurement value must be numeric.";
@@ -29,13 +30,12 @@ public class MeasureCommandParser implements Parser<MeasureCommand> {
                 throw new ParseException(MeasureCommand.MESSAGE_INVALID_FORMAT);
             }
         }
+        // AI assistance: Helen used OpenAI Codex to align index validation for issue #166.
+        if (!arguments.getPreamble().matches(ParserUtil.INTEGER_REGEX)) {
+            throw new ParseException(MeasureCommand.MESSAGE_INVALID_FORMAT);
+        }
         try {
-            Index index;
-            try {
-                index = ParserUtil.parseIndex(arguments.getPreamble());
-            } catch (ParseException e) {
-                throw new ParseException(MeasureCommand.MESSAGE_INVALID_INDEX, e);
-            }
+            Index index = ParserUtil.parseClientIndex(arguments.getPreamble());
             LocalDate date = ParserUtil.parseRecordDate(arguments.getValue(PREFIX_DATE).orElseThrow(),
                     Measurement.MESSAGE_FUTURE_DATE);
             MeasurementType type = parseType(arguments.getValue(PREFIX_MEASUREMENT_TYPE).orElseThrow());
@@ -44,9 +44,7 @@ public class MeasureCommandParser implements Parser<MeasureCommand> {
                 throw new ParseException(MESSAGE_NON_NUMERIC);
             }
             return new MeasureCommand(index, new Measurement(date, type, new BigDecimal(value)));
-        } catch (ParseException e) {
-            throw new ParseException(e.getMessage() + "\nUse: " + MeasureCommand.MESSAGE_USAGE, e);
-        } catch (IllegalArgumentException e) {
+        } catch (ParseException | IllegalArgumentException e) {
             throw new ParseException(e.getMessage() + "\nUse: " + MeasureCommand.MESSAGE_USAGE, e);
         }
     }

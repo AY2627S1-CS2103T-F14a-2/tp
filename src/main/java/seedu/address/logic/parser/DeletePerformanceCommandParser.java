@@ -45,7 +45,7 @@ public class DeletePerformanceCommandParser implements Parser<DeletePerformanceC
 
         try {
             Index index = ParserUtil.parseClientIndex(preamble);
-            LocalDate date = ParserUtil.parseExistingRecordDate(argMultimap.getValue(PREFIX_DATE).get());
+            LocalDate date = ParserUtil.parseCalendarDate(argMultimap.getValue(PREFIX_DATE).get());
             ExerciseName exerciseName = ParserUtil.parseExerciseName(argMultimap.getValue(PREFIX_EXERCISE).get());
             return new DeletePerformanceCommand(index, date, exerciseName);
         } catch (ParseException pe) {

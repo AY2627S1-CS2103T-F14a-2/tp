@@ -14,6 +14,7 @@ import seedu.address.model.person.Person;
 /**
  * Records or replaces a body measurement for the client at a displayed index.
  * AI assistance: OpenAI Codex helped implement this command, parser and tests.
+ * Helen used OpenAI Codex to rename replacement booleans here and in MeasurePersistenceTest for issue #179.
  */
 public class MeasureCommand extends Command {
     public static final String COMMAND_WORD = "measure";
@@ -43,9 +44,9 @@ public class MeasureCommand extends Command {
             throw new CommandException(MESSAGE_INVALID_INDEX + "\nUse: " + MESSAGE_USAGE);
         }
         Person client = displayedClients.get(index.getZeroBased());
-        boolean replacing = client.hasMeasurement(measurement);
+        boolean isReplacing = client.hasMeasurement(measurement);
         model.setPerson(client, client.withMeasurement(measurement));
-        return new CommandResult(String.format(replacing ? MESSAGE_UPDATED : MESSAGE_RECORDED,
+        return new CommandResult(String.format(isReplacing ? MESSAGE_UPDATED : MESSAGE_RECORDED,
                 client.getName(), measurement));
     }
 
