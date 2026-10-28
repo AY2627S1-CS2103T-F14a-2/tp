@@ -1,0 +1,28 @@
+@startuml
+!include style.puml
+skinparam arrowThickness 1.1
+skinparam arrowColor MODEL_COLOR
+skinparam classBackgroundColor MODEL_COLOR
+
+Class Person {
+  isSamePerson(other)
+}
+Class Name {
+  isSameName(other)
+}
+Class Phone {
+  getDigits()
+}
+Class UniquePersonList {
+  contains(toCheck)
+}
+Class SharedPhoneWarning {
+  forClient(addressBook, savedClient)
+}
+
+Person *--> Name
+Person *--> Phone
+
+UniquePersonList ..> Person : isSamePerson
+SharedPhoneWarning ..> Phone : getDigits
+@enduml

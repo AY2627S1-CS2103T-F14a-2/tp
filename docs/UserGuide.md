@@ -206,8 +206,8 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
   no client matches.
 
 Examples:
-* `find han` returns `Hans Gruber` and `Johann Tan`.
-* `find John` returns `john` and `John Doe`
+* `find yeo` returns `Alex Yeoh`.
+* `find IRFAN` returns `Irfan Ibrahim`.
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 

@@ -245,6 +245,26 @@ name identifiers. Those clients remain accessible through displayed indexes. Bro
 prefix escaping require consistent parser, identity, search and storage rules, so they are deferred rather than
 partially implemented here. These limits do not establish that every user's naming needs are met.
 
+### Duplicate detection
+
+Spotter identifies a client by name, not by phone or email. `Person#isSamePerson` delegates to
+`Name#isSameName`, which compares names after Unicode NFC normalization, ignoring letter case and collapsing
+repeated whitespace, so `john tan` and `John  Tan` are the same client. `UniquePersonList#contains` uses
+`isSamePerson`, and `add` reaches it through `Model#hasPerson`; `edit` performs the same check only when the
+edited name differs from the original.
+
+Duplicate detection is therefore name-only: two clients cannot share a name, even when their phone numbers and
+emails differ. Because phone numbers are not unique in the real world, `add` and `edit` instead append a
+**non-blocking warning** (`SharedPhoneWarning`) when another client has the same complete phone digit sequence
+(`Phone#getDigits`). The saved client is excluded from this comparison, so editing a client without changing
+their phone never warns about themselves.
+
+The two checks are deliberately separate: a name clash blocks the command (a name is how index- and name-based
+commands address a client), while a shared phone only warns, leaving the trainer to decide whether the entry is
+a genuine duplicate.
+
+<puml src="diagrams/DuplicateDetectionClassDiagram.puml" width="520" />
+
 ### Upcoming sessions panel
 
 The right side of the window shows the clients with an upcoming session, soonest first, so that a trainer can
@@ -651,7 +671,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 1a. A required detail is missing.
 
-    * 1a1. Spotter shows an error message stating which detail is missing.
+    * 1a1. Spotter shows the generic `Invalid command format!` message followed by the command usage.
 
       Use case resumes at step 1.
 
