@@ -40,14 +40,14 @@ public class SessionsCommandParserTest {
     public void parse_malformedDates_failure() {
         for (String date : List.of("", "2026-1-01", "0000-01-01", "+2028-01-01", "10000-01-01",
                 "22-10-2026", "2026-00-01", "2026-13-01", "2026-01-00", "2026-01-32")) {
-            assertParseFailure(parser, "d/" + date, ParserUtil.MESSAGE_SESSION_DATE_FORMAT);
+            assertParseFailure(parser, "d/" + date, ParserUtil.MESSAGE_DATE_FORMAT);
         }
     }
 
     @Test
     public void parse_impossibleCalendarDates_failure() {
         for (String date : List.of("2026-02-29", "2028-02-30", "2026-04-31")) {
-            assertParseFailure(parser, "d/" + date, ParserUtil.MESSAGE_INVALID_SESSION_DATE);
+            assertParseFailure(parser, "d/" + date, String.format(ParserUtil.MESSAGE_NONEXISTENT_DATE, date));
         }
     }
 

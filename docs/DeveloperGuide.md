@@ -349,8 +349,12 @@ order means the record entered last is treated as the latest when several share 
 
 `deletemeasure INDEX d/DATE t/TYPE` removes one measurement from the client at the displayed index.
 `DeleteMeasureCommandParser` validates the index, date and measurement type. The shared
-`ParserUtil#parseExistingRecordDate` accepts future dates because human-edited storage can contain them;
+`ParserUtil#parseCalendarDate` accepts future dates because human-edited storage can contain them;
 `parseRecordDate` adds the existing future-date restriction for recording measurements and performances.
+The same calendar parser validates session bookings and date filters, so all date-taking commands share
+format and impossible-date messages while retaining command-specific usage guidance.
+
+<!-- AI assistance: Helen used OpenAI Codex to update shared date-validation documentation for issue #164. -->
 
 `DeleteMeasureCommand` looks up the client through `Model#getFilteredPersonList()` and finds the record
 by date and type. A missing record raises a `CommandException` before any state changes.
@@ -1227,7 +1231,8 @@ run `list` and substitute that client's displayed index for `1` below. `NAME` is
       Expected: `No performance record for Squat on 2026-09-18 was found for NAME.`, then the same message for
       2026-09-14. The expected command format is not shown, and the card is unchanged.
    1. Enter `deleteperformance 1 d/15-09-2026 e/Squat`, then `deleteperformance 1 d/2026-02-30 e/Squat`.<br>
-      Expected: `The date must use the format yyyy-MM-dd.`, then `2026-02-30 is not a real date.`,
+      Expected: `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`,
+      then `2026-02-30 is not a real date.`,
       each followed by the expected command format. The card is unchanged.
    1. Try a missing `e/` prefix, a repeated `d/` prefix, and an index outside the displayed list.<br>
       Expected: Each command is rejected with an error and the expected command format, without changing records.
