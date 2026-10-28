@@ -1087,7 +1087,22 @@ testers are expected to do more *exploratory* testing.
    1. Resize the window to an optimal size. Move the window to a different location. Close the window.
 
    1. Relaunch the app by double-clicking the JAR file.<br>
-       Expected: The most recent window size and location are retained.
+       Expected: The most recent window size and location are retained if they fit an available screen.
+
+1. Recovering saved window bounds
+
+   1. In a disposable app folder, close Spotter and change the saved window coordinates in
+      `preferences.json` to `x: 100000` and `y: 100000`, keeping the JSON syntax valid. Relaunch.<br>
+      Expected: The default-sized window is centered on the primary screen, reduced if needed to fit
+      the usable desktop area. The preferences file does not need to be deleted.
+
+   1. Move the window partly beyond the right or bottom screen edge, close it, then relaunch.<br>
+      Expected: The entire window is moved into the usable area and resized only if necessary.
+
+   1. With a secondary monitor connected, place the window fully within that monitor and restart.<br>
+      Expected: Its size and position are preserved, including negative desktop coordinates.
+      Close Spotter, disconnect that monitor, then relaunch.<br>
+      Expected: If the saved window no longer overlaps any screen, it is restored on the primary screen.
 
 1. Restoring the Help window
 

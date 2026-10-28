@@ -667,12 +667,21 @@ _Details coming soon ..._
 
 --------------------------------------------------------------------------------------------------------------------
 
+## Restoring the window
+
+Spotter remembers the main window's size and position. At startup, a partly off-screen window is moved
+and, if needed, resized to fit within one available screen's usable area. Valid positions on secondary
+screens are preserved. If the saved window is completely off-screen or its dimensions are invalid,
+Spotter restores the default size, reduced if necessary to fit, centered on the primary screen.
+You do not need to delete `preferences.json` after disconnecting a monitor.
+
+--------------------------------------------------------------------------------------------------------------------
+
 ## Known issues
 
-1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
-3. **Unrecognized prefixes are not reported**: text such as `a/x` that uses a prefix Spotter doesn't support is treated as part of the field before it. For example, `add n/John Tan p/91234567 a/x` reports an invalid phone number. The remedy is to remove the unsupported prefix.
-4. **Warnings when launching from a terminal**: on some Java setups, such as JDKs that bundle JavaFX (e.g. Zulu FX), `java -jar spotter.jar` prints `WARNING` lines about a restricted method and enabling native access. These come from JavaFX loading its native libraries. They are harmless, and Spotter works normally.
+1. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
+2. **Unrecognized prefixes are not reported**: text such as `a/x` that uses a prefix Spotter doesn't support is treated as part of the field before it. For example, `add n/John Tan p/91234567 a/x` reports an invalid phone number. The remedy is to remove the unsupported prefix.
+3. **Warnings when launching from a terminal**: on some Java setups, such as JDKs that bundle JavaFX (e.g. Zulu FX), `java -jar spotter.jar` prints `WARNING` lines about a restricted method and enabling native access. These come from JavaFX loading its native libraries. They are harmless, and Spotter works normally.
 
 --------------------------------------------------------------------------------------------------------------------
 
