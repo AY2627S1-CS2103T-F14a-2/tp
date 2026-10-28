@@ -124,7 +124,13 @@ Format: `add n/NAME p/PHONE [e/EMAIL] [t/TAG]...`
   `1234 5678 (HP) 1111-3333 (Office)` is accepted. Spotter does not check whether a number is dialable.
 * `EMAIL` is optional. A client without an email shows `-` in place of it.
   Entering `e/` without an email after it also adds the client without an email, as in `edit`.
-* A client whose name matches an existing client's, ignoring case and extra spaces, is rejected as a duplicate. For example, `john tan` is a duplicate of `John Tan`.
+* Duplicate clients: a name matching an existing client's, ignoring case and extra spaces, is rejected.
+  For example, `john tan` is a duplicate of `John Tan`. A matching phone digit sequence instead gives
+  `Warning: <other client's name> also has this phone number.` after the success message; the client is still saved.
+  Every matching client is checked, even if hidden by a search or filter, with one warning per match.
+* Duplicate detection does not catch typos, nicknames, or a different name order with a different phone.
+  Phone comparison ignores formatting and labels but compares **all digits**: numbers with and without a country
+  code are different, and a field containing several numbers does not match another field sharing only one.
 
 <box type="tip" seamless>
 
@@ -166,11 +172,17 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [t/TAG]... `
 * Edits the client at the specified `INDEX`. The index refers to the index number shown in the displayed client list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
-* When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
-* To remove all of a person's tags, enter `t/` without a tag after it.
+* When editing tags, all of the client's existing tags are removed; adding tags is not cumulative.
+* To remove all of a client's tags, enter `t/` without a tag after it.
 * To remove a client's email, enter `e/` without an email after it.
 * `NAME` and `PHONE` follow the same rules as in [`add`](#adding-a-client-add), including prefix restrictions.
   For example, `edit 1 p/8743 8807` stores `87438807`, while `edit 1 p/+65 8743 8807 (HP)` keeps its formatting.
+
+* Duplicate clients: the same name rules and shared-phone warnings as in [`add`](#adding-a-client-add) apply.
+  The edited client is excluded from phone comparison, so their own number does not cause a warning.
+  Changing another field can still warn if a different client shares the phone number.
+* Zero, negative or oversized numeric indexes show `The client index provided is invalid.`.
+  A missing or nonnumeric index shows `Invalid command format!` followed by the command usage.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st client to be `91234567` and `johndoe@example.com` respectively.
@@ -186,12 +198,15 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
 * The search considers only names.
-* Only full words match; for example, `Han` does not match `Hans`.
+* Search matches the stored spelling of accented names, so equivalent accent encodings (an `e` plus a combining
+  mark versus a precomposed `é`) are not yet matched to one another. This is a planned future enhancement.
+* Partial names match anywhere in a name; for example, `han`, `HAN` and `ans` all match `Hans`.
 * Clients matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
 * Spotter shows how many clients were found: `Listed N clients.`, `Listed 1 client.`, or `No clients found.` when
   no client matches.
 
 Examples:
+* `find han` returns `Hans Gruber` and `Johann Tan`.
 * `find John` returns `john` and `John Doe`
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
@@ -281,13 +296,16 @@ Recorded measurement for Alex Tan: weight = 72.4 kg on 2026-09-12.
 Updated measurement for Alex Tan: weight = 71.8 kg on 2026-09-12.
 ```
 
+<!-- AI assistance: Helen used OpenAI Codex to clarify measurement index errors for issue #166. -->
+<!-- AI assistance: Helen used OpenAI Codex to align date-error examples for issue #164. -->
+
 Common errors:
 
 | Input problem | Message |
 | --- | --- |
-| Missing or repeated prefix | `Invalid command format. Use: measure INDEX d/DATE t/TYPE v/VALUE` |
-| Invalid client index | `The client index provided is invalid.` |
-| Date not in `yyyy-MM-dd` format, or month or day out of range, e.g. `2026-13-01` | `The date must use the format yyyy-MM-dd.` |
+| Missing or repeated prefix, missing or malformed index (e.g. `one`, `+1`, `1.5`) | `Invalid command format. Use: measure INDEX d/DATE t/TYPE v/VALUE` |
+| Zero, negative, overflowing or out-of-range index | `The client index provided is invalid.` |
+| Date not in `yyyy-MM-dd` format, or year, month or day out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).` |
 | Date in the right format that does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.` |
 | Future date | `The measurement date cannot be in the future.` |
 | Unsupported type | `Measurement type must be weight, bodyfat, or waist.` |
@@ -337,7 +355,7 @@ and leaves the data unchanged.
 | --- | --- |
 | Missing or repeated prefix, missing or non-numeric index | `Invalid command format. Use: deletemeasure INDEX d/DATE t/TYPE` |
 | Zero, negative, overflowing or out-of-range index | `The client index provided is invalid.` |
-| Date not in `yyyy-MM-dd` format, or month or day out of range, e.g. `2026-13-01` | `The date must use the format yyyy-MM-dd.` |
+| Date not in `yyyy-MM-dd` format, or year, month or day out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).` |
 | Date in the right format that does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.` |
 | Unsupported or empty type | `Measurement type must be weight, bodyfat, or waist.` |
 
@@ -382,7 +400,7 @@ Problem | Message
 --------|--------
 A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invalid command format. Use: performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`
 `INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
-`DATE` is not in `yyyy-MM-dd` format, or its month or day is out of range, e.g. `2026-13-01` | `The date must use the format yyyy-MM-dd.`
+`DATE` is not in `yyyy-MM-dd` format, or its year, month or day is out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`
 `DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
 `DATE` is in the future | `The performance date cannot be in the future.`
 `EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only English letters (A-Z), digits (0-9), spaces, hyphens, apostrophes, and parentheses.`
@@ -422,7 +440,7 @@ Problem | Message
 --------|--------
 A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invalid command format. Use: deleteperformance INDEX d/DATE e/EXERCISE`
 `INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
-`DATE` is not in `yyyy-MM-dd` format, or its month or day is out of range, e.g. `2026-13-01` | `The date must use the format yyyy-MM-dd.`
+`DATE` is not in `yyyy-MM-dd` format, or its year, month or day is out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`
 `DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
 `EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only English letters (A-Z), digits (0-9), spaces, hyphens, apostrophes, and parentheses.`
 The client has no record for that exercise on that date | `No performance record for <exercise> on <date> was found for <client name>.`
@@ -569,7 +587,7 @@ Unknown name | `No client with that name exists in Spotter.`
 Empty name | `Name cannot be empty.`
 Name containing a slash | `Name must not contain '/'.`, or the format error above if part of the name is parsed as an unknown prefix (e.g. `s/` in `Raju s/o Kumar`); use the client index instead.
 Malformed date or component out of range | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`
-Impossible calendar date (e.g. 30 February) | `Date must be a valid calendar date.`
+Impossible calendar date (e.g. `2026-02-30`) | `2026-02-30 is not a real date.`
 Invalid time | `Time must be a 24-hour time such as 930, 0930, 9:30 or 19:00.`
 
 ### Cancelling a recorded session: `cancelsession`
@@ -690,12 +708,24 @@ Names containing command prefixes preceded by a space cannot be entered literall
 Slash-containing names are accepted by `add` and `edit`, but session booking/cancellation must use the displayed
 client index. Phone labels support English letters only, and accepted numbers are not checked for dialability.
 
+--------------------------------------------------------------------------------------------------------------------
+
+## Restoring the window
+
+Spotter remembers the main window's size and position. At startup, a partly off-screen window is moved
+and, if needed, resized to fit within one available screen's usable area. Valid positions on secondary
+screens are preserved. If the saved window is completely off-screen or its dimensions are invalid,
+Spotter restores the default size, reduced if necessary to fit, centered on the primary screen.
+You do not need to delete `preferences.json` after disconnecting a monitor.
+
+--------------------------------------------------------------------------------------------------------------------
+
+
 ## Known issues
 
-1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
-3. **Unrecognized prefixes are not reported**: text such as `a/x` that uses a prefix Spotter doesn't support is treated as part of the field before it. For example, `add n/John Tan p/91234567 a/x` reports an invalid phone number. The remedy is to remove the unsupported prefix.
-4. **Warnings when launching from a terminal**: on some Java setups, such as JDKs that bundle JavaFX (e.g. Zulu FX), `java -jar spotter.jar` prints `WARNING` lines about a restricted method and enabling native access. These come from JavaFX loading its native libraries. They are harmless, and Spotter works normally.
+1. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
+2. **Unrecognized prefixes are not reported**: text such as `a/x` that uses a prefix Spotter doesn't support is treated as part of the field before it. For example, `add n/John Tan p/91234567 a/x` reports an invalid phone number. The remedy is to remove the unsupported prefix.
+3. **Warnings when launching from a terminal**: on some Java setups, such as JDKs that bundle JavaFX (e.g. Zulu FX), `java -jar spotter.jar` prints `WARNING` lines about a restricted method and enabling native access. These come from JavaFX loading its native libraries. They are harmless, and Spotter works normally.
 
 --------------------------------------------------------------------------------------------------------------------
 

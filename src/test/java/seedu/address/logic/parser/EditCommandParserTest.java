@@ -28,6 +28,8 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_THIRD_PERSON;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
@@ -63,17 +65,24 @@ public class EditCommandParserTest {
 
     @Test
     public void parse_invalidPreamble_failure() {
-        // negative index
-        assertParseFailure(parser, "-5" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
-
-        // zero index
-        assertParseFailure(parser, "0" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
-
         // invalid arguments being parsed as preamble
         assertParseFailure(parser, "1 some random string", MESSAGE_INVALID_FORMAT);
 
         // invalid prefix being parsed as preamble
         assertParseFailure(parser, "1 i/ string", MESSAGE_INVALID_FORMAT);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"0", "-1", "2147483648", "99999999999"})
+    public void parse_invalidNumericIndex_invalidClientIndexMessage(String index) {
+        assertParseFailure(parser, index, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertParseFailure(parser, index + NAME_DESC_AMY, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"abc", ""})
+    public void parse_nonNumericOrMissingIndex_invalidFormatMessage(String index) {
+        assertParseFailure(parser, index + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
     }
 
     @Test
