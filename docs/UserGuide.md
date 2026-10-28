@@ -108,14 +108,17 @@ Adds a client to Spotter.
 
 Format: `add n/NAME p/PHONE [e/EMAIL] [t/TAG]...`
 
-* `NAME` must start with a Latin letter or digit and be 1 to 100 characters long. Latin letters (including accents
-  such as `é`), digits, spaces, apostrophes (`'` and `’`), hyphens, full stops and slashes are accepted.
-  Repeated whitespace is merged and outer whitespace is removed. Other scripts are not supported yet.
+* `NAME` must start with a Latin-script letter or a digit `0–9`. Supported letters include English `A–Z`/`a–z`
+  and accented Latin letters such as `é`; combining accent marks, digits `0–9`, spaces, apostrophes (`'` and `’`),
+  hyphens (`-`), full stops (`.`) and slashes (`/`) are also accepted after the first character.
+  Names must be 1 to 100 characters after normalization: outer whitespace is removed, repeated whitespace is
+  merged, and equivalent accent encodings are stored consistently. Accents are not removed: `José` and `Jose`
+  are different names. Non-Latin scripts (for example, Chinese or Tamil letters) and emoji are not supported.
 * Names must not contain a space followed by a prefix used by the command, such as ` p/` or ` t/`, because that
   starts another field. For names containing `/`, use the client's index with `session` and `cancelsession`,
   rather than their `n/NAME` forms.
 * `PHONE` must contain at least 3 digits and at most 50 characters after normalization. Digits, spaces, letters
-  A–Z (case-insensitive labels), `+`, `-`, `(`, `)` and `.` are accepted; `/` is not.
+  English letters `A–Z`/`a–z` for labels, `+`, `-`, `(`, `)` and `.` are accepted; `/` is not.
   Plain digits and spaces are stored as digits only: `9927 2758` becomes `99272758`. Otherwise, punctuation and
   labels are kept, outer spaces are removed and repeated spaces are merged. For example,
   `1234 5678 (HP) 1111-3333 (Office)` is accepted. Spotter does not check whether a number is dialable.
@@ -129,6 +132,9 @@ Format: `add n/NAME p/PHONE [e/EMAIL] [t/TAG]...`
 </box>
 
 Examples:
+* `add n/Raju s/o Kumar p/+65 9123 4567`
+* `add n/Mary-Jane O'Brien p/1234 5678 (HP) 1111-3333 (Office)`
+* `add n/José Tan p/91234567`
 * `add n/Sarah Lim p/91234567`
 * `add n/John Tan p/88776655 e/john.tan@example.com t/rehab`
 
@@ -513,7 +519,9 @@ Format: `session INDEX d/DATE t/TIME` or `session n/NAME d/DATE t/TIME`
 
 * `INDEX` is the positive number shown on the **current displayed list**, including a filtered list.
 * `NAME` must match a client's full name. Matching ignores case, leading/trailing whitespace, and repeated
-  internal spaces. Names cannot be empty or contain `/`.
+  internal spaces, including equivalent accent encodings. Names cannot be empty.
+  The `n/NAME` form does not support `/`, even though `add` and `edit` allow it: use the displayed client index
+  for names such as `Raju s/o Kumar`.
 * `DATE` must be a real date in `YYYY-MM-DD` format, such as `2026-12-15`. A past date or time is accepted, so you
   can record a session late; the message then adds `Note: this session is in the past, so it shows as "- (none upcoming)".`
 * `TIME` is a 24-hour time with an optional colon and a one- or two-digit hour, such as `930`, `0930`, `9:30` or
@@ -559,7 +567,7 @@ Missing/repeated/unknown prefix or both identifiers | `Invalid command format! U
 Invalid index | `The client index provided is invalid.`
 Unknown name | `No client with that name exists in Spotter.`
 Empty name | `Name cannot be empty.`
-Name containing a slash | `Name must not contain '/'.`
+Name containing a slash | `Name must not contain '/'.`, or the format error above if part of the name is parsed as an unknown prefix (e.g. `s/` in `Raju s/o Kumar`); use the client index instead.
 Malformed date or component out of range | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`
 Impossible calendar date (e.g. 30 February) | `Date must be a valid calendar date.`
 Invalid time | `Time must be a 24-hour time such as 930, 0930, 9:30 or 19:00.`
@@ -573,6 +581,7 @@ Format: `cancelsession INDEX` or `cancelsession n/NAME`
 * `INDEX` must be a positive integer shown in the current list, including results from `find`, `filter` or `sessions`.
 * `NAME` follows the same full-name matching rules as `session n/NAME`: case and extra spaces are ignored.
   It searches all clients, even if the client is hidden by the current filter. Supply exactly one identifier.
+  For a name containing `/`, use `cancelsession INDEX` instead.
 * Both upcoming and expired recorded sessions can be cancelled.
 * Contact details, tags, measurements and performance records are preserved. The cancellation is saved automatically.
 * The current filter stays active. A cancelled client disappears from a `sessions` date view, but remains in Spotter.
@@ -589,7 +598,8 @@ Format: `cancelsession INDEX` or `cancelsession n/NAME`
 
 <box type="tip" seamless>
 
-**Tip:** In a `sessions` date view, prefer `cancelsession n/NAME`; index numbers shift after each cancellation.
+**Tip:** In a `sessions` date view, prefer `cancelsession n/NAME` for names without `/`.
+For slash-containing names, use the displayed index and check the list again after each cancellation.
 </box>
 
 Example: `cancelsession 1` cancels the first displayed client's session.
@@ -616,7 +626,8 @@ Format: `sessions d/DATE`
 
 <box type="tip" seamless>
 
-**Tip:** In a `sessions` date view, prefer `cancelsession n/NAME`; index numbers shift after each cancellation.
+**Tip:** In a `sessions` date view, prefer `cancelsession n/NAME` for names without `/`.
+For slash-containing names, use the displayed index and check the list again after each cancellation.
 </box>
 
 Example: `sessions d/2026-12-15`.
@@ -667,6 +678,17 @@ _Details coming soon ..._
 **A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous Spotter home folder.
 
 --------------------------------------------------------------------------------------------------------------------
+
+## Current contact-input limitations
+
+Client names are labels for the trainer's own records; Spotter does not verify legal names or require a legal-name
+match. The current Latin-script and punctuation support is a bounded design choice, not support for every language.
+A supported preferred spelling can be used if suitable for the trainer and client; otherwise that name cannot yet
+be recorded in its original script. Broader language support is a planned enhancement, not a current feature.
+
+Names containing command prefixes preceded by a space cannot be entered literally through those commands.
+Slash-containing names are accepted by `add` and `edit`, but session booking/cancellation must use the displayed
+client index. Phone labels support English letters only, and accepted numbers are not checked for dialability.
 
 ## Known issues
 
