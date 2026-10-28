@@ -12,16 +12,22 @@ import seedu.address.commons.util.ToStringBuilder;
  */
 public class NameContainsKeywordsPredicate implements Predicate<Person> {
     private final List<String> keywords;
+    private final List<String> lowercaseKeywords;
 
+    /**
+     * Constructs a predicate that matches names containing any of the given keywords.
+     */
     public NameContainsKeywordsPredicate(List<String> keywords) {
         this.keywords = keywords;
+        this.lowercaseKeywords = keywords.stream()
+                .map(keyword -> keyword.toLowerCase(Locale.ROOT))
+                .toList();
     }
 
     @Override
     public boolean test(Person person) {
-        String normalizedName = person.getName().fullName.toLowerCase(Locale.ROOT);
-        return keywords.stream()
-                .anyMatch(keyword -> normalizedName.contains(keyword.toLowerCase(Locale.ROOT)));
+        String lowercaseName = person.getName().fullName.toLowerCase(Locale.ROOT);
+        return lowercaseKeywords.stream().anyMatch(lowercaseName::contains);
     }
 
     @Override
@@ -36,6 +42,11 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
         }
 
         return keywords.equals(otherNameContainsKeywordsPredicate.keywords);
+    }
+
+    @Override
+    public int hashCode() {
+        return keywords.hashCode();
     }
 
     @Override
