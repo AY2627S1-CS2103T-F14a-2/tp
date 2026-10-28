@@ -58,7 +58,7 @@ public class AddCommand extends Command {
         }
 
         model.addPerson(toAdd);
-        logger.info("Added client");
+        logger.info("Added client: " + toAdd.getName());
         return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(toAdd))
                 + SharedPhoneWarning.forClient(model.getAddressBook(), toAdd));
     }
