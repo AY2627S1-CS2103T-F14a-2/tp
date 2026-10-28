@@ -105,6 +105,14 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
+    public void toModelType_decomposedAccentName_preservesCanonicalNameOnRoundTrip() throws Exception {
+        JsonAdaptedPerson stored = new JsonAdaptedPerson("Jose\u0301 Tan", VALID_PHONE, VALID_EMAIL, VALID_TAGS);
+        Person loaded = stored.toModelType();
+        assertEquals("Jos\u00e9 Tan", loaded.getName().fullName);
+        assertEquals(loaded, new JsonAdaptedPerson(loaded).toModelType());
+    }
+
+    @Test
     public void toModelType_nullName_throwsIllegalValueException() {
         JsonAdaptedPerson person = new JsonAdaptedPerson(null, VALID_PHONE, VALID_EMAIL, VALID_TAGS);
         String expectedMessage = String.format(MISSING_FIELD_MESSAGE_FORMAT, Name.class.getSimpleName());
