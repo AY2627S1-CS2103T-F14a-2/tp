@@ -1161,9 +1161,6 @@ Start from the sample data.
    [Upcoming sessions and viewing a client's history](#upcoming-sessions-and-viewing-a-client-s-history) checks this
    for a client with a booking.
 
-<!-- AI assistance: Claude Code helped reorganise this appendix and draft the launch, help, client-management,
-past-booking and invalid-time tests; their expected results were checked against the running app. -->
-
 ### Clearing all clients
 
 1. In a disposable dataset with at least two clients and a saved data file, filter to one client and view their history.
