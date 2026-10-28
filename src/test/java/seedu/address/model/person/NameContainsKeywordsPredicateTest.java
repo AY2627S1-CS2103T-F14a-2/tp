@@ -39,6 +39,14 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void hashCode_consistentWithEquals() {
+        NameContainsKeywordsPredicate first = new NameContainsKeywordsPredicate(List.of("first"));
+        NameContainsKeywordsPredicate same = new NameContainsKeywordsPredicate(List.of("first"));
+
+        assertEquals(first.hashCode(), same.hashCode());
+    }
+
+    @Test
     public void test_nameContainsKeywords_returnsTrue() {
         // One keyword
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("Alice"));
