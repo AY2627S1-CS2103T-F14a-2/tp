@@ -261,7 +261,8 @@ their phone never warns about themselves.
 
 The two checks are deliberately separate: a name clash blocks the command (a name is how index- and name-based
 commands address a client), while a shared phone only warns, leaving the trainer to decide whether the entry is
-a genuine duplicate.
+a genuine duplicate. A near-duplicate name (same name, different phone) currently blocks too; warning instead is
+left as future work.
 
 <puml src="diagrams/DuplicateDetectionClassDiagram.puml" width="520" />
 
