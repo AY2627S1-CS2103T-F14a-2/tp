@@ -5,10 +5,10 @@ skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
 
 Class Person {
-  isSamePerson(other)
+  isSamePerson(otherPerson)
 }
 Class Name {
-  isSameName(other)
+  isSameName(otherName)
 }
 Class Phone {
   getDigits()
