@@ -12,12 +12,8 @@ import seedu.address.commons.util.ToStringBuilder;
 public class NameContainsKeywordsPredicate implements Predicate<Person> {
     private final List<String> keywords;
 
-    /**
-     * Creates a predicate with keywords normalized consistently with stored client names.
-     */
     public NameContainsKeywordsPredicate(List<String> keywords) {
-        // Search input must use the same accent representation as stored names.
-        this.keywords = keywords.stream().map(Name::normalize).toList();
+        this.keywords = keywords;
     }
 
     @Override
