@@ -635,6 +635,8 @@ User Guide find section, UC02 and manual testing instructions. -->
 
     Use case ends.
 
+*Note:* search matches the stored NFC-composed spelling, so equivalent accent encodings are not yet folded in search keywords. This is a planned future enhancement; duplicate detection already treats the two forms as the same client.
+
 **Extensions**
 
 * 1a. No keywords are given.
