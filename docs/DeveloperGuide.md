@@ -230,7 +230,7 @@ and the punctuation listed in the User Guide, rather than claiming support for e
 
 `Name.normalize` first normalizes whitespace, then applies Unicode NFC. This gives composed and decomposed versions
 of the same accented name one stored representation and one length check. Name identity and full-name lookup ignore
-case and extra whitespace after normalization; search keywords use the same normalization. Accents remain significant:
+case and extra whitespace after normalization; search keywords do not yet fold equivalent accent encodings. Accents remain significant:
 `José Tan` and `Jose Tan` are different names. The 100-character limit uses Java string length after normalization,
 not a count of visually rendered glyphs. No transliteration or compatibility folding is performed.
 
