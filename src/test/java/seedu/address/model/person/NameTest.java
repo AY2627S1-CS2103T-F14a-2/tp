@@ -46,7 +46,7 @@ public class NameTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"Raju s/o Kumar", "Mary-Jane O'Brien", "José Tan", "Dr. Lim", "O’Brien",
-        "Jose\u0301 Tan", "R2 D2"})
+        "R2 D2"})
     public void constructor_realisticName_acceptsName(String name) {
         assertEquals(name, new Name(name).fullName);
     }
@@ -62,6 +62,31 @@ public class NameTest {
     @ValueSource(ints = {99, 100, 101})
     public void isValidName_lengthBoundary_enforcesLimit(int length) {
         assertEquals(length <= Name.MAX_LENGTH, Name.isValidName("a".repeat(length)));
+    }
+
+    @Test
+    public void constructor_equivalentAccentEncodings_normalizesIdentity() {
+        Name composed = new Name("Jos\u00e9 Tan");
+        Name decomposed = new Name("Jose\u0301 Tan");
+        assertEquals("Jos\u00e9 Tan", decomposed.fullName);
+        assertEquals(composed, decomposed);
+        assertEquals(composed.hashCode(), decomposed.hashCode());
+        assertTrue(composed.isSameName(decomposed));
+        assertTrue(composed.matches("  JOSE\u0301   TAN "));
+        assertFalse(composed.matches("Jose Tan"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {99, 100, 101})
+    public void isValidName_decomposedAccentBoundary_usesNormalizedLength(int length) {
+        String name = "e\u0301".repeat(length);
+        assertEquals(length <= Name.MAX_LENGTH, Name.isValidName(name));
+        assertEquals(length > Name.MAX_LENGTH, Name.isTooLong(name));
+        if (length <= Name.MAX_LENGTH) {
+            assertEquals("\u00e9".repeat(length), new Name(name).fullName);
+        } else {
+            assertThrows(IllegalArgumentException.class, () -> new Name(name));
+        }
     }
 
     @Test

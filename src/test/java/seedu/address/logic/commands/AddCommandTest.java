@@ -21,6 +21,7 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
+import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.person.Person;
@@ -61,6 +62,18 @@ public class AddCommandTest {
         ModelStub modelStub = new ModelStubWithPerson(ALICE);
 
         assertThrows(CommandException.class, AddCommand.MESSAGE_DUPLICATE_PERSON, () -> addCommand.execute(modelStub));
+    }
+
+    @Test
+    public void execute_equivalentAccentName_rejectsDuplicateWithoutChangingModel() {
+        Person existing = new PersonBuilder().withName("Jos\u00e9 Tan").build();
+        Model model = new ModelManager();
+        model.addPerson(existing);
+        Person duplicate = new PersonBuilder().withName("Jose\u0301 Tan").withPhone("98765432").build();
+
+        AddCommand command = new AddCommand(duplicate);
+        assertThrows(CommandException.class, AddCommand.MESSAGE_DUPLICATE_PERSON, () -> command.execute(model));
+        assertEquals(List.of(existing), model.getAddressBook().getPersonList());
     }
 
     @Test

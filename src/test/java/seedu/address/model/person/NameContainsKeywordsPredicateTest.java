@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import seedu.address.testutil.PersonBuilder;
 
@@ -54,6 +56,14 @@ public class NameContainsKeywordsPredicateTest {
         // Mixed-case keywords
         predicate = new NameContainsKeywordsPredicate(List.of("aLIce", "bOB"));
         assertTrue(predicate.test(new PersonBuilder().withName("Alice Bob").build()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Jos\u00e9", "Jose\u0301"})
+    public void test_equivalentAccentKeyword_matchesName(String keyword) {
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of(keyword));
+        assertTrue(predicate.test(new PersonBuilder().withName("Jos\u00e9 Tan").build()));
+        assertFalse(predicate.test(new PersonBuilder().withName("Jose Tan").build()));
     }
 
     @Test
