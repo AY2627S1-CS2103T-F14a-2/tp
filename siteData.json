@@ -70,6 +70,7 @@
         "glossary": "Glossary",
         "appendix-instructions-for-manual-testing": "Appendix: Instructions for manual testing",
         "launch-and-shutdown": "Launch and shutdown",
+        "finding-clients-by-partial-name": "Finding clients by partial name",
         "clearing-all-clients": "Clearing all clients",
         "launching-from-another-directory": "Launching from another directory",
         "deleting-a-person": "Deleting a person",
