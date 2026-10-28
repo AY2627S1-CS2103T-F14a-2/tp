@@ -16,6 +16,8 @@
 * Helen (He Jingqi) used OpenAI Codex to assist with implementing, testing and documenting
   the v1.4 measurement deletion feature for issue #84, including its model operation, command, parser,
   persistence tests and sequence diagram.
+* Helen used OpenAI Codex to implement and test old/new measurement replacement feedback for issue #191
+  and update its User Guide examples, use case and manual-testing instructions.
 
 * Gabriel Wan used [OpenAI Codex](https://openai.com/codex/) to assist with implementing, testing,
   and documenting the v1.3 next-session feature, including parsing, client integration, JSON storage, sorting,
@@ -368,6 +370,14 @@ rather than stored separately, so they cannot become stale after a replacement o
 order means the record entered last is treated as the latest when several share a date.
 
 <!-- AI assistance: Claude Code helped draft this section and its class diagram. -->
+
+### Measurement replacement feedback
+
+Before updating the client, `MeasureCommand` finds the existing measurement with the same date and type.
+It retains that immutable record to format the old value → new value after `Model#setPerson` succeeds.
+Other dates and types are not used for this comparison. A repeated identical value is still reported as an
+update, with equal old and new values; recording a new date/type pair keeps the existing recorded message.
+The storage format and replacement rules are unchanged.
 
 ### Deleting body measurements
 
@@ -884,7 +894,8 @@ User Guide find section, UC02 and manual testing instructions. -->
 
 * 3f. A measurement of the same type on the same date already exists for the client.
 
-    * 3f1. Spotter replaces the existing value with the new value, and shows the updated measurement.
+    * 3f1. Spotter replaces the existing value and shows the client, measurement type, date, old value,
+      new value and unit. The record count is unchanged.
 
       Use case ends.
 
@@ -1239,8 +1250,11 @@ run `list` and substitute that client's displayed index for `1` below.
    Expected: `Recorded measurement for NAME: weight = 72.4 kg on 2026-09-12.`
    The card shows `Latest measurement: 12 Sep - weight 72.4 kg (1 record)`.
 1. Enter `measure 1 d/2026-09-12 t/weight v/71.8`.<br>
-   Expected: `Updated measurement for NAME: weight = 71.8 kg on 2026-09-12.`
+   Expected: `Updated measurement for NAME: weight on 2026-09-12: 72.4 → 71.8 kg.`
    The card value changes to 71.8 and the count stays at one.
+1. Repeat `measure 1 d/2026-09-12 t/weight v/71.8`.<br>
+   Expected: `Updated measurement for NAME: weight on 2026-09-12: 71.8 → 71.8 kg.`
+   The value and record count remain unchanged.
 1. Add `measure 1 d/2026-09-12 t/waist v/81`, then
    `measure 1 d/2026-09-11 t/bodyfat v/18.4`.<br>
    Expected: Both commands record new entries. The card still shows weight 71.8 kg, with three records.

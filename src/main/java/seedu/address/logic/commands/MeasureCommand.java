@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.List;
+import java.util.Optional;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
@@ -15,6 +16,7 @@ import seedu.address.model.person.Person;
  * Records or replaces a body measurement for the client at a displayed index.
  * AI assistance: OpenAI Codex helped implement this command, parser and tests.
  * Helen used OpenAI Codex to rename replacement booleans here and in MeasurePersistenceTest for issue #179.
+ * Helen used OpenAI Codex for old/new replacement feedback and regression tests for issue #191.
  */
 public class MeasureCommand extends Command {
     public static final String COMMAND_WORD = "measure";
@@ -22,7 +24,7 @@ public class MeasureCommand extends Command {
     public static final String MESSAGE_INVALID_FORMAT = "Invalid command format. Use: " + MESSAGE_USAGE;
     public static final String MESSAGE_INVALID_INDEX = "The client index provided is invalid.";
     public static final String MESSAGE_RECORDED = "Recorded measurement for %s: %s.";
-    public static final String MESSAGE_UPDATED = "Updated measurement for %s: %s.";
+    public static final String MESSAGE_UPDATED = "Updated measurement for %s: %s on %s: %s → %s %s.";
 
     private final Index index;
     private final Measurement measurement;
@@ -44,10 +46,15 @@ public class MeasureCommand extends Command {
             throw new CommandException(MESSAGE_INVALID_INDEX + "\nUse: " + MESSAGE_USAGE);
         }
         Person client = displayedClients.get(index.getZeroBased());
-        boolean isReplacing = client.hasMeasurement(measurement);
+        Optional<Measurement> previous = client.getMeasurements().stream()
+                .filter(record -> record.isSameMeasurement(measurement))
+                .findFirst();
         model.setPerson(client, client.withMeasurement(measurement));
-        return new CommandResult(String.format(isReplacing ? MESSAGE_UPDATED : MESSAGE_RECORDED,
-                client.getName(), measurement));
+        String feedback = previous.map(record -> String.format(MESSAGE_UPDATED, client.getName(),
+                measurement.getType(), measurement.getDate(), record.getValue().toPlainString(),
+                measurement.getValue().toPlainString(), measurement.getType().getUnit()))
+                .orElseGet(() -> String.format(MESSAGE_RECORDED, client.getName(), measurement));
+        return new CommandResult(feedback);
     }
 
     @Override

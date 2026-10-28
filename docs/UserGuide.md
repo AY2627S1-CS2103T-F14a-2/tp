@@ -287,16 +287,19 @@ Run `list` first and use the displayed index of your intended client. These exam
 * `measure 1 d/2026-09-12 t/bodyfat v/18.4` adds a separate body fat record.
 
 Success messages begin with `Recorded measurement for` or `Updated measurement for`,
-followed by the client's name, measurement and date. Invalid input is rejected without changing records.
+followed by the client's name, measurement and date. Replacement messages show the old value → new value
+with the measurement unit, so you can check the correction. Entering the same value again shows equal old
+and new values and keeps the record count unchanged. Invalid input is rejected without changing records.
 
 For a client named Alex Tan, the first two examples produce:
 
 ```text
 Recorded measurement for Alex Tan: weight = 72.4 kg on 2026-09-12.
-Updated measurement for Alex Tan: weight = 71.8 kg on 2026-09-12.
+Updated measurement for Alex Tan: weight on 2026-09-12: 72.4 → 71.8 kg.
 ```
 
 <!-- AI assistance: Helen used OpenAI Codex to clarify measurement index errors for issue #166. -->
+<!-- AI assistance: Helen used OpenAI Codex to document replacement feedback for issue #191. -->
 <!-- AI assistance: Helen used OpenAI Codex to align date-error examples for issue #164. -->
 
 Common errors:
