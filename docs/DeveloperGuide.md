@@ -221,6 +221,30 @@ The path tests package the real resolver and logger into a small executable JAR 
 from unrelated folders. This verifies archive detection, special-character paths, existing-data preservation,
 relaunch behaviour and a blocked log file without changing the test JVM's working directory.
 
+### Client name and phone formats
+
+`Name` and `Phone` own validation and normalization so command input and JSON loading use the same rules.
+`ParserUtil` reports length-specific errors before constructing the value objects. Names are trainer-facing labels,
+not verified legal identities: the current scope accepts Latin-script letters (including accents), digits `0–9`
+and the punctuation listed in the User Guide, rather than claiming support for every language.
+
+`Name.normalize` first normalizes whitespace, then applies Unicode NFC. This gives composed and decomposed versions
+of the same accented name one stored representation and one length check. Name identity and full-name lookup ignore
+case and extra whitespace after normalization; search keywords do not yet fold equivalent accent encodings. Accents remain significant:
+`José Tan` and `Jose Tan` are different names. The 100-character limit uses Java string length after normalization,
+not a count of visually rendered glyphs. No transliteration or compatibility folding is performed.
+
+`Phone` requires at least three digits and permits English-letter labels and common punctuation within a
+50-character normalized value. Plain digits separated by spaces remain stored as digits only for compatibility
+with older files. Other accepted formatting is retained. This is a contact field, not a dialability validator.
+`getDigits` exposes the entire digit sequence; it does not infer country codes, extensions or individual numbers.
+
+**Trade-offs:** supporting common name formats avoids unnecessary rejection without redesigning command syntax.
+A space followed by a recognized prefix still starts a new field, and session commands reject slash-containing
+name identifiers. Those clients remain accessible through displayed indexes. Broader script support and literal
+prefix escaping require consistent parser, identity, search and storage rules, so they are deferred rather than
+partially implemented here. These limits do not establish that every user's naming needs are met.
+
 ### Upcoming sessions panel
 
 The right side of the window shows the clients with an upcoming session, soonest first, so that a trainer can
@@ -525,6 +549,14 @@ The following activity diagram summarizes what happens when a user executes a ne
   * Cons: We must ensure that the implementation of each individual command is correct.
 
 _{more aspects and alternatives to be added}_
+
+### \[Proposed\] Broader client-name support
+
+A future enhancement is to support client names in additional scripts and provide an unambiguous way to enter
+literal command delimiters. The design should preserve original spellings while defining consistent Unicode
+normalization, duplicate detection and name lookup across add/edit, search, sessions and JSON storage.
+It must also retain compatibility with saved Latin-script names and provide tests for the newly supported scripts.
+This proposal does not change the supported input formats in v1.5 or promise a delivery date.
 
 ### \[Proposed\] Data archiving
 
@@ -1169,9 +1201,30 @@ Continue from the previous section.
    Expected: `At least one field to edit must be provided.`, then `This client already exists in Spotter.`
    Sarah's details are unchanged.
 
+### Client name and phone formats
+
+Use a disposable dataset. Before index-based commands, run `list` and read the client's current displayed index;
+replace `INDEX` below with that number. Do not assume insertion order is the displayed order.
+
+1. Run `add n/Raju s/o Kumar p/+65 9123 4567` and
+   `add n/Mary-Jane O'Brien p/1234 5678 (HP) 1111-3333 (Office)`.<br>
+   Expected: Both clients are added and the formatted phone values are retained.
+1. Run `add n/José Tan p/91234567`, then try the same name encoded as `Jose` followed by U+0301 and ` Tan`.<br>
+   Expected: The second add is rejected as an existing client. `find José` finds the client, but a keyword using the
+   decomposed encoding does not yet match. `Jose` without an accent is not the same name.
+1. Run `add n/-Bob p/91234567`, `add n/王明 p/91234567` and `add n/Phone Probe p/12`.<br>
+   Expected: Validation feedback explains the supported name or phone characters/digit requirement; no client is added.
+1. For Raju, run `session INDEX d/2026-12-15 t/1900`, check the displayed list again, then run
+   `cancelsession INDEX` with his current index.<br>
+   Expected: Both commands succeed. The equivalent `n/Raju s/o Kumar` forms are rejected as documented, without
+   changing stored data; the index form is the supported alternative.
+1. Edit one test client's phone to `8743 8807`, close Spotter and restart it.<br>
+   Expected: The stored phone is `87438807` (displayed as `8743 8807`), the formatted phones of other clients are
+   unchanged, and the punctuation/accented names remain available. Remove the test clients when finished.
+
 ### Finding and filtering clients
 
-Start from the sample data, or continue from the previous section.
+Start from the sample data, or continue from [Editing a client](#editing-a-client).
 
 1. Enter `find alex david`.<br>
    Expected: `Listed 2 clients.` The list shows `Alex Yeoh` and `David Li`.
