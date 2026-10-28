@@ -69,6 +69,49 @@ public class AddCommandTest {
     }
 
     @Test
+    public void execute_equivalentAccentName_rejectsDuplicateWithoutChangingModel() {
+        Person existing = new PersonBuilder().withName("Jos\u00e9 Tan").build();
+        Model model = new ModelManager();
+        model.addPerson(existing);
+        Person duplicate = new PersonBuilder().withName("Jose\u0301 Tan").withPhone("98765432").build();
+
+        AddCommand command = new AddCommand(duplicate);
+        assertThrows(CommandException.class, AddCommand.MESSAGE_DUPLICATE_PERSON, () -> command.execute(model));
+        assertEquals(List.of(existing), model.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void equals() {
+        Person alice = new PersonBuilder().withName("Alice").build();
+        Person bob = new PersonBuilder().withName("Bob").build();
+        AddCommand addAliceCommand = new AddCommand(alice);
+        AddCommand addBobCommand = new AddCommand(bob);
+
+        // same object -> returns true
+        assertTrue(addAliceCommand.equals(addAliceCommand));
+
+        // same values -> returns true
+        AddCommand addAliceCommandCopy = new AddCommand(alice);
+        assertTrue(addAliceCommand.equals(addAliceCommandCopy));
+
+        // different types -> returns false
+        assertFalse(addAliceCommand.equals(1));
+
+        // null -> returns false
+        assertFalse(addAliceCommand.equals(null));
+
+        // different person -> returns false
+        assertFalse(addAliceCommand.equals(addBobCommand));
+    }
+
+    @Test
+    public void toStringMethod() {
+        AddCommand addCommand = new AddCommand(ALICE);
+        String expected = AddCommand.class.getCanonicalName() + "{toAdd=" + ALICE + "}";
+        assertEquals(expected, addCommand.toString());
+    }
+
+    @Test
     public void execute_sharedPhoneHiddenClients_warnsInAddressBookOrder() {
         Person zoe = new PersonBuilder().withName("Zoe Tan").withPhone("+65 9123-4567 (HP)").build();
         Person unrelated = new PersonBuilder().withName("Unrelated Client").withPhone("81112222").build();
@@ -104,37 +147,6 @@ public class AddCommandTest {
 
         assertCommandSuccess(new AddCommand(added), model,
                 String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(added)), expectedModel);
-    }
-
-    @Test
-    public void equals_sameAndDifferentCommands_comparesValues() {
-        Person alice = new PersonBuilder().withName("Alice").build();
-        Person bob = new PersonBuilder().withName("Bob").build();
-        AddCommand addAliceCommand = new AddCommand(alice);
-        AddCommand addBobCommand = new AddCommand(bob);
-
-        // same object -> returns true
-        assertTrue(addAliceCommand.equals(addAliceCommand));
-
-        // same values -> returns true
-        AddCommand addAliceCommandCopy = new AddCommand(alice);
-        assertTrue(addAliceCommand.equals(addAliceCommandCopy));
-
-        // different types -> returns false
-        assertFalse(addAliceCommand.equals(1));
-
-        // null -> returns false
-        assertFalse(addAliceCommand.equals(null));
-
-        // different person -> returns false
-        assertFalse(addAliceCommand.equals(addBobCommand));
-    }
-
-    @Test
-    public void toString_validCommand_containsFields() {
-        AddCommand addCommand = new AddCommand(ALICE);
-        String expected = AddCommand.class.getCanonicalName() + "{toAdd=" + ALICE + "}";
-        assertEquals(expected, addCommand.toString());
     }
 
     /**
