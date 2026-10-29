@@ -415,7 +415,9 @@ format and impossible-date messages while retaining command-specific usage guida
 <!-- AI assistance: Helen used OpenAI Codex to update shared date-validation documentation for issue #164. -->
 
 `DeleteMeasureCommand` looks up the client through `Model#getFilteredPersonList()` and finds the record
-by date and type. A missing record raises a `CommandException` before any state changes.
+by date and type. A missing record raises a `CommandException` before any state changes and suggests
+`view` with the actual displayed index to check the client's measurement history. Missing performance
+records provide the equivalent guidance for performance history.
 `Person#withoutMeasurement` creates an immutable copy with that record removed, preserving all contact,
 session and performance data. `Model#setPerson` replaces the original client without changing the filter.
 The card derives its latest measurement and count from the updated list, including same-date type ties
@@ -425,7 +427,7 @@ the trainer does not need to run `view` again after deletion.
 <puml src="diagrams/DeleteMeasureSequenceDiagram.puml" alt="Measurement deletion sequence" />
 
 `LogicManager` saves the changed address book using the existing storage format. If saving fails,
-it restores the previous address book and filter and reports `Unable to save Spotter data.`
+it restores the previous address book and filter and reports `Unable to save Spotter data. The change was not saved and has been undone. Check that the data folder is writable and the disk has free space, then retry.`
 No storage schema change or separate cached record count is needed. Keeping counts derived from the
 measurement list avoids stale summary data after deletion.
 
@@ -1245,7 +1247,7 @@ Start from the sample data.
 1. Enter `add n/John Tan p/88776655`.<br>
    Expected: `New client added: John Tan; Phone: 8877 6655`. His card shows `Email: -`.
 1. Enter `add n/sarah  lim p/99998888`.<br>
-   Expected: `This client already exists in Spotter.` Names are compared ignoring case and extra spaces.
+   Expected: `Another client already has this name. Names are compared ignoring letter case and extra spaces. Use "find NAME" to check the existing client.` Names are compared ignoring case and extra spaces.
 1. Enter `add n/Kim Lee p/12`, then `add n/Kim Lee`.<br>
    Expected: An error explaining the phone-number rules, then `Invalid command format!` followed by the `add`
    usage. No client is added.
@@ -1267,7 +1269,7 @@ Continue from the previous section.
 1. Enter `find sarah`, then `edit 1 e/`.<br>
    Expected: `Edited client: Sarah Lim; Phone: 9876 5432`. Her card shows `Email: -`.
 1. Enter `find sarah`, then `edit 1` and `edit 1 n/John Tan`.<br>
-   Expected: `At least one field to edit must be provided.`, then `This client already exists in Spotter.`
+   Expected: `At least one field to edit must be provided.`, then `Another client already has this name. Names are compared ignoring letter case and extra spaces. Use "find NAME" to check the existing client.`
    Sarah's details are unchanged.
 
 ### Client name and phone formats
@@ -1321,7 +1323,7 @@ Start from the sample data.
    Expected: `Deleted client: Irfan Ibrahim; Phone: 9249 2021; Email: irfan@example.com`. The search stays active,
    so the list now shows only `David Li`.
 1. Enter `delete 0`, `delete 99` and `delete`.<br>
-   Expected: `The client index provided is invalid.` twice, then `Invalid command format!` followed by the
+   Expected: `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.` twice, then `Invalid command format!` followed by the
    `delete` usage. No client is deleted.
 1. Deleting a client also removes their session and records. Step 8 of
    [Upcoming sessions and viewing a client's history](#upcoming-sessions-and-viewing-a-client-s-history) checks this
@@ -1367,7 +1369,7 @@ replace `DATE` in every command below, and `TODAY` with today's date. Add unique
 1. For a save-failure test, first book Ada again and display `sessions d/DATE`.
    While Spotter is running, move `data/spotter.json` to a backup and create a directory named `data/spotter.json`.
    Cancel Ada's current displayed index.<br>
-   Expected: `Unable to save Spotter data.` The booking and date-filtered list are restored with all progress intact.
+   Expected: `Unable to save Spotter data. The change was not saved and has been undone. Check that the data folder is writable and the disk has free space, then retry.` The booking and date-filtered list are restored with all progress intact.
    Close Spotter, remove the empty blocking directory and restore the backup file before further testing.
 1. Book Ada at `session n/SessionCancelAda d/DATE t/0900`, then change it to
    `session n/SessionCancelAda d/DATE t/1000`.<br>
@@ -1411,7 +1413,7 @@ list, so the indices below follow the list as it changes.
 1. Enter `view 1`, then `delete 1`.<br>
    Expected: Upcoming sessions is back and shows `No upcoming sessions.`
 1. Enter `view 0`.<br>
-   Expected: `The client index provided is invalid.` The right side does not change.
+   Expected: `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.` The right side does not change.
 
 ### Recording body measurements
 
@@ -1510,7 +1512,8 @@ run `list` and substitute that client's displayed index for `1` below. `NAME` is
 1. Rejected deletions
 
    1. Enter `deleteperformance 1 d/2026-09-18 e/Squat`, then `deleteperformance 1 d/2026-09-14 e/Squat`.<br>
-      Expected: `No performance record for Squat on 2026-09-18 was found for NAME.`, then the same message for
+      Expected: `No performance record for Squat on 2026-09-18 was found for NAME.`, followed by
+      `Use "view 1" to check this client's performance history.`, then the same missing-record message for
       2026-09-14. The expected command format is not shown, and the card is unchanged.
    1. Enter `deleteperformance 1 d/15-09-2026 e/Squat`, then `deleteperformance 1 d/2026-02-30 e/Squat`.<br>
       Expected: `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`,
@@ -1529,7 +1532,7 @@ run `list` and substitute that client's displayed index for `1` below. `NAME` is
    1. Enter `exit`. Make `data/spotter.json` read-only (on Windows, tick *Read-only* in the file's *Properties*;
       on macOS or Linux, run `chmod 444 data/spotter.json`), then relaunch Spotter.
    1. Enter `deleteperformance 1 d/2026-09-15 e/Squat`.<br>
-      Expected: `Unable to save Spotter data.` The card still shows the 15 Sep squat with `(1 record)`.
+      Expected: `Unable to save Spotter data. The change was not saved and has been undone. Check that the data folder is writable and the disk has free space, then retry.` The card still shows the 15 Sep squat with `(1 record)`.
    1. Enter `exit`, make the data file writable again, and relaunch Spotter.<br>
       Expected: The squat record is still present.
 

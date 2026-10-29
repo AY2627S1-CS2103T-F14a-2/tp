@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Name;
@@ -23,10 +24,11 @@ public class SessionCommand extends Command {
     public static final String COMMAND_WORD = "session";
     public static final String MESSAGE_USAGE = "session INDEX d/DATE t/TIME or session n/NAME d/DATE t/TIME";
     public static final String MESSAGE_INVALID_FORMAT = "Invalid command format! Use: " + MESSAGE_USAGE;
-    public static final String MESSAGE_INVALID_INDEX = "The client index provided is invalid.";
+    public static final String MESSAGE_INVALID_INDEX = Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
     public static final String MESSAGE_NO_SUCH_NAME = "No client with that name exists in Spotter.";
     public static final String MESSAGE_EMPTY_NAME = "Name cannot be empty.";
-    public static final String MESSAGE_NAME_SLASH = "Name must not contain '/'.";
+    public static final String MESSAGE_NAME_SLASH = "Names containing '/' cannot be used for session name lookup."
+            + " Use the client's displayed index with session or cancelsession instead.";
     public static final String MESSAGE_SUCCESS = "Recorded next session for %s on %s at %s";
     public static final String MESSAGE_RESCHEDULED = "Rescheduled next session for %s from %s to %s.";
     public static final String MESSAGE_UNCHANGED = "Next session for %s is already recorded on %s.";

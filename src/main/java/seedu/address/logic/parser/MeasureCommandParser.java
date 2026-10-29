@@ -19,7 +19,8 @@ import seedu.address.model.person.MeasurementType;
  * AI assistance: Helen used OpenAI Codex to consolidate exception handling for issue #175.
  */
 public class MeasureCommandParser implements Parser<MeasureCommand> {
-    public static final String MESSAGE_NON_NUMERIC = "Measurement value must be numeric.";
+    public static final String MESSAGE_NON_NUMERIC = "Enter a plain decimal number, for example v/72.4."
+            + " Use a full stop for decimals, without units, commas or scientific notation.";
 
     @Override
     public MeasureCommand parse(String args) throws ParseException {

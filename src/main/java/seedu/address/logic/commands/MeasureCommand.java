@@ -6,6 +6,7 @@ import java.util.List;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Measurement;
@@ -20,7 +21,7 @@ public class MeasureCommand extends Command {
     public static final String COMMAND_WORD = "measure";
     public static final String MESSAGE_USAGE = "measure INDEX d/DATE t/TYPE v/VALUE";
     public static final String MESSAGE_INVALID_FORMAT = "Invalid command format. Use: " + MESSAGE_USAGE;
-    public static final String MESSAGE_INVALID_INDEX = "The client index provided is invalid.";
+    public static final String MESSAGE_INVALID_INDEX = Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
     public static final String MESSAGE_RECORDED = "Recorded measurement for %s: %s.";
     public static final String MESSAGE_UPDATED = "Updated measurement for %s: %s.";
 

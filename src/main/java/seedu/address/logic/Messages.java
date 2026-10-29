@@ -11,13 +11,18 @@ import seedu.address.model.person.Person;
 
 /**
  * Container for user visible messages.
+ * AI assistance: Helen used OpenAI Codex for issue #202's recovery guidance, related tests and UG/DG updates.
  */
 public class Messages {
 
     public static final String MESSAGE_UNKNOWN_COMMAND = "Unknown command. Type \"help\" to see all commands.";
     public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format!\n%1$s";
-    public static final String MESSAGE_INVALID_PERSON_DISPLAYED_INDEX = "The client index provided is invalid.";
-    public static final String MESSAGE_DUPLICATE_CLIENT = "This client already exists in Spotter.";
+    public static final String MESSAGE_INVALID_PERSON_DISPLAYED_INDEX = "The client index provided is invalid."
+            + " Use a positive index from the displayed client list. Use \"list\" to show all clients,"
+            + " then check their indexes again.";
+    public static final String MESSAGE_DUPLICATE_CLIENT = "Another client already has this name."
+            + " Names are compared ignoring letter case and extra spaces."
+            + " Use \"find NAME\" to check the existing client.";
     public static final String MESSAGE_NO_CLIENTS_FOUND = "No clients found.";
     public static final String MESSAGE_ONE_CLIENT_LISTED = "Listed 1 client.";
     public static final String MESSAGE_CLIENTS_LISTED = "Listed %1$d clients.";

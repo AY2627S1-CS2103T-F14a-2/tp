@@ -31,7 +31,8 @@ public class DeletePerformanceCommand extends Command {
     public static final String MESSAGE_USAGE = COMMAND_WORD + " INDEX d/DATE e/EXERCISE";
     public static final String MESSAGE_INVALID_FORMAT = "Invalid command format. Use: " + MESSAGE_USAGE;
     public static final String MESSAGE_INVALID_INDEX = Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
-    public static final String MESSAGE_RECORD_NOT_FOUND = "No performance record for %1$s on %2$s was found for %3$s.";
+    public static final String MESSAGE_RECORD_NOT_FOUND = "No performance record for %1$s on %2$s was found for %3$s."
+            + "\nUse \"view %4$d\" to check this client's performance history.";
     public static final String MESSAGE_SUCCESS = "Deleted performance for %1$s: %2$s on %3$s.";
 
     private static final Logger logger = LogsCenter.getLogger(DeletePerformanceCommand.class);
@@ -71,7 +72,7 @@ public class DeletePerformanceCommand extends Command {
                     + " for client at index " + index.getOneBased());
             // The command was typed correctly, so the format is not shown when no record matches
             throw new CommandException(String.format(MESSAGE_RECORD_NOT_FOUND,
-                    exerciseName, formattedDate, client.getName()));
+                    exerciseName, formattedDate, client.getName(), index.getOneBased()));
         }
 
         GymPerformance record = match.get();
