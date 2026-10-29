@@ -571,7 +571,8 @@ The booking is saved automatically and survives restarting Spotter. Editing cont
 and deleting the client removes it together with the client.
 
 After a successful booking, all clients are shown and the list scrolls to the top. Upcoming sessions appear first, soonest first, with
-case-insensitive alphabetical names breaking ties. Expired recorded sessions follow upcoming ones, followed
+case-insensitive English alphabetical names breaking ties (for example, Émile comes before Zoe).
+Expired recorded sessions follow upcoming ones, followed
 by clients with no recorded session; unbooked clients are alphabetical. This order also applies to `list`,
 filtered lists, and startup. Sorting the displayed list does not reorder the JSON file.
 After each successful command, the order and session card rows are refreshed to account for bookings that have passed.
@@ -682,6 +683,10 @@ Back up any existing destination file before replacing it. Spotter does not sear
 ### Editing the data file
 
 Spotter data is saved automatically as a JSON file `[JAR file location]/data/spotter.json`. Advanced users are welcome to update data directly by editing that data file. Save it as UTF-8, with or without a byte-order mark (BOM).
+
+The future-date restriction for measurements and performances applies when entering `measure` and `performance`.
+Valid future-dated records already in the data file are retained without a warning, for example after a system
+clock change. Use `deletemeasure` or `deleteperformance` to remove such a record; both accept future dates.
 
 <box type="warning" seamless>
 
