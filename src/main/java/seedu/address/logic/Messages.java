@@ -12,6 +12,7 @@ import seedu.address.model.person.Person;
 /**
  * Container for user visible messages.
  * AI assistance: Helen used OpenAI Codex for issue #202's recovery guidance, related tests and UG/DG updates.
+ * Vincent used Claude Code to share one invalid command format message across commands.
  */
 public class Messages {
 
