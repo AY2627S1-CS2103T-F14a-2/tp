@@ -21,11 +21,8 @@ public class ViewCommand extends Command {
 
     public static final String COMMAND_WORD = "view";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Shows the full details and history of the client identified by the index number "
-            + "used in the displayed client list.\n"
-            + "Parameters: INDEX (must be a positive integer)\n"
-            + "Example: " + COMMAND_WORD + " 1";
+    public static final String MESSAGE_USAGE = COMMAND_WORD + " INDEX";
+    public static final String MESSAGE_INVALID_FORMAT = Messages.withUsage("Invalid command format!", MESSAGE_USAGE);
 
     public static final String MESSAGE_VIEW_SUCCESS = "Showing details and history of %1$s.";
 
@@ -44,18 +41,18 @@ public class ViewCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        List<Person> lastShownList = model.getFilteredPersonList();
+        List<Person> displayedClients = model.getFilteredPersonList();
 
-        if (targetIndex.getZeroBased() >= lastShownList.size()) {
+        if (targetIndex.getZeroBased() >= displayedClients.size()) {
             throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         }
-        assert targetIndex.getZeroBased() >= 0 && targetIndex.getZeroBased() < lastShownList.size();
+        assert targetIndex.getZeroBased() >= 0 && targetIndex.getZeroBased() < displayedClients.size();
 
         // Logs only the index, as client details do not belong in log files.
         logger.fine("Viewing client at displayed index " + targetIndex.getOneBased());
-        Person personToView = lastShownList.get(targetIndex.getZeroBased());
-        model.setViewedPerson(personToView);
-        return new CommandResult(String.format(MESSAGE_VIEW_SUCCESS, personToView.getName().fullName));
+        Person clientToView = displayedClients.get(targetIndex.getZeroBased());
+        model.setViewedPerson(clientToView);
+        return new CommandResult(String.format(MESSAGE_VIEW_SUCCESS, clientToView.getName().fullName));
     }
 
     @Override
