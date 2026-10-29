@@ -573,10 +573,13 @@ whitespace-normalized full-name matching across the whole address book.
 This lets a trainer cancel a known client's booking even after indices change or a filter hides the client,
 while preserving the current filter. Mixed identifiers, empty names and slashes are rejected during parsing.
 It rejects an invalid index or a client without a recorded session before changing the model.
-The command compares the cancelled client's displayed index before and after the update. If the client moves
-(e.g. to the unbooked group) or disappears (e.g. from a `sessions` date view), the success message warns:
-`Displayed indices have changed. Check the client list before your next index-based command.`
-A hidden client or a client whose displayed position stays the same does not trigger this warning.
+Like `session` and `edit`, it copies the displayed list before the update and passes both lists to
+`ClientOrderNote#forChange`. If any previously displayed client moves (e.g. to the unbooked group) or disappears
+(e.g. from a `sessions` date view), the success message adds:
+`The client list order has changed; check the index numbers before your next command.`
+The updated client is matched by its new value. Clients appended after the previously displayed ones (e.g. when
+`session` or `edit` clears a filter) do not trigger the note, because every earlier index still selects the same client.
+A hidden client or an update that keeps every displayed position does not trigger the note.
 
 The following partial model diagram shows the session field, the date predicate and the progress data that must survive
 cancellation. Contact fields are omitted to keep the diagram focused.
