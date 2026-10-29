@@ -28,7 +28,8 @@ public class SessionCommand extends Command {
     public static final String MESSAGE_INVALID_INDEX = Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
     public static final String MESSAGE_NO_SUCH_NAME = "No client with that name exists in Spotter.";
     public static final String MESSAGE_EMPTY_NAME = "Name cannot be empty.";
-    public static final String MESSAGE_NAME_SLASH = "Name must not contain '/'.";
+    public static final String MESSAGE_NAME_SLASH = "Names containing '/' cannot be used for session name lookup."
+            + " Use the client's displayed index with session or cancelsession instead.";
     public static final String MESSAGE_SUCCESS = "Recorded next session for %s on %s at %s";
     public static final String MESSAGE_RESCHEDULED = "Rescheduled next session for %s from %s to %s.";
     public static final String MESSAGE_UNCHANGED = "Next session for %s is already recorded on %s.";
@@ -134,7 +135,7 @@ public class SessionCommand extends Command {
                 .filter(person -> !person.isSamePerson(target))
                 .filter(person -> person.getNextSession().filter(nextSession::equals).isPresent())
                 .map(person -> person.getName().fullName)
-                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .sorted(Name.alphabeticalComparator())
                 .collect(Collectors.joining(", "));
         return names.isEmpty() ? "" : String.format(MESSAGE_CLASH, names);
     }

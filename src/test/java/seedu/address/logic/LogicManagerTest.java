@@ -127,6 +127,19 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_hyphenatedEmailDomain_addEditAndReloadPreserveEmail() throws Exception {
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        logic.execute("add n/Email Probe p/91234567 e/a@b.c-d");
+        ReadOnlyAddressBook added = new JsonAddressBookStorage(dataFile).readAddressBook().orElseThrow();
+        assertEquals("a@b.c-d", added.getPersonList().get(0).getEmail().orElseThrow().value);
+
+        logic.execute("edit 1 e/a@x--y.com");
+        ReadOnlyAddressBook edited = new JsonAddressBookStorage(dataFile).readAddressBook().orElseThrow();
+        assertEquals("a@x--y.com", edited.getPersonList().get(0).getEmail().orElseThrow().value);
+        assertEquals(model.getAddressBook(), new AddressBook(edited));
+    }
+
+    @Test
     public void execute_readOnlyCommand_doesNotSaveDataFile() throws Exception {
         Path dataFile = temporaryFolder.resolve("addressBook.json");
         logic.execute(ListCommand.COMMAND_WORD);

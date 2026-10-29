@@ -29,7 +29,7 @@ DeleteParser --> Parser : d
 deactivate DeleteParser
 Parser --> Logic : d
 deactivate Parser
-note right of Logic : Snapshot address book and filter
+note right of Logic : Snapshot address book, filter and viewed client
 Logic -> Command : execute(m)
 activate Command
 Command -> Model : getFilteredPersonList()
@@ -45,10 +45,11 @@ Client -> Updated : new(..., remainingMeasurements, ...)
 Client --> Command : updated
 deactivate Client
 Command -> Model : setPerson(client, updated)
-note right of Model : Observable cards refresh;
+note right of Model : Observable cards and open history refresh;
 note right of Model : latest and count are derived
 Command --> Logic : CommandResult(deletion message)
 deactivate Command
+Logic -> Model : updateSessionLists(now)
 Logic -> Storage : saveAddressBook(addressBook)
 alt save succeeds
 Storage --> Logic
@@ -57,6 +58,7 @@ else save throws IOException
 Storage --> Logic : IOException
 Logic -> Model : setAddressBook(snapshot)
 Logic -> Model : updateFilteredPersonList(previousFilter)
+Logic -> Model : setViewedPerson(previousViewedClient)
 Logic -->[ : CommandException(save failure)
 end
 deactivate Logic
