@@ -20,6 +20,8 @@
 
 * OpenAI Codex and Claude Code assisted the team with implementation, testing, documentation and PR reviews
   across most Spotter features.
+* Helen used OpenAI Codex for issue #222's tag validation, case-insensitive identity, persistence regression
+  tests, and the matching UG/DG updates.
 * The GUI tests use [TestFX](https://github.com/TestFX/TestFX) to run JavaFX UI parts in tests.
 
 --------------------------------------------------------------------------------------------------------------------
@@ -166,6 +168,12 @@ The `Model` component,
 stored directly as a `String`, rather than through a separate adapter. On loading, these values are
 validated and converted into the corresponding client fields and records; older files without progress
 collections load with empty histories.
+
+`Tag` validates 1–50 ASCII letters/digits separated by single internal hyphens. Its equality and hash code
+ignore case, while its stored spelling is preserved. `ParserUtil.parseTags` keeps the first supplied spelling;
+the tag set built by `JsonAdaptedPerson` likewise collapses case variants, retaining the first stored spelling.
+`Person.equals` compares stored tag spellings so a case-only edit is still persisted. Invalid stored tags,
+including older tags exceeding 50 characters, use the existing damaged-data recovery path; no tag is truncated.
 
 The `Storage` component,
 * can save both client data and user preference data in JSON format, and read them back into corresponding objects.
@@ -1152,7 +1160,7 @@ not promises about the current release.
 
       Use case resumes at step 1.
 
-* 1b. A tag contains characters other than letters and digits.
+* 1b. A tag violates the 1–50 character limit or the letters/digits and single internal hyphen rule.
 
     * 1b1. Spotter shows an error message and the expected format.
 
@@ -1211,7 +1219,8 @@ pass/fail results with the release test evidence. Functional tests alone do not 
 
 * **Progress history**: The client's measurement and gym-performance sections in the history panel, each ordered newest first.
 
-* **Tag**: An alphanumeric label attached to a client for grouping and filtering, such as `rehab` or `weightloss`.
+* **Tag**: A case-insensitive label of 1–50 English letters/digits, with optional single internal hyphens,
+  attached to a client for grouping and filtering, such as `rehab` or `lower-back`.
 
 * **Automatic data persistence**: Saving changes without requiring an explicit save command and loading saved data when Spotter starts.
 
@@ -1231,6 +1240,21 @@ pass/fail results with the release test evidence. Functional tests alone do not 
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Appendix: Instructions for manual testing**
+
+### Tag rules and persistence
+
+Use a disposable data folder. Run `add n/Tag Probe p/91234567 t/Lower-Back t/lower-back t/Rehab t/rehab`.
+Expect two tags, `Lower-Back` and `Rehab`; `filter t/LOWER-BACK` finds the client.
+Run `edit 1 t/Strength t/strength`, then restart: expect one `Strength` tag. A case-only edit to
+`edit 1 t/STRENGTH` must also survive restart. `edit 1 t/` clears all tags.
+
+An empty `t/` on `add` explains that tags cannot be empty and may be omitted. A 50-character alphanumeric
+tag is accepted; 51 characters, `lower--back`, `-rehab` and `rehab-` are rejected by add/edit/filter without
+changing clients, the current filter, viewed history or saved data.
+
+Close Spotter, back up the JSON file and add a case variant next to an existing tag in one client's tag array.
+Restart: expect one tag retaining the first spelling and all contact, session and progress data preserved.
+Invalid stored tags trigger the existing load warning; repair the file before making any data-changing command.
 
 Given below are instructions to test the app manually. They cover every command, grouped by feature.
 
@@ -1384,8 +1408,8 @@ Use a separate disposable test dataset. Run `clear`, then add these fictional tr
    `Chris Goh`, then `Listed 2 clients tagged strength.`, as a repeated tag is named once.
 1. Enter `filter t/cardio`.<br>
    Expected: `No clients tagged cardio. Use "list" to show all clients.` with an empty list.
-1. Enter `filter t/re-hab`, `filter t/` and `filter strength`.<br>
-   Expected: `Tags can contain only letters and digits, e.g. t/rehab.`, `Tags to filter by cannot be empty.` and
+1. Enter `filter t/re--hab`, `filter t/` and `filter strength`.<br>
+   Expected: `Tag names must be 1 to 50 characters: English letters and digits, with single hyphens between them (e.g. lower-back).`, `Tags to filter by cannot be empty.` and
    `Invalid command format!`, each followed by `Use: filter t/TAG [t/MORE_TAGS]...`; the last also shows
    `Example: filter t/rehab t/strength`. The displayed list does not change.
 1. Enter `list`, `view 1`, then `filter t/weightloss`.<br>
