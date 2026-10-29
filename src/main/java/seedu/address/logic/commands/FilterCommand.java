@@ -19,7 +19,7 @@ public class FilterCommand extends Command {
     public static final String COMMAND_WORD = "filter";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + " t/TAG [t/MORE_TAGS]...";
-    public static final String MESSAGE_INVALID_FORMAT = Messages.withUsage("Invalid command format!", MESSAGE_USAGE)
+    public static final String MESSAGE_INVALID_FORMAT = Messages.getInvalidFormatMessage(MESSAGE_USAGE)
             + "\nExample: " + COMMAND_WORD + " t/rehab t/strength";
     public static final String MESSAGE_NO_MATCHES = "No clients tagged %1$s. Use \"list\" to show all clients.";
     public static final String MESSAGE_ONE_MATCH = "Listed 1 client tagged %1$s.";

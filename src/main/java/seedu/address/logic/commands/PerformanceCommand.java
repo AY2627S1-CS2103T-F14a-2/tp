@@ -26,7 +26,7 @@ public class PerformanceCommand extends Command {
     public static final String COMMAND_WORD = "performance";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + " INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD";
-    public static final String MESSAGE_INVALID_FORMAT = "Invalid command format. Use: " + MESSAGE_USAGE;
+    public static final String MESSAGE_INVALID_FORMAT = Messages.getInvalidFormatMessage(MESSAGE_USAGE);
     public static final String MESSAGE_INVALID_INDEX = Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
     public static final String MESSAGE_FUTURE_DATE = "The performance date cannot be in the future.";
     public static final String MESSAGE_RECORDED = "Recorded performance for %1$s: %2$s on %3$s.";

@@ -21,7 +21,7 @@ import seedu.address.model.person.Person;
 public class DeleteMeasureCommand extends Command {
     public static final String COMMAND_WORD = "deletemeasure";
     public static final String MESSAGE_USAGE = COMMAND_WORD + " INDEX d/DATE t/TYPE";
-    public static final String MESSAGE_INVALID_FORMAT = "Invalid command format. Use: " + MESSAGE_USAGE;
+    public static final String MESSAGE_INVALID_FORMAT = Messages.getInvalidFormatMessage(MESSAGE_USAGE);
     public static final String MESSAGE_INVALID_INDEX = Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
     public static final String MESSAGE_RECORD_NOT_FOUND = "No measurement record for %1$s on %2$s was found for %3$s."
             + "\nUse \"view %4$d\" to check this client's measurement history.";

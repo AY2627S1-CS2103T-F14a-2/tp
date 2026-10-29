@@ -12,11 +12,13 @@ import seedu.address.model.person.Person;
 /**
  * Container for user visible messages.
  * AI assistance: Helen used OpenAI Codex for issue #202's recovery guidance, related tests and UG/DG updates.
+ * Vincent used Claude Code to share one invalid command format message across commands.
  */
 public class Messages {
 
     public static final String MESSAGE_UNKNOWN_COMMAND = "Unknown command. Type \"help\" for a link to the user guide.";
-    public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format!\n%1$s";
+    public static final String MESSAGE_INVALID_FORMAT_HEADER = "Invalid command format!";
+    public static final String MESSAGE_INVALID_COMMAND_FORMAT = MESSAGE_INVALID_FORMAT_HEADER + "\n%1$s";
     public static final String MESSAGE_INVALID_PERSON_DISPLAYED_INDEX = "The client index provided is invalid."
             + " Use a positive index from the displayed client list. Use \"list\" to show all clients,"
             + " then check their indexes again.";
@@ -35,6 +37,14 @@ public class Messages {
      */
     public static String withUsage(String message, String usage) {
         return message + "\nUse: " + usage;
+    }
+
+    /**
+     * Returns the invalid command format message followed by the expected command format {@code usage},
+     * e.g. "Invalid command format!\nUse: sessions d/DATE".
+     */
+    public static String getInvalidFormatMessage(String usage) {
+        return withUsage(MESSAGE_INVALID_FORMAT_HEADER, usage);
     }
 
     /**

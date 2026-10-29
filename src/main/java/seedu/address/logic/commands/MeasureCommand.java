@@ -23,7 +23,7 @@ import seedu.address.model.person.Person;
 public class MeasureCommand extends Command {
     public static final String COMMAND_WORD = "measure";
     public static final String MESSAGE_USAGE = "measure INDEX d/DATE t/TYPE v/VALUE";
-    public static final String MESSAGE_INVALID_FORMAT = "Invalid command format. Use: " + MESSAGE_USAGE;
+    public static final String MESSAGE_INVALID_FORMAT = Messages.getInvalidFormatMessage(MESSAGE_USAGE);
     public static final String MESSAGE_INVALID_INDEX = Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
     public static final String MESSAGE_RECORDED = "Recorded measurement for %s: %s.";
     public static final String MESSAGE_UPDATED = "Updated measurement for %s: %s on %s: %s → %s %s.";

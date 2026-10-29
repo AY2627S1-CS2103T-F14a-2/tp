@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Objects;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Name;
@@ -18,7 +19,7 @@ import seedu.address.model.session.NextSession;
 public class CancelSessionCommand extends Command {
     public static final String COMMAND_WORD = "cancelsession";
     public static final String MESSAGE_USAGE = "cancelsession INDEX or cancelsession n/NAME";
-    public static final String MESSAGE_INVALID_FORMAT = "Invalid command format! Use: " + MESSAGE_USAGE;
+    public static final String MESSAGE_INVALID_FORMAT = Messages.getInvalidFormatMessage(MESSAGE_USAGE);
     public static final String MESSAGE_NO_SESSION = "No session is recorded for %s.";
     public static final String MESSAGE_SUCCESS = "Cancelled session on %s for %s.";
 

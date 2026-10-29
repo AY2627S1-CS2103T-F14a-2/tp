@@ -211,8 +211,8 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
 * The search considers only names.
-* Search matches the stored spelling of accented names, so equivalent accent encodings (an `e` plus a combining
-  mark versus a precomposed `é`) are not yet matched to one another. This is a planned future enhancement.
+* Equivalent accent encodings match each other, so a keyword typed as an `e` plus a combining mark finds a name
+  stored with a precomposed `é`. Accents still matter: `jose` does not find `José`.
 * Partial names match anywhere in a name; for example, `han`, `HAN` and `ans` all match `Hans`.
 * Clients matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
 * Spotter shows how many clients were found: `Listed N clients.`, `Listed 1 client.`, or `No clients found.` when
@@ -321,7 +321,7 @@ Common errors:
 
 | Input problem | Message |
 | --- | --- |
-| Missing, repeated or unsupported prefix (e.g. `w/`), missing or malformed index (e.g. `one`, `+1`, `1.5`) | `Invalid command format. Use: measure INDEX d/DATE t/TYPE v/VALUE` |
+| Missing, repeated or unsupported prefix (e.g. `w/`), missing or malformed index (e.g. `one`, `+1`, `1.5`) | `Invalid command format!`, then `Use: measure INDEX d/DATE t/TYPE v/VALUE` |
 | Zero, negative, overflowing or out-of-range index | `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.` |
 | Date not in `yyyy-MM-dd` format, or year, month or day out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).` |
 | Date in the right format that does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.` |
@@ -373,7 +373,7 @@ client's index in the currently displayed list.
 
 | Input problem | Message |
 | --- | --- |
-| Missing, repeated or unsupported prefix (e.g. `v/`), missing or non-numeric index | `Invalid command format. Use: deletemeasure INDEX d/DATE t/TYPE` |
+| Missing, repeated or unsupported prefix (e.g. `v/`), missing or non-numeric index | `Invalid command format!`, then `Use: deletemeasure INDEX d/DATE t/TYPE` |
 | Zero, negative, overflowing or out-of-range index | `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.` |
 | Date not in `yyyy-MM-dd` format, or year, month or day out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).` |
 | Date in the right format that does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.` |
@@ -422,7 +422,7 @@ If the command is not accepted, Spotter shows the reason followed by the expecte
 
 Problem | Message
 --------|--------
-A prefix is missing, repeated or not used by this command (e.g. `t/`), or `INDEX` is missing or not a number | `Invalid command format. Use: performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`
+A prefix is missing, repeated or not used by this command (e.g. `t/`), or `INDEX` is missing or not a number | `Invalid command format!`, then `Use: performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`
 `INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.`
 `DATE` is not in `yyyy-MM-dd` format, or its year, month or day is out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`
 `DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
@@ -462,7 +462,7 @@ is found, the reason is followed by the expected format:
 
 Problem | Message
 --------|--------
-A prefix is missing, repeated or not used by this command (e.g. `s/`), or `INDEX` is missing or not a number | `Invalid command format. Use: deleteperformance INDEX d/DATE e/EXERCISE`
+A prefix is missing, repeated or not used by this command (e.g. `s/`), or `INDEX` is missing or not a number | `Invalid command format!`, then `Use: deleteperformance INDEX d/DATE e/EXERCISE`
 `INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.`
 `DATE` is not in `yyyy-MM-dd` format, or its year, month or day is out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`
 `DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
@@ -589,7 +589,7 @@ Examples:
 * `session n/Sarah Lim d/2026-12-15 t/19:00`
 * `session n/sarah lim d/2026-12-15 t/1900`
 
-Success: `Recorded next session for Sarah Lim on 2026-12-15 at 19:00`.
+Success: `Recorded next session for Sarah Lim on 2026-12-15 at 19:00.`
 The stored client's name is used in the message; both time formats are stored and reported as `HH:mm`.
 Replacing a different booking reports `Rescheduled next session for Sarah Lim from 2026-12-15 19:00 to 2026-12-16 09:00.`
 Entering the same booking again reports `Next session for Sarah Lim is already recorded on 2026-12-15 19:00.`
@@ -624,7 +624,7 @@ Invalid commands leave client data and list order unchanged. The relevant messag
 
 Error | Message
 ------|--------
-Missing/repeated/unknown prefix or both identifiers | `Invalid command format! Use: session INDEX d/DATE t/TIME or session n/NAME d/DATE t/TIME`
+Missing/repeated/unknown prefix or both identifiers | `Invalid command format!`, then `Use: session INDEX d/DATE t/TIME or session n/NAME d/DATE t/TIME`
 Invalid index | `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.`
 Unknown name | `No client with that name exists in Spotter.`
 Empty name | `Name cannot be empty.`
@@ -653,7 +653,7 @@ Format: `cancelsession INDEX` or `cancelsession n/NAME`
 * A client with no recorded session is rejected with `No session is recorded for NAME.`
   An invalid index shows `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.`
   Missing, non-numeric or mixed identifiers show
-  `Invalid command format! Use: cancelsession INDEX or cancelsession n/NAME`.
+  `Invalid command format!`, then `Use: cancelsession INDEX or cancelsession n/NAME`.
   Unknown names show `No client with that name exists in Spotter.`; empty names and slashes use the booking errors above.
 * If saving fails, the original session and displayed list are restored and `Unable to save Spotter data. The change was not saved and has been undone. Check that the data folder is writable and the disk has free space, then retry.` is shown.
 
@@ -678,7 +678,7 @@ Format: `sessions d/DATE`
 
 * `DATE` must be a real `YYYY-MM-DD` date, with a year from `0001` to `9999`. Past dates are accepted for retained bookings.
 * Supply exactly one `d/` prefix. Missing/repeated/unknown prefixes or extra arguments show
-  `Invalid command format! Use: sessions d/DATE`. Invalid dates use the date-format/calendar errors listed under `session`.
+  `Invalid command format!`, then `Use: sessions d/DATE`. Invalid dates use the date-format/calendar errors listed under `session`.
 * Results use the normal session ordering: upcoming bookings first, then expired bookings, with time and name breaking ties.
   For today, this puts upcoming sessions before sessions whose times have passed.
 * Spotter still stores only one session per client. Replaced or cancelled bookings cannot be retrieved using this command.

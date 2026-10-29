@@ -8,7 +8,10 @@ import seedu.address.commons.util.ToStringBuilder;
 
 /**
  * Tests that a {@code Person}'s {@code Name} contains any keyword as a case-insensitive substring.
- * Matching is independent of the system locale.
+ * Keywords are normalized like names, so equivalent accent encodings match. Matching is independent of the
+ * system locale.
+ *
+ * <p>AI assistance: Vincent used Claude Code to normalize keywords for accent-equivalent search and its tests.
  */
 public class NameContainsKeywordsPredicate implements Predicate<Person> {
     private final List<String> keywords;
@@ -20,7 +23,7 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
     public NameContainsKeywordsPredicate(List<String> keywords) {
         this.keywords = keywords;
         this.lowercaseKeywords = keywords.stream()
-                .map(keyword -> keyword.toLowerCase(Locale.ROOT))
+                .map(keyword -> Name.normalize(keyword).toLowerCase(Locale.ROOT))
                 .toList();
     }
 
