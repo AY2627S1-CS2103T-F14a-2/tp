@@ -1412,10 +1412,11 @@ Use the disposable dataset from [Finding and filtering clients](#finding-and-fil
 1. In a disposable dataset with at least two clients and a saved data file, filter to one client and view their history.
 2. Enter `clear 1`, `clear all`, `clear confrim`, then `clear n/Alex Tan`.
    Expected: Each input reports that `clear` only accepts `confirm`. Clients, the active filter, the history panel
-   and the data file are unchanged, including after restarting.
+   and the data file are unchanged. After restarting, the saved clients and their records are unchanged.
 3. Enter `clear` without parameters.
    Expected: The result explains that `clear` permanently deletes all clients and asks for `clear confirm`.
-   Clients, the active filter, the history panel and the data file are unchanged, including after restarting.
+   Clients, the active filter, the history panel and the data file are unchanged. After restarting, the saved
+   clients and their records are unchanged.
 4. Enter `clear CONFIRM`. Expected: All clients and their records are removed and remain absent after restart.
 5. Enter `list`. Expected: `You have no clients yet. Use "add" to add your first client.`
 6. Enter `add n/Test Client p/91234567`, then `list`. Expected: `Listed 1 client.`
