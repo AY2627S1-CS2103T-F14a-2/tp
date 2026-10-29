@@ -177,12 +177,7 @@ The `Model` component,
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
 
-<box type="info" seamless>
-
-**Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `AddressBook`, and each `Person` references tags from that list. This lets `AddressBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
-
-<puml src="diagrams/BetterModelClassDiagram.puml" width="450" />
-</box>
+<!-- AI assistance: Helen used OpenAI Codex to remove the obsolete AB3 alternative model diagram. -->
 
 
 ### Storage component
@@ -1217,7 +1212,7 @@ pass/fail results with the release test evidence. Functional tests alone do not 
 
 4. **Data integrity:** Commands rejected because of invalid input must leave existing client details, next-session information and progress records unchanged.
 
-5. **Storage failure handling:** If Spotter cannot save a change, it must display an error indicating that the change has not been saved. If an existing data file is malformed, Spotter must not overwrite that file automatically.
+5. **Storage failure handling:** If Spotter cannot save a change, it must display an error indicating that the change has not been saved. If an existing client-data file is malformed, Spotter starts with no clients and shows a warning. Startup and read-only commands leave that file unchanged. The next successful command that changes client data replaces it with the current records, so the trainer must repair the file or restore a valid backup before making changes if the old records are to be recovered. <!-- AI assistance: Helen used OpenAI Codex to align this requirement with the implemented recovery behaviour. -->
 
 6. **Offline operation:** After downloading the release JAR, all core workflows must operate without an internet connection. Spotter must not transmit client records to external services.
 
