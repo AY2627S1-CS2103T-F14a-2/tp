@@ -1027,9 +1027,11 @@ not promises about the current release.
 
 * 3e. The client already has a next session.
 
-    * 3e1. Spotter notes that the new date and time will replace the existing next session.
+    * 3e1. Spotter replaces the existing next session and shows the previous and new date and time. If they are
+      the same, Spotter instead informs the trainer that the session is already recorded. As in 4a, Spotter also
+      warns if another client is booked at that time.
 
-      Use case resumes at step 4.
+      Use case ends.
 
 * 4a. Another client's next session is at the same date and time.
 
