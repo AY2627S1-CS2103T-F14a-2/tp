@@ -4,7 +4,7 @@
   pageNav: 3
 ---
 
-# Spotter Developer Guide
+# AB-3 Developer Guide
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -35,7 +35,6 @@
   "Upcoming sessions panel" and "View client history" sections of this guide). All generated code was reviewed and
   tested before committing.
 * The GUI tests use [TestFX](https://github.com/TestFX/TestFX) to run JavaFX UI parts in tests.
-* This project is based on the AddressBook-Level3 (AB3) project created by the [SE-EDU initiative](https://se-education.org) ([AB3 on GitHub](https://github.com/se-edu/addressbook-level3)). Its architecture, model, storage and UI code were reused as the starting point and extended for Spotter's client, session and progress features.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -260,10 +259,10 @@ emails differ. Because phone numbers are not unique in the real world, `add` and
 (`Phone#getDigits`). The saved client is excluded from this comparison, so editing a client without changing
 their phone never warns about themselves.
 
-The two checks are deliberately separate: a name clash blocks the command (a name is how index- and name-based
-commands address a client), while a shared phone only warns, leaving the trainer to decide whether the entry is
-a genuine duplicate. A near-duplicate name (same name, different phone) currently blocks too; warning instead is
-left as future work.
+The two checks are deliberately separate: a name clash blocks the command, because `session n/NAME` and
+`cancelsession n/NAME` find a client by name, while a shared phone only warns, leaving the trainer to decide
+whether the entry is a genuine duplicate. Warning instead of blocking when two clients share a name is left as
+future work.
 
 <puml src="diagrams/DuplicateDetectionClassDiagram.puml" width="520" />
 
@@ -717,7 +716,7 @@ not promises about the current release.
 
 * 1a. A required detail is missing.
 
-    * 1a1. Spotter shows the generic `Invalid command format!` message followed by the command usage.
+    * 1a1. Spotter shows an error message with the expected command format.
 
       Use case resumes at step 1.
 

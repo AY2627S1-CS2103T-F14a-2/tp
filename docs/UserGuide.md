@@ -752,7 +752,6 @@ You do not need to delete `preferences.json` after disconnecting a monitor.
 1. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
 2. **Unrecognized prefixes are not reported**: text such as `a/x` that uses a prefix Spotter doesn't support is treated as part of the field before it. For example, `add n/John Tan p/91234567 a/x` reports an invalid phone number. The remedy is to remove the unsupported prefix.
 3. **Warnings when launching from a terminal**: on some Java setups, such as JDKs that bundle JavaFX (e.g. Zulu FX), `java -jar spotter.jar` prints `WARNING` lines about a restricted method and enabling native access. These come from JavaFX loading its native libraries. They are harmless, and Spotter works normally.
-4. **Mac fullscreen dialogs**: on macOS, entering fullscreen mode while a secondary dialog such as the Help window is open can cause unexpected behaviour; exit fullscreen and reopen the dialog if needed.
 
 --------------------------------------------------------------------------------------------------------------------
 

@@ -1,27 +1,30 @@
 @startuml
 !include style.puml
+show methods
+skinparam classAttributeIconSize 0
+skinparam classAttributeFontColor #FFFFFF
 skinparam arrowThickness 1.1
 skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
 
 Class Person {
-  isSamePerson(otherPerson)
+  +isSamePerson(Person) : boolean
 }
 Class Name {
-  isSameName(otherName)
+  +isSameName(Name) : boolean
 }
 Class Phone {
-  getDigits()
+  +getDigits() : String
 }
 Class UniquePersonList {
-  contains(toCheck)
+  +contains(Person) : boolean
 }
-Class SharedPhoneWarning {
-  forClient(addressBook, savedClient)
+Class SharedPhoneWarning LOGIC_COLOR {
+  ~{static} forClient(ReadOnlyAddressBook, Person) : String
 }
 
-Person *--> Name
-Person *--> Phone
+Person *--> "1" Name
+Person *--> "1" Phone
 
 UniquePersonList --> "~* all" Person
 SharedPhoneWarning ..> Phone : getDigits
