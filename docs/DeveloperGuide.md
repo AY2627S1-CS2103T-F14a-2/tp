@@ -734,6 +734,12 @@ not promises about the current release.
 
       Use case ends.
 
+* 2a. Another client has the same phone number, ignoring formatting.
+
+    * 2a1. Spotter adds the client and warns the trainer which client shares the number.
+
+      Use case ends.
+
 **Use case: UC02 - Find a client**
 
 <!-- AI assistance: Helen used OpenAI Codex to correct UC02's name-matching description for issue #124. -->

@@ -87,8 +87,8 @@ latest measurement and performance, so that you can prepare for the session at a
   shows `- (none upcoming)` as well.
 * The cards have no index numbers. To act on a client, use their index in the client list on the left.
 * `find`, `filter` and `sessions` change only the client list; Upcoming sessions still shows every booking.
-* With no bookings, it shows `No upcoming sessions.` and how to book one with [`session`](#recording-a-clients-next-session-session).
-* [`view INDEX`](#viewing-a-clients-history-view) replaces Upcoming sessions with that client's full history.
+* With no bookings, it shows `No upcoming sessions.` and how to book one with [`session`](#recording-a-client-s-next-session-session).
+* [`view INDEX`](#viewing-a-client-s-history-view) replaces Upcoming sessions with that client's full history.
   [`list`](#listing-all-clients-list) brings Upcoming sessions back.
 
 ### Viewing help: `help`
@@ -117,8 +117,8 @@ Format: `add n/NAME p/PHONE [e/EMAIL] [t/TAG]...`
 * Names must not contain a space followed by a prefix used by the command, such as ` p/` or ` t/`, because that
   starts another field. For names containing `/`, use the client's index with `session` and `cancelsession`,
   rather than their `n/NAME` forms.
-* `PHONE` must contain at least 3 digits and at most 50 characters after normalization. Digits, spaces, letters
-  English letters `A–Z`/`a–z` for labels, `+`, `-`, `(`, `)` and `.` are accepted; `/` is not.
+* `PHONE` must contain at least 3 digits and at most 50 characters after normalization. Digits, spaces,
+  English letters `A–Z`/`a–z` (for labels), `+`, `-`, `(`, `)` and `.` are accepted; `/` is not.
   Plain digits and spaces are stored as digits only: `9927 2758` becomes `99272758`. Otherwise, punctuation and
   labels are kept, outer spaces are removed and repeated spaces are merged. For example,
   `1234 5678 (HP) 1111-3333 (Office)` is accepted. Spotter does not check whether a number is dialable.
@@ -155,7 +155,7 @@ Format: `list`
   `Example: list`
 * On success, Spotter shows `Listed N clients.` (or `Listed 1 client.` when you have exactly one client).
 * If you have no clients, Spotter shows `You have no clients yet. Use "add" to add your first client.`
-* If a client's history is shown with [`view`](#viewing-a-clients-history-view), the right side goes back to
+* If a client's history is shown with [`view`](#viewing-a-client-s-history-view), the right side goes back to
   Upcoming sessions.
 
 <box type="tip" seamless>
@@ -183,6 +183,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [t/TAG]... `
   Changing another field can still warn if a different client shares the phone number.
 * Zero, negative or oversized numeric indexes show `The client index provided is invalid.`.
   A missing or nonnumeric index shows `Invalid command format!` followed by the command usage.
+* After a successful edit, the full client list is shown again, even if a `find` or `filter` was active.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st client to be `91234567` and `johndoe@example.com` respectively.
