@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "description": "AB-3 docs",
   "scripts": {
+    "test": "node --test scripts/sync-diagram-previews.test.cjs",
     "init": "markbind init",
     "build": "markbind build",
+    "postbuild": "node scripts/sync-diagram-previews.cjs",
     "serve": "markbind serve",
     "deploy": "markbind deploy"
   },
   "devDependencies": {
-    "markbind-cli": "^5.1.0"
+    "markbind-cli": "7.2.1"
   }
 }

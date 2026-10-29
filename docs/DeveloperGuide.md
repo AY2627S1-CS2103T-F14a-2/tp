@@ -37,6 +37,8 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
 <puml src="diagrams/ArchitectureDiagram.puml" width="280" />
 
+<img class="diagram-preview-fallback" src="images/diagrams/ArchitectureDiagram.png" width="280" alt="Architecture diagram" />
+
 The ***Architecture Diagram*** given above explains the high-level design of the App.
 
 The following provides a quick overview of the main components and their interactions.
@@ -62,6 +64,8 @@ The *Sequence Diagram* below shows how the components interact with each other f
 
 <puml src="diagrams/ArchitectureSequenceDiagram.puml" width="574" />
 
+<img class="diagram-preview-fallback" src="images/diagrams/ArchitectureSequenceDiagram.png" width="574" alt="Architecture sequence diagram" />
+
 Each of the four main components (also shown in the diagram above),
 
 * defines its *API* in an `interface` with the same name as the Component.
@@ -71,6 +75,8 @@ For example, the `Logic` component defines its API in `Logic.java` and implement
 
 <puml src="diagrams/ComponentManagers.puml" width="300" />
 
+<img class="diagram-preview-fallback" src="images/diagrams/ComponentManagers.png" width="300" alt="Component managers" />
+
 The sections below give more details of each component.
 
 ### UI component
@@ -78,6 +84,8 @@ The sections below give more details of each component.
 The **API** of this component is specified in [`Ui.java`](https://github.com/AY2627S1-CS2103T-F14a-2/tp/blob/master/src/main/java/seedu/address/ui/Ui.java)
 
 <puml src="diagrams/UiClassDiagram.puml" alt="Structure of the UI Component"/>
+
+<img class="diagram-preview-fallback" src="images/diagrams/UiClassDiagram.png" alt="Structure of the UI Component" />
 
 The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, `UpcomingSessionPanel`, `ClientDetailPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
 
@@ -106,9 +114,13 @@ Here's a (partial) class diagram of the `Logic` component:
 
 <puml src="diagrams/LogicClassDiagram.puml" width="550"/>
 
+<img class="diagram-preview-fallback" src="images/diagrams/LogicClassDiagram.png" width="550" alt="Logic class diagram" />
+
 The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete 1")` API call as an example.
 
 <puml src="diagrams/DeleteSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `delete 1` Command" />
+
+<img class="diagram-preview-fallback" src="images/diagrams/DeleteSequenceDiagram.png" alt="Interactions Inside the Logic Component for the `delete 1` Command" />
 
 <box type="info" seamless>
 
@@ -128,6 +140,8 @@ Here are the other classes in `Logic` (omitted from the class diagram above) tha
 
 <puml src="diagrams/ParserClasses.puml" width="600"/>
 
+<img class="diagram-preview-fallback" src="images/diagrams/ParserClasses.png" width="600" alt="Parser classes" />
+
 How the parsing works:
 * When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
@@ -136,6 +150,8 @@ How the parsing works:
 **API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-F14a-2/tp/blob/master/src/main/java/seedu/address/model/Model.java)
 
 <puml src="diagrams/ModelClassDiagram.puml" width="900" alt="Spotter Model component and client training records" />
+
+<img class="diagram-preview-fallback" src="images/diagrams/ModelClassDiagram.png" width="900" alt="Spotter Model component and client training records" />
 
 Each `Person` holds contact details, tags, an optional `NextSession`, an immutable list of `Measurement`
 records and a `PerformanceHistory`. Each measurement has a `MeasurementType`; the performance history
@@ -160,6 +176,8 @@ The `Model` component,
 **API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-F14a-2/tp/blob/master/src/main/java/seedu/address/storage/Storage.java)
 
 <puml src="diagrams/StorageClassDiagram.puml" width="800" alt="Spotter JSON storage and progress-record adapters" />
+
+<img class="diagram-preview-fallback" src="images/diagrams/StorageClassDiagram.png" width="800" alt="Spotter JSON storage and progress-record adapters" />
 
 `JsonAdaptedPerson` stores tags, measurements and gym performances as collections of `JsonAdaptedTag`,
 `JsonAdaptedMeasurement` and `JsonAdaptedGymPerformance` respectively. The optional next session is
@@ -244,6 +262,8 @@ future work.
 
 <puml src="diagrams/DuplicateDetectionClassDiagram.puml" width="520" />
 
+<img class="diagram-preview-fallback" src="images/diagrams/DuplicateDetectionClassDiagram.png" width="520" alt="Duplicate detection class diagram" />
+
 ### Upcoming sessions panel
 
 The right side of the window shows the clients with an upcoming session, soonest first, so that a trainer can
@@ -294,6 +314,8 @@ spelling), and creates a `TagContainsKeywordsPredicate`.
 
 <puml src="diagrams/FilterSequenceDiagram.puml" alt="Interactions Inside the Logic and Model Components for the `filter t/rehab` Command" />
 
+<img class="diagram-preview-fallback" src="images/diagrams/FilterSequenceDiagram.png" alt="Interactions Inside the Logic and Model Components for the `filter t/rehab` Command" />
+
 **Matching.** `TagContainsKeywordsPredicate` matches a client if any of their tags equals any keyword, ignoring case.
 It compares whole tag names, so `REHAB` matches `rehab` but `reh` does not, and several tags give an `OR` search.
 
@@ -330,6 +352,8 @@ parses the index, and `ViewCommand` looks the client up in `Model#getFilteredPer
 
 <puml src="diagrams/ViewSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `view 1` Command" />
 
+<img class="diagram-preview-fallback" src="images/diagrams/ViewSequenceDiagram.png" alt="Interactions Inside the Logic Component for the `view 1` Command" />
+
 `view` is read-only. As `LogicManager` only saves when a command changes client data, executing `view`
 never writes the data file.
 
@@ -340,6 +364,8 @@ As `Person` is immutable, a command that changes a client, e.g. `edit` or `measu
 instead, so the panel follows the client without any command knowing about the panel:
 
 <puml src="diagrams/ViewedClientSyncSequenceDiagram.puml" alt="How the detail panel follows the viewed client after `measure`" />
+
+<img class="diagram-preview-fallback" src="images/diagrams/ViewedClientSyncSequenceDiagram.png" alt="How the detail panel follows the viewed client after `measure`" />
 
 In the same way, `Model#deletePerson` and `Model#setAddressBook` (used by `clear`) stop viewing a client that
 no longer exists, and `ListCommand` stops viewing any client. The Upcoming sessions panel then shows again.
@@ -405,6 +431,8 @@ other progress data are omitted.
 
 <puml src="diagrams/PerformanceModelClassDiagram.puml" alt="Classes used to store and change a client's gym-performance records" />
 
+<img class="diagram-preview-fallback" src="images/diagrams/PerformanceModelClassDiagram.png" alt="Classes used to store and change a client's gym-performance records" />
+
 Each `Person` owns one immutable `PerformanceHistory`, which keeps the records in the order they were recorded and
 never holds two records for the same exercise on the same date. Exercise names are compared through
 `ExerciseName#equals`, which ignores letter case, repeated spaces and the difference between straight (`'`) and curly
@@ -420,6 +448,8 @@ The sequence diagram below shows a successful `deleteperformance` command. Savin
 if saving fails, is the same as for `deletemeasure`.
 
 <puml src="diagrams/DeletePerformanceSequenceDiagram.puml" alt="Interactions for the `deleteperformance 1 d/2026-09-18 e/Bench Press` command" />
+
+<img class="diagram-preview-fallback" src="images/diagrams/DeletePerformanceSequenceDiagram.png" alt="Interactions for the `deleteperformance 1 d/2026-09-18 e/Bench Press` command" />
 
 Both commands log rejected indices, missing records and successful changes at `INFO` level. The log records the
 displayed index, exercise and date, but not the client's name or contact details.
@@ -460,6 +490,8 @@ Supported types are `weight` (1–500 kg), `bodyfat` (greater than 0 and at most
 decimal places. Entering the same date/type corrects the value rather than adding another record.
 
 <puml src="diagrams/MeasureSequenceDiagram.puml" alt="Recording or replacing a body measurement" />
+
+<img class="diagram-preview-fallback" src="images/diagrams/MeasureSequenceDiagram.png" alt="Recording or replacing a body measurement" />
 
 The immutable copy keeps a failed change recoverable without a separate measurement cache. The same
 date/type pair identifies a record regardless of its value, so correcting a value does not increase the count.
@@ -507,6 +539,8 @@ the client's history. This screenshot shows the missing-record recovery guidance
 
 <puml src="diagrams/DeleteMeasureSequenceDiagram.puml" alt="Measurement deletion sequence" />
 
+<img class="diagram-preview-fallback" src="images/diagrams/DeleteMeasureSequenceDiagram.png" alt="Measurement deletion sequence" />
+
 `LogicManager` saves the changed client data using the existing storage format. If saving fails,
 it restores the previous client data and filter and reports `Unable to save Spotter data. The change was not saved and has been undone. Check that the data folder is writable and the disk has free space, then retry.`
 No storage schema change or separate cached record count is needed. Keeping counts derived from the
@@ -545,6 +579,8 @@ cancellation. Contact fields are omitted to keep the diagram focused.
 
 <puml src="diagrams/SessionModelClassDiagram.puml" alt="Session date filtering and the client data preserved during cancellation" />
 
+<img class="diagram-preview-fallback" src="images/diagrams/SessionModelClassDiagram.png" alt="Session date filtering and the client data preserved during cancellation" />
+
 `Person#withNextSession(null)` returns a new immutable client with the session removed, carrying forward contact details,
 tags, measurements and performance history. The command replaces the client and reapplies the current predicate to
 refresh sorting. A session-date predicate no longer matches the cancelled client, so that card disappears from that view;
@@ -573,6 +609,8 @@ before. `EditCommand` then builds a client without an email, carrying over the o
 and performance history, and replaces the original through `Model#setPerson`.
 
 <puml src="diagrams/EditRemoveEmailSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `edit 1 e/` Command" />
+
+<img class="diagram-preview-fallback" src="images/diagrams/EditRemoveEmailSequenceDiagram.png" alt="Interactions Inside the Logic Component for the `edit 1 e/` Command" />
 
 **Design choice:** `EditPersonDescriptor` stores a plain `Email` plus an `isEmailRemoved` flag. `setEmail` and
 `removeEmail` reset each other, so an edit can never both replace and remove the email; `EditCommand` asserts this.
