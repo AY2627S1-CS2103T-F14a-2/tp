@@ -27,7 +27,7 @@ activate ViewCommandParser
 ViewCommandParser --> AddressBookParser
 deactivate ViewCommandParser
 
-AddressBookParser -> ViewCommandParser : parse("1")
+AddressBookParser -> ViewCommandParser : parse(" 1")
 activate ViewCommandParser
 
 create ViewCommand

@@ -19,47 +19,86 @@ end box
 
 [-> Logic : execute("deletemeasure 1 d/2026-09-12 t/weight")
 activate Logic
-Logic -> Parser : parseCommand(...)
+Logic -> Parser : parseCommand("deletemeasure 1 d/2026-09-12 t/weight")
 activate Parser
-Parser -> DeleteParser : parse(arguments)
+create DeleteParser
+Parser -> DeleteParser
+activate DeleteParser
+DeleteParser --> Parser
+deactivate DeleteParser
+Parser -> DeleteParser : parse(" 1 d/2026-09-12 t/weight")
 activate DeleteParser
 create Command
-DeleteParser -> Command : new(index, date, type)
+DeleteParser -> Command : DeleteMeasureCommand(index, date, type)
+activate Command
+Command --> DeleteParser
+deactivate Command
 DeleteParser --> Parser : d
 deactivate DeleteParser
 Parser --> Logic : d
 deactivate Parser
-note right of Logic : Snapshot address book, filter and viewed client
+note right of Logic : Keeps a copy of the address book,\nfilter and viewed client
 Logic -> Command : execute(m)
 activate Command
 Command -> Model : getFilteredPersonList()
-Model --> Command : displayedClients
+activate Model
+Model --> Command : displayed clients
+deactivate Model
 Command -> Client : getMeasurements()
+activate Client
 Client --> Command : measurements
-note right of Command : Find record by date and type;
-note right of Command : fail without changes if missing
+deactivate Client
+note right of Command : Finds the record with this date and type;
+note right of Command : throws CommandException, changing nothing, if none
 Command -> Client : withoutMeasurement(date, type)
 activate Client
 create Updated
-Client -> Updated : new(..., remainingMeasurements, ...)
+Client -> Updated : Person(..., remainingMeasurements, ...)
+activate Updated
+Updated --> Client
+deactivate Updated
 Client --> Command : updated
 deactivate Client
 Command -> Model : setPerson(client, updated)
+activate Model
 note right of Model : Observable cards and open history refresh;
 note right of Model : latest and count are derived
-Command --> Logic : CommandResult(deletion message)
+Model --> Command
+deactivate Model
+Command --> Logic : result
 deactivate Command
 Logic -> Model : updateSessionLists(now)
+activate Model
+Model --> Logic
+deactivate Model
+opt address book changed
+Logic -> Model : getAddressBook()
+activate Model
+Model --> Logic : addressBook
+deactivate Model
 Logic -> Storage : saveAddressBook(addressBook)
-alt save succeeds
+activate Storage
+alt saved
 Storage --> Logic
-Logic -->[ : deletion message
-else save throws IOException
+else IOException
 Storage --> Logic : IOException
-Logic -> Model : setAddressBook(snapshot)
+deactivate Storage
+Logic -> Model : setAddressBook(copy)
+activate Model
+Model --> Logic
+deactivate Model
 Logic -> Model : updateFilteredPersonList(previousFilter)
+activate Model
+Model --> Logic
+deactivate Model
 Logic -> Model : setViewedPerson(previousViewedClient)
-Logic -->[ : CommandException(save failure)
+activate Model
+Model --> Logic
+deactivate Model
+[<-- Logic : CommandException(save failure)
 end
+end
+note right of Logic : result is returned only if the save\nsucceeded or nothing changed
+[<-- Logic : result
 deactivate Logic
 @enduml
