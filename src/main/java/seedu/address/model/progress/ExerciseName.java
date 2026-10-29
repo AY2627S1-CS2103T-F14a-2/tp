@@ -20,16 +20,19 @@ import java.util.Locale;
 public class ExerciseName {
 
     public static final String MESSAGE_CONSTRAINTS = "Exercise names must be 1 to 50 characters and may contain "
-            + "only English letters (A-Z), digits (0-9), spaces, hyphens, apostrophes, and parentheses.";
+            + "only English letters (A-Z), digits (0-9), spaces, hyphens, apostrophes, parentheses, "
+            + "and the symbols & + .";
 
     public static final int MAX_LENGTH = 50;
 
     /*
-     * Allows only English letters, digits, spaces, parentheses, hyphens, and straight or curly (’) apostrophes,
-     * and requires at least one letter or digit so that names such as "-" or "'" are rejected.
+     * Allows only English letters, digits, spaces, parentheses, hyphens, straight or curly (’) apostrophes,
+     * and the symbols & + . used in names such as "Clean & Jerk" or "1.5 Rep Squat".
+     * Requires at least one letter or digit so that names such as "-" or "&" are rejected.
      * Parentheses are literal label characters and need not be paired.
+     * "/" is not allowed, as text such as " w/" inside a name would be read as another command prefix.
      */
-    private static final String VALIDATION_REGEX = "(?=.*\\p{Alnum})[\\p{Alnum} ()'’-]+";
+    private static final String VALIDATION_REGEX = "(?=.*\\p{Alnum})[\\p{Alnum} ()'’&+.-]+";
 
     public final String value;
 

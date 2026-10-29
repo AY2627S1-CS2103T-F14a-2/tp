@@ -40,6 +40,13 @@ public class DeletePerformanceCommandParserTest {
     }
 
     @Test
+    public void parse_exerciseWithSymbols_success() {
+        ExerciseName exerciseName = new ExerciseName("DB Press (Incline) & Fly");
+        assertParseSuccess(parser, "1" + DATE + " e/DB Press (Incline) & Fly",
+                new DeletePerformanceCommand(INDEX_FIRST_PERSON, RECORD_DATE, exerciseName));
+    }
+
+    @Test
     public void parse_futureDate_success() {
         // a future-dated record may have been loaded from an edited data file
         LocalDate tomorrow = LocalDate.now().plusDays(1);
@@ -84,11 +91,11 @@ public class DeletePerformanceCommandParserTest {
 
     @Test
     public void parse_invalidExercise_failure() {
+        // the name rules themselves are covered by ExerciseNameTest
         String expectedMessage = withUsage(ExerciseName.MESSAGE_CONSTRAINTS);
 
         assertParseFailure(parser, "1" + DATE + " e/", expectedMessage); // empty
         assertParseFailure(parser, "1" + DATE + " e/Bench@Press", expectedMessage); // unsupported character
-        assertParseFailure(parser, "1" + DATE + " e/" + "a".repeat(51), expectedMessage); // too long
     }
 
     private static String withUsage(String message) {
