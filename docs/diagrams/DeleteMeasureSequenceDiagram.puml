@@ -48,8 +48,7 @@ Command -> Client : getMeasurements()
 activate Client
 Client --> Command : measurements
 deactivate Client
-note right of Command : Finds the record with this date and type;
-note right of Command : throws CommandException, changing nothing, if none
+note right of Command : Finds the record with this date and type;\nthrows CommandException, changing nothing, if none
 Command -> Client : withoutMeasurement(date, type)
 activate Client
 create Updated
@@ -61,8 +60,7 @@ Client --> Command : updated
 deactivate Client
 Command -> Model : setPerson(client, updated)
 activate Model
-note right of Model : Observable cards and open history refresh;
-note right of Model : latest and count are derived
+note right of Model : Observable cards and open history refresh;\nlatest and count are derived
 Model --> Command
 deactivate Model
 Command --> Logic : result

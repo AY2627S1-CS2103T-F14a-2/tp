@@ -8,7 +8,7 @@ class NextSession
 class Measurement
 class PerformanceHistory
 class SessionOnDatePredicate
-class "<<interface>>\nPredicate<Person>" as Predicate
+class "<<interface>>\nPredicate<Person> " as Predicate
 
 Person *--> "0..1" NextSession : nextSession
 Person *--> "*" Measurement : measurements
