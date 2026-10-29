@@ -11,6 +11,7 @@ import java.util.Comparator;
  */
 public class PersonSessionComparator implements Comparator<Person> {
     private final LocalDateTime now;
+    private final Comparator<String> nameComparator = Name.alphabeticalComparator();
 
     public PersonSessionComparator(LocalDateTime now) {
         this.now = requireNonNull(now);
@@ -22,7 +23,7 @@ public class PersonSessionComparator implements Comparator<Person> {
                 .thenComparing(person -> person.getNextSession().map(session -> session.value)
                         .orElse(LocalDateTime.MAX))
                 .thenComparing(person -> Name.normalizeSpaces(person.getName().fullName),
-                        String.CASE_INSENSITIVE_ORDER)
+                        nameComparator)
                 .compare(first, second);
     }
 

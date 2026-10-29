@@ -128,7 +128,7 @@ public class SessionCommand extends Command {
                 .filter(person -> !person.isSamePerson(target))
                 .filter(person -> person.getNextSession().filter(nextSession::equals).isPresent())
                 .map(person -> person.getName().fullName)
-                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .sorted(Name.alphabeticalComparator())
                 .collect(Collectors.joining(", "));
         return names.isEmpty() ? "" : String.format(MESSAGE_CLASH, names);
     }
