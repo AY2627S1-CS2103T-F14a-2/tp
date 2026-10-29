@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.stage.Stage;
+import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.model.AddressBook;
@@ -139,7 +140,6 @@ public class MainAppTest {
     }
 
     // A hand-edited null must be reported as damaged data, not as a NullPointerException that stops startup (#193).
-    // AI assistance: Vincent used Claude Code to write these null-entry tests and their fixes (#193).
 
     @Test
     public void initModelManager_nullClientEntry_startsEmptyWithWarningAndKeepsFile() throws Exception {
@@ -155,6 +155,18 @@ public class MainAppTest {
     @Test
     public void initModelManager_nullFile_startsEmptyWithWarningAndKeepsFile() throws Exception {
         assertStartsEmptyWithWarningAndKeepsFile("null");
+    }
+
+    @Test
+    public void initPrefs_validFile_returnsSavedPrefs() throws Exception {
+        Path prefsFile = temporaryFolder.resolve("preferences.json");
+        UserPrefs savedPrefs = new UserPrefs();
+        savedPrefs.setGuiSettings(new GuiSettings(800, 650, 10, 20));
+        new JsonUserPrefsStorage(prefsFile).saveUserPrefs(savedPrefs);
+
+        UserPrefs prefs = new MainApp().initPrefs(new JsonUserPrefsStorage(prefsFile));
+
+        assertEquals(savedPrefs, prefs);
     }
 
     @Test
