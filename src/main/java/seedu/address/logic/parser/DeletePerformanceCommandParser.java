@@ -15,8 +15,8 @@ import seedu.address.model.progress.ExerciseName;
 /**
  * Parses input arguments and creates a new {@code DeletePerformanceCommand} object.
  *
- * <p>The index and exercise name follow the same rules as {@code performance}. The date may be in the future,
- * so that a future-dated record loaded from an edited data file can still be deleted.
+ * <p>The index, exercise name and unknown-prefix check follow the same rules as {@code performance}.
+ * The date may be in the future, so that a future-dated record loaded from an edited data file can still be deleted.
  *
  * <p>AI assistance: Claude (Anthropic) helped implement this parser and its tests.
  */
@@ -33,6 +33,8 @@ public class DeletePerformanceCommandParser implements Parser<DeletePerformanceC
     @Override
     public DeletePerformanceCommand parse(String args) throws ParseException {
         requireNonNull(args);
+        // Otherwise an unknown prefix, e.g. s/ copied from a performance command, is read as part of the exercise
+        ParserUtil.rejectUnsupportedPrefixes(args, DeletePerformanceCommand.MESSAGE_INVALID_FORMAT, PREFIXES);
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIXES);
 
         String preamble = argMultimap.getPreamble();

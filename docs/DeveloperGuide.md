@@ -346,8 +346,10 @@ Design notes:
 and `deleteperformance INDEX d/DATE e/EXERCISE` removes one. Both follow the usual `Logic` flow: the parser validates
 the fields, and the command resolves the index against `Model#getFilteredPersonList()`.
 
-Both parsers first check the command's shape: an integer index followed by each prefix exactly once
-(`ArgumentMultimap#hasEachPrefixOnce`). A shape error gives the invalid-format message. Otherwise the values are parsed
+Both parsers first check the command's shape: no prefix the command does not use
+(`ParserUtil#rejectUnsupportedPrefixes`, as the session and measurement commands do), and an integer index followed by each prefix
+exactly once (`ArgumentMultimap#hasEachPrefixOnce`). Without the first check, AB3's tokenizer would read an unknown
+prefix such as ` t/x` as part of the previous value and report that value as invalid. A shape error gives the invalid-format message. Otherwise the values are parsed
 in command order, so only the first invalid value is reported, followed by the expected format. Sets and repetitions
 share one counting rule, and the parser and `JsonAdaptedGymPerformance` both reuse the `GymPerformance` and `Load`
 checks, so commands and the data file accept the same values, except that the parser first trims surrounding spaces.
@@ -386,6 +388,8 @@ order means the record entered last is treated as the latest when several share 
 
 `measure INDEX d/DATE t/TYPE v/VALUE` records weight, body-fat percentage or waist circumference.
 `MeasureCommandParser` validates the displayed index, real non-future date, type and decimal value.
+Like `DeleteMeasureCommandParser`, it first rejects prefixes the command does not use
+(`ParserUtil#rejectUnsupportedPrefixes`), so a stray prefix gives the invalid-format message.
 `Measurement` enforces the type's range and at most two decimal places using `BigDecimal`.
 Future-date validation stays in the parser so saved records remain loadable after a clock change.
 
