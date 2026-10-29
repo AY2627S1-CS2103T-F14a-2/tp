@@ -129,7 +129,6 @@ public class AddressBookParserTest {
         assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD + "\t") instanceof ListCommand);
     }
 
-    // AI assistance: Vincent used Claude Code to write this test and the case-insensitive parsing (#194).
     @Test
     public void parseCommand_mixedCaseCommandWord_parsesCommand() throws Exception {
         assertTrue(parser.parseCommand("LIST") instanceof ListCommand);
