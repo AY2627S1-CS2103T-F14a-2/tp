@@ -1,0 +1,56 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as Logic LOGIC_COLOR
+participant ":AddressBookParser" as Parser LOGIC_COLOR
+participant ":MeasureCommandParser" as MeasureParser LOGIC_COLOR
+participant "command:MeasureCommand" as Command LOGIC_COLOR
+end box
+box Model MODEL_COLOR_T1
+participant "model:Model" as Model MODEL_COLOR
+participant "client:Person" as Client MODEL_COLOR
+end box
+box Storage STORAGE_COLOR_T1
+participant ":Storage" as Storage STORAGE_COLOR
+end box
+
+[-> Logic : execute("measure 1 d/2026-09-12 t/weight v/72.4")
+activate Logic
+Logic -> Parser : parseCommand(commandText)
+Parser -> MeasureParser : parse(arguments)
+MeasureParser --> Parser : command
+Parser --> Logic : command
+note right of MeasureParser : Validate index, date, type and value
+note right of Logic : Snapshot records, filter and viewed client
+Logic -> Command : execute(model)
+activate Command
+Command -> Model : getFilteredPersonList()
+Model --> Command : displayed clients
+Command -> Client : hasMeasurement(measurement)
+Client --> Command : isReplacing
+Command -> Client : withMeasurement(measurement)
+Client --> Command : updated client
+note right of Client : Same date/type replaces the value;
+note right of Client : otherwise append a new record
+Command -> Model : setPerson(client, updated)
+note right of Model : Cards and open history refresh
+Command --> Logic : CommandResult(recorded/updated message)
+deactivate Command
+Logic -> Model : updateSessionLists(now)
+opt address book changed
+Logic -> Storage : saveAddressBook(addressBook)
+alt save succeeds
+Storage --> Logic
+else IOException
+Storage --> Logic : IOException
+Logic -> Model : setAddressBook(snapshot)
+Logic -> Model : updateFilteredPersonList(previousFilter)
+Logic -> Model : setViewedPerson(previousViewedClient)
+Logic -->[ : CommandException(save failure)
+end
+end
+Logic -->[ : CommandResult (on success)
+deactivate Logic
+@enduml

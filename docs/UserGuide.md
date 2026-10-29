@@ -262,6 +262,8 @@ Examples:
 
 Records a client's weight, body fat percentage or waist measurement.
 
+Only these three measurement types are supported in this version.
+
 Format: `measure INDEX d/DATE t/TYPE v/VALUE`
 
 * `INDEX` is the positive index in the currently displayed client list.
