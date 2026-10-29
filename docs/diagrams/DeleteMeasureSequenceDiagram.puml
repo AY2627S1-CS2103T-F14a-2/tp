@@ -76,11 +76,8 @@ Model --> Logic : addressBook
 deactivate Model
 Logic -> Storage : saveAddressBook(addressBook)
 activate Storage
-alt saved
-Storage --> Logic
-else IOException
+break IOException
 Storage --> Logic : IOException
-deactivate Storage
 Logic -> Model : setAddressBook(copy)
 activate Model
 Model --> Logic
@@ -95,8 +92,9 @@ Model --> Logic
 deactivate Model
 [<-- Logic : CommandException(save failure)
 end
+Storage --> Logic
+deactivate Storage
 end
-note right of Logic : result is returned only if the save\nsucceeded or nothing changed
 [<-- Logic : result
 deactivate Logic
 @enduml
