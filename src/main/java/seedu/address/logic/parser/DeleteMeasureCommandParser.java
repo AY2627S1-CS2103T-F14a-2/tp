@@ -32,7 +32,7 @@ public class DeleteMeasureCommandParser implements Parser<DeleteMeasureCommand> 
             } catch (ParseException e) {
                 throw new ParseException(DeleteMeasureCommand.MESSAGE_INVALID_INDEX, e);
             }
-            LocalDate date = ParserUtil.parseExistingRecordDate(arguments.getValue(PREFIX_DATE).orElseThrow());
+            LocalDate date = ParserUtil.parseCalendarDate(arguments.getValue(PREFIX_DATE).orElseThrow());
             MeasurementType type;
             try {
                 type = MeasurementType.valueOf(arguments.getValue(PREFIX_MEASUREMENT_TYPE).orElseThrow()

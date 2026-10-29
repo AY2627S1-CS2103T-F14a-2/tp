@@ -37,39 +37,36 @@ public class ViewCommandTest {
 
     @Test
     public void execute_validIndexUnfilteredList_viewsClientWithoutChangingData() {
-        Person personToView = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
-        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
-        expectedModel.setViewedPerson(personToView);
+        Person clientToView = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
 
         // ModelManager#equals also compares the viewed client
-        assertCommandSuccess(new ViewCommand(INDEX_SECOND_PERSON), model, expectedMessage(personToView),
-                expectedModel);
+        assertCommandSuccess(new ViewCommand(INDEX_SECOND_PERSON), model, expectedMessage(clientToView),
+                expectedModelViewing(clientToView));
     }
 
     @Test
     public void execute_validIndexFilteredList_viewsClientAndKeepsFilter() {
         showPersonAtIndex(model, INDEX_SECOND_PERSON);
-        Person personToView = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person clientToView = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         List<Person> filteredListBefore = new ArrayList<>(model.getFilteredPersonList());
 
-        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        Model expectedModel = expectedModelViewing(clientToView);
         showPersonAtIndex(expectedModel, INDEX_SECOND_PERSON);
-        expectedModel.setViewedPerson(personToView);
 
-        assertCommandSuccess(new ViewCommand(INDEX_FIRST_PERSON), model, expectedMessage(personToView),
+        assertCommandSuccess(new ViewCommand(INDEX_FIRST_PERSON), model, expectedMessage(clientToView),
                 expectedModel);
         assertEquals(filteredListBefore, model.getFilteredPersonList());
     }
 
     @Test
     public void execute_anotherClientAlreadyViewed_viewsNewClient() throws Exception {
-        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
-        Person secondPerson = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
-        model.setViewedPerson(firstPerson);
+        Person firstClient = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person secondClient = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
+        model.setViewedPerson(firstClient);
 
         new ViewCommand(INDEX_SECOND_PERSON).execute(model);
 
-        assertEquals(secondPerson, model.getViewedPerson().getValue());
+        assertEquals(secondClient, model.getViewedPerson().getValue());
     }
 
     @Test
@@ -119,7 +116,22 @@ public class ViewCommandTest {
         assertEquals(expected, viewCommand.toString());
     }
 
-    private static String expectedMessage(Person viewedPerson) {
-        return String.format(ViewCommand.MESSAGE_VIEW_SUCCESS, viewedPerson.getName().fullName);
+    @Test
+    public void execute_validIndex_exactWording() throws Exception {
+        assertEquals("Showing details and history of Alice Pauline.",
+                new ViewCommand(INDEX_FIRST_PERSON).execute(model).getFeedbackToUser());
+    }
+
+    private static String expectedMessage(Person viewedClient) {
+        return String.format(ViewCommand.MESSAGE_VIEW_SUCCESS, viewedClient.getName().fullName);
+    }
+
+    /**
+     * Returns a model with the same clients as {@code model}, unfiltered, viewing {@code viewedClient}.
+     */
+    private Model expectedModelViewing(Person viewedClient) {
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.setViewedPerson(viewedClient);
+        return expectedModel;
     }
 }
