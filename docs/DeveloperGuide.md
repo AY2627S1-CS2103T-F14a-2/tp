@@ -1216,7 +1216,10 @@ Unless a section says otherwise:
 1. Unknown commands
 
    1. Enter `hlep`.<br>
-      Expected: `Unknown command. Type "help" to see all commands.`
+      Expected: `Unknown command. Type "help" for a link to the user guide.`
+
+   1. Enter `LIST`.<br>
+      Expected: All clients are listed, as command words are case-insensitive.
 
 1. Opening and restoring the Help window
 

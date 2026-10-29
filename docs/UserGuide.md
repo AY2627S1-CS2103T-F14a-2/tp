@@ -51,6 +51,8 @@ Spotter is a **desktop application for freelance personal trainers to manage the
 
 **Notes about the command format:**<br>
 
+* Command words are case-insensitive: `LIST` and `List` work like `list`. Prefixes such as `n/` must be in lowercase.
+
 * Words in `UPPER_CASE` are the parameters to be supplied by the user.<br>
   For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
 

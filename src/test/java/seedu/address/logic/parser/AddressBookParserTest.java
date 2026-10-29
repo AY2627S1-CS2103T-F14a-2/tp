@@ -129,6 +129,15 @@ public class AddressBookParserTest {
         assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD + "\t") instanceof ListCommand);
     }
 
+    // AI assistance: Vincent used Claude Code to write this test and the case-insensitive parsing (#194).
+    @Test
+    public void parseCommand_mixedCaseCommandWord_parsesCommand() throws Exception {
+        assertTrue(parser.parseCommand("LIST") instanceof ListCommand);
+        assertTrue(parser.parseCommand("Exit") instanceof ExitCommand);
+        assertEquals(new DeleteCommand(INDEX_FIRST_PERSON),
+                parser.parseCommand("DeLeTe " + INDEX_FIRST_PERSON.getOneBased()));
+    }
+
     @Test
     public void parseCommand_listWithParameters_throwsParseException() {
         String expectedMessage = "\"list\" does not take any parameters.\nExample: list";
