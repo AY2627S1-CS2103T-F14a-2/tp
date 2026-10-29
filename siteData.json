@@ -41,7 +41,7 @@
       "src": "DeveloperGuide.md",
       "title": "Developer Guide",
       "headings": {
-        "ab-3-developer-guide": "AB-3 Developer Guide",
+        "spotter-developer-guide": "Spotter Developer Guide",
         "acknowledgements": "Acknowledgements",
         "setting-up-getting-started": "Setting up, getting started",
         "design": "Design",
@@ -63,10 +63,8 @@
         "deleting-body-measurements": "Deleting body measurements",
         "session-cancellation-and-date-filtering": "Session cancellation and date filtering",
         "removing-a-client-s-email": "Removing a client's email",
-        "proposed-undo-redo-feature": "[Proposed] Undo/redo feature",
         "proposed-broader-client-name-support": "[Proposed] Broader client-name support",
         "proposed-latest-measurement-summary": "[Proposed] Latest measurement summary",
-        "proposed-data-archiving": "[Proposed] Data archiving",
         "documentation-logging-testing-dev-ops": "Documentation, logging, testing, dev-ops",
         "appendix-requirements": "Appendix: Requirements",
         "product-scope": "Product scope",
@@ -169,7 +167,9 @@
       "src": "index.md",
       "title": "Spotter",
       "headings": {
-        "spotter": "Spotter"
+        "spotter": "Spotter",
+        "key-features": "Key features",
+        "get-started": "Get started"
       },
       "headingKeywords": {}
     },
