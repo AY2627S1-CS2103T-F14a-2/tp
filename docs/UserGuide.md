@@ -355,10 +355,10 @@ For a client named Alex Tan, the deletion produces:
 Deleted measurement for Alex Tan: weight = 72.4 kg on 2026-09-12.
 ```
 
-Repeating the deletion produces `No measurement record for weight on 2026-09-12 was found for Alex Tan.`
+Repeating the deletion leaves the data unchanged and produces
+`No measurement record for weight on 2026-09-12 was found for Alex Tan.`
 followed by `Use "view 1" to check this client's measurement history.` The suggested index matches the
 client's index in the currently displayed list.
-and leaves the data unchanged.
 
 | Input problem | Message |
 | --- | --- |

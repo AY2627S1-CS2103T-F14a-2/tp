@@ -17,6 +17,9 @@
   the v1.4 measurement deletion feature for issue #84, including its model operation, command, parser,
   persistence tests and sequence diagram.
 
+* Helen used OpenAI Codex for issue #202's guide updates, including the real JavaFX measurement
+  screenshots, Spotter-specific example cleanup and corrected deletion sequence diagram.
+
 * Gabriel Wan used [OpenAI Codex](https://openai.com/codex/) to assist with implementing, testing,
   and documenting the v1.3 next-session feature, including parsing, client integration, JSON storage, sorting,
   and the client card row, and the v1.4 session cancellation/date-filter commands, tests, documentation,
@@ -519,24 +522,6 @@ The alternative, an `Optional<Email>` field that is null when unchanged, made `g
 
 <!-- AI assistance: Claude Code helped draft this section and its sequence diagram. -->
 
-### \[Proposed\] Undo/redo feature
-
-Undo and redo are not implemented in this release. A future design could extend `AddressBook` with
-snapshots of all client contact details, tags, sessions, measurements and performance records. The model
-would retain a pointer to the current snapshot. A successful modifying command would commit one snapshot
-only after its data is saved; a rejected command or failed save would not create an undo step.
-
-For example, a trainer could record `measure 1 d/2026-10-28 t/weight v/72.4` for Alex Tan, then enter the
-proposed `undo` command to remove that record and `redo` to restore it. The history, client card, counts
-and saved JSON would have to agree after each operation. Read-only commands such as `view 1` would not
-create snapshots. A new modification after undo would discard the abandoned redo states.
-
-A full-data snapshot keeps contact and training records consistent and reuses the immutable client model,
-but consumes more memory than storing individual changes. An alternative is to keep inverse operations
-for each command; that uses less memory but requires every command to correctly restore all related data.
-The implementation would also need tests for failed saves, deletion of a viewed client, filters and
-replacement of a record. This proposal does not add `undo` or `redo` to the current command set.
-
 ### \[Proposed\] Broader client-name support
 
 A future enhancement is to support client names in additional scripts and provide an unambiguous way to enter
@@ -544,13 +529,6 @@ literal command delimiters. The design should preserve original spellings while 
 normalization, duplicate detection and name lookup across add/edit, search, sessions and JSON storage.
 It must also retain compatibility with saved Latin-script names and provide tests for the newly supported scripts.
 This proposal does not change the supported input formats in v1.5 or promise a delivery date.
-
-### \[Proposed\] Data archiving
-
-A future archive operation could hide inactive clients without deleting their contact details, sessions
-or progress records. Restoring a client would make the same records available again. Any implementation
-would need to define how archive status affects `list`, `find`, `filter`, session lists and saved JSON.
-Archiving and restoration are not implemented in the current release.
 
 
 --------------------------------------------------------------------------------------------------------------------
@@ -1201,7 +1179,7 @@ Start from the sample data.
 1. Enter `add n/Marcus Tan p/88776655`.<br>
    Expected: `New client added: Marcus Tan; Phone: 8877 6655`. His card shows `Email: -`.
 1. Enter `add n/sarah  lim p/99998888`.<br>
-   Expected: `Another client already has this name. Names are compared ignoring letter case and extra spaces. Use "find NAME" to check the existing client.` Names are compared ignoring case and extra spaces.
+   Expected: `Another client already has this name. Names are compared ignoring letter case and extra spaces. Use "find NAME" to check the existing client.`
 1. Enter `add n/Kim Lee p/12`, then `add n/Kim Lee`.<br>
    Expected: An error explaining the phone-number rules, then `Invalid command format!` followed by the `add`
    usage. No client is added.

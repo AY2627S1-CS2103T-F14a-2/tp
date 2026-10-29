@@ -5,9 +5,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.ResourceLock;
+import org.junit.jupiter.api.parallel.Resources;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
@@ -25,15 +32,47 @@ public class ErrorRecoveryGuidanceTest {
     @TempDir
     public Path temporaryFolder;
 
+    // AI assistance: Helen used OpenAI Codex for PR #203's locale-independent recovery regression.
+    @ParameterizedTest
+    @ValueSource(strings = {"deletemeasure %d d/2026-09-12 t/waist",
+        "deleteperformance %d d/2026-09-12 e/Squat"})
+    @ResourceLock(Resources.LOCALE)
+    public void execute_missingRecordWithArabicLocale_suggestsExecutableIndex(String command) throws Exception {
+        Locale originalLocale = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.forLanguageTag("ar-EG"));
+            Model model = new ModelManager();
+            model.addPerson(new PersonBuilder().withName("Fictional Alpha").build());
+            model.addPerson(new PersonBuilder().withName("Fictional Beta").build());
+            AddressBook before = new AddressBook(model.getAddressBook());
+            Logic logic = createLogic(model);
+
+            for (int index : new int[] {2, 1}) {
+                if (index == 1) {
+                    logic.execute("find Beta");
+                }
+                String message = assertThrows(CommandException.class, () ->
+                        logic.execute(String.format(Locale.ROOT, command, index))).getMessage();
+                Matcher hint = Pattern.compile("Use \"([^\"]+)\"").matcher(message);
+                assertTrue(hint.find(), message);
+                String suggestedCommand = hint.group(1);
+                assertEquals("view " + index, suggestedCommand);
+                logic.execute(suggestedCommand);
+                assertEquals("Fictional Beta", model.getViewedPerson().getValue().getName().fullName);
+                assertEquals(before, model.getAddressBook());
+            }
+        } finally {
+            Locale.setDefault(originalLocale);
+        }
+    }
+
     @Test
     public void execute_missingRecords_suggestsActualDisplayedIndexWithoutChangingData() throws Exception {
         Model model = new ModelManager();
         model.addPerson(new PersonBuilder().withName("Fictional Alpha").build());
         model.addPerson(new PersonBuilder().withName("Fictional Beta").build());
         AddressBook before = new AddressBook(model.getAddressBook());
-        Logic logic = new LogicManager(model, new StorageManager(
-                new JsonAddressBookStorage(temporaryFolder.resolve("clients.json")),
-                new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"))));
+        Logic logic = createLogic(model);
 
         for (String command : new String[] {"deletemeasure 2 d/2026-09-12 t/waist",
             "deleteperformance 2 d/2026-09-12 e/Squat"}) {
@@ -97,5 +136,11 @@ public class ErrorRecoveryGuidanceTest {
         assertTrue(message.contains("ignoring letter case and extra spaces"), message);
         assertTrue(message.contains("find NAME"), message);
         assertEquals(1, model.getAddressBook().getPersonList().size());
+    }
+
+    private Logic createLogic(Model model) {
+        return new LogicManager(model, new StorageManager(
+                new JsonAddressBookStorage(temporaryFolder.resolve("clients.json")),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"))));
     }
 }

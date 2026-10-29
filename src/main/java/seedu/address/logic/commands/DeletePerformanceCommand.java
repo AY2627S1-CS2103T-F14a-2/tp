@@ -5,6 +5,7 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -71,7 +72,7 @@ public class DeletePerformanceCommand extends Command {
             logger.info("Rejected deleteperformance: no " + exerciseName + " record on " + formattedDate
                     + " for client at index " + index.getOneBased());
             // The command was typed correctly, so the format is not shown when no record matches
-            throw new CommandException(String.format(MESSAGE_RECORD_NOT_FOUND,
+            throw new CommandException(String.format(Locale.ROOT, MESSAGE_RECORD_NOT_FOUND,
                     exerciseName, formattedDate, client.getName(), index.getOneBased()));
         }
 
