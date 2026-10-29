@@ -13,8 +13,6 @@
 
 ## **Acknowledgements**
 
-* This project is based on the AddressBook-Level3 (AB3) project created by the [SE-EDU initiative](https://se-education.org) ([AB3 on GitHub](https://github.com/se-edu/addressbook-level3)). Its architecture, model, storage and UI code were reused as the starting point and extended for Spotter's client, session and progress features.
-
 * Helen (He Jingqi) used OpenAI Codex to assist with implementing, testing and documenting
   the v1.4 measurement deletion feature for issue #84, including its model operation, command, parser,
   persistence tests and sequence diagram.
@@ -37,6 +35,7 @@
   "Upcoming sessions panel" and "View client history" sections of this guide). All generated code was reviewed and
   tested before committing.
 * The GUI tests use [TestFX](https://github.com/TestFX/TestFX) to run JavaFX UI parts in tests.
+* This project is based on the AddressBook-Level3 (AB3) project created by the [SE-EDU initiative](https://se-education.org) ([AB3 on GitHub](https://github.com/se-edu/addressbook-level3)). Its architecture, model, storage and UI code were reused as the starting point and extended for Spotter's client, session and progress features.
 
 --------------------------------------------------------------------------------------------------------------------
 
