@@ -23,6 +23,8 @@ GymPerformance *--> "1" Load
 
 PerformanceCommand -up-|> Command
 DeletePerformanceCommand -up-|> Command
+PerformanceCommand --> "1" GymPerformance : performance
+DeletePerformanceCommand --> "1" ExerciseName : exerciseName
 PerformanceCommand ..> Person : withGymPerformance
 DeletePerformanceCommand ..> Person : withoutGymPerformance
 DeletePerformanceCommand ..> PerformanceHistory : find

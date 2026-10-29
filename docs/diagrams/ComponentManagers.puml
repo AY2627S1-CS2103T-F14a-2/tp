@@ -26,6 +26,6 @@ LogicManager .up.|> Logic
 ModelManager .up.|> Model
 StorageManager .up.|> Storage
 
-LogicManager --> Model
-LogicManager --> Storage
+LogicManager --> "1" Model
+LogicManager --> "1" Storage
 @enduml

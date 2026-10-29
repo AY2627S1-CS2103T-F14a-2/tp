@@ -17,10 +17,9 @@
   of the [SE-EDU initiative](https://se-education.org).
 * Spotter uses [JavaFX](https://openjfx.io/) for its GUI, [Jackson](https://github.com/FasterXML/jackson) to read
   and write its JSON data file, and [JUnit 5](https://junit.org/junit5/) for its tests.
-
+* The GUI tests use [TestFX](https://github.com/TestFX/TestFX) to run JavaFX UI parts in tests.
 * OpenAI Codex and Claude Code assisted the team with implementation, testing, documentation and PR reviews
   across most Spotter features.
-* The GUI tests use [TestFX](https://github.com/TestFX/TestFX) to run JavaFX UI parts in tests.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -144,6 +143,7 @@ Here are the other classes in `Logic` (omitted from the class diagram above) tha
 
 How the parsing works:
 * When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
+* `list`, `clear`, `exit` and `help` have no prefixed fields, so `AddressBookParser` creates their commands itself without an `XYZCommandParser`. It rejects unexpected text after `list` and `clear`.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 ### Model component
@@ -196,7 +196,14 @@ The `Storage` component,
 
 ### Common classes
 
-Classes used by multiple components are in the `seedu.address.commons` package.
+Classes used by multiple components are in the `seedu.address.commons` package. The main ones are:
+
+* `AppPaths`: finds the folder containing the JAR and the paths of `data/spotter.json`, `preferences.json` and the log files.
+* `LogsCenter`: creates the loggers every component uses.
+* `GuiSettings`: the window size and position saved in the user preferences.
+* `JsonUtil` and `FileUtil`: read and write the JSON data and preference files.
+* `StringUtil`: string helpers, such as checking for a positive integer index.
+* `DataLoadingException` and `IllegalValueException`: report a data file that cannot be read, or a stored value that is not valid.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -547,7 +554,7 @@ the client's history. This screenshot shows the missing-record recovery guidance
 <img class="diagram-preview-fallback" src="images/diagrams/DeleteMeasureSequenceDiagram.png" alt="Measurement deletion sequence" />
 
 `LogicManager` saves the changed client data using the existing storage format. If saving fails,
-it restores the previous client data and filter and reports `Unable to save Spotter data. The change was not saved and has been undone. Check that the data folder is writable and the disk has free space, then retry.`
+it restores the previous client data, filter and viewed client, and reports `Unable to save Spotter data. The change was not saved and has been undone. Check that the data folder is writable and the disk has free space, then retry.`
 No storage schema change or separate cached record count is needed. Keeping counts derived from the
 measurement list avoids stale summary data after deletion.
 
@@ -570,7 +577,7 @@ never save the data file; rejected commands retain the displayed list.
 `CancelSessionCommandParser` accepts exactly one index or full name. `CancelSessionCommand` resolves indices against
 `Model#getFilteredPersonList()`, so indices refer to the sorted/filtered UI rather than JSON order.
 Both commands share `SessionCommand#findClient` for displayed-index validation and case-insensitive,
-whitespace-normalized full-name matching across the whole address book.
+whitespace-normalized full-name matching across all clients.
 This lets a trainer cancel a known client's booking even after indices change or a filter hides the client,
 while preserving the current filter. Mixed identifiers, empty names and slashes are rejected during parsing.
 It rejects an invalid index or a client without a recorded session before changing the model.
@@ -770,7 +777,6 @@ not promises about the current release.
 1.  Trainer requests to find clients using one or more keywords from their names.
     Each keyword can match any part of a name. Matching is case-insensitive and independent of the system locale;
     clients matching at least one keyword are returned. Only names are searched.
-    For example, `find han` and `find HAN` both match `Hans Gruber`, and `find han bo` also matches `Bo Yang`.
 2.  Spotter shows the list of matching clients.
 
     Use case ends.
@@ -988,8 +994,7 @@ not promises about the current release.
 1.  Trainer requests to list all clients.
 2.  Spotter shows the list of clients.
 3.  Trainer requests to view the progress history of a specific client in the list.
-4.  Spotter shows the client's details, gym performance and body measurement records, newest first, in place of the
-    upcoming sessions.
+4.  Spotter shows the client's details, gym performance and body measurement records, newest first.
 
     The history stays up to date when the client's records change, until the trainer lists all clients again.
 
@@ -1050,7 +1055,7 @@ not promises about the current release.
 
 * 3b. The date or time is missing.
 
-    * 3b1. Spotter shows an error message stating what is missing.
+    * 3b1. Spotter shows an invalid command format error with the command's usage.
 
       Use case resumes at step 3.
 
@@ -1062,15 +1067,17 @@ not promises about the current release.
 
 * 3d. The given date and time have already passed.
 
-    * 3d1. Spotter records the session and notes that it is in the past.
+    * 3d1. Spotter notes that the session is in the past.
 
-      Use case ends.
+      Use case resumes at step 4.
 
 * 3e. The client already has a next session.
 
-    * 3e1. Spotter replaces the existing next session with the new date and time.
+    * 3e1. Spotter replaces the existing next session and shows the previous and new date and time. If they are
+      the same, Spotter instead informs the trainer that the session is already recorded. As in 4a, Spotter also
+      warns if another client is booked at that time.
 
-      Use case resumes at step 4.
+      Use case ends.
 
 * 4a. Another client's next session is at the same date and time.
 
@@ -1156,7 +1163,7 @@ not promises about the current release.
 **MSS**
 
 1.  Trainer requests to list all clients.
-2.  Spotter shows all clients, scrolled to the first client, and how many clients there are.
+2.  Spotter shows all clients and how many clients there are.
 
     Use case ends.
 
@@ -1176,7 +1183,7 @@ not promises about the current release.
 
 * 2b. A client's history was being viewed.
 
-    * 2b1. Spotter shows the upcoming sessions again in place of the history.
+    * 2b1. Spotter stops showing the history and shows the upcoming sessions again.
 
       Use case ends.
 
@@ -1186,7 +1193,7 @@ not promises about the current release.
 
 1.  Trainer requests to show clients that have any of one or more tags.
     Matching is case-insensitive and compares whole tag names.
-2.  Spotter shows the matching clients, scrolled to the first one, and how many have the given tags.
+2.  Spotter shows the matching clients and how many have the given tags.
 
     Use case ends.
 
@@ -1210,6 +1217,72 @@ not promises about the current release.
       all clients.
 
       Use case ends.
+
+**Use case: UC13 - List the sessions on a date**
+
+**MSS**
+
+1.  Trainer requests to list the clients whose next session is on a specific date.
+2.  Spotter shows those clients, upcoming sessions before passed ones, and how many there are.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. The date is missing, given more than once, or followed by other details.
+
+    * 1a1. Spotter shows an error message with the expected input format.
+
+      Use case resumes at step 1.
+
+* 1b. The given date is invalid.
+
+    * 1b1. Spotter shows an error message stating whether the format or the date itself is wrong.
+
+      Use case resumes at step 1.
+
+* 2a. No client has a session on that date.
+
+    * 2a1. Spotter shows an empty list and informs the trainer that no sessions are recorded on that date.
+
+      Use case ends.
+
+**Use case: UC14 - Delete a client's body measurement**
+
+**MSS**
+
+1.  Trainer views a specific client's progress history (UC07).
+2.  Trainer requests to delete that client's measurement of a type on a date.
+3.  Spotter deletes the measurement and shows the deleted record. The client's latest measurement and record count
+    are recalculated from the remaining measurements.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The specified client is not in the list.
+
+    * 2a1. Spotter shows an error message.
+
+      Use case resumes at step 2.
+
+* 2b. A required detail is missing or given more than once.
+
+    * 2b1. Spotter shows an error message with the expected input format.
+
+      Use case resumes at step 2.
+
+* 2c. The given date or measurement type is invalid.
+
+    * 2c1. Spotter shows an error message stating which detail is wrong.
+
+      Use case resumes at step 2.
+
+* 2d. The client has no measurement of that type on that date.
+
+    * 2d1. Spotter informs the trainer that no matching measurement was found, and leaves all records unchanged.
+
+      Use case resumes at step 2.
 
 ### Non-Functional Requirements
 
@@ -1481,8 +1554,8 @@ replace `DATE` in every command below, and `TODAY` with today's date. Add unique
    Enter `find SessionCancelAda` again, then `performance 1 d/TODAY e/Squat s/3 r/5 w/100`.
    Re-enter `sessions d/DATE` and note Ada's current index `INDEX` before continuing.
 1. Enter `cancelsession INDEX` for Ada.<br>
-   Expected: `Cancelled session on DATE 09:00 for SessionCancelAda. SessionCancelAda is no longer shown here; clients
-   below have moved up one place.` (with tomorrow's date). Ada disappears from the date view; Zoe remains.
+   Expected: `Cancelled session on DATE 09:00 for SessionCancelAda. Displayed indices have changed. Check the client
+   list before your next index-based command.` (with tomorrow's date). Ada disappears from the date view; Zoe remains.
    Enter `list` and locate Ada. The card shows `Next session: - (none booked)` while both progress rows remain populated.
    Close and restart Spotter. Ada remains unbooked and the contact/progress data are unchanged.
 1. Enter `find SessionCancelAda`, then try `cancelsession 1`.<br>
@@ -1550,7 +1623,8 @@ list, so the indices below follow the list as it changes.
 To check copied command separators, use a disposable dataset and copy a `measure` or `performance` command
 from a text editor with literal tabs between its prefixes. Paste into Spotter's command field.
 Expected: Tabs become visible spaces; pressing Enter records the measurement or performance normally.
-Repeat while replacing selected text, and check Undo/Redo before pressing Enter.
+Repeat while replacing selected text, and check that the text field's own undo and redo (`Ctrl+Z`, `Ctrl+Y`) work
+before pressing Enter. Spotter has no undo command.
 
 Use fictional data in a disposable test folder. Start with a client without measurements,
 run `list` and substitute that client's displayed index for `1` below.
