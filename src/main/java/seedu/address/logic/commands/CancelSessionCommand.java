@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.List;
 import java.util.Objects;
 
 import seedu.address.commons.core.index.Index;
@@ -21,8 +22,6 @@ public class CancelSessionCommand extends Command {
     public static final String MESSAGE_INVALID_FORMAT = Messages.getInvalidFormatMessage(MESSAGE_USAGE);
     public static final String MESSAGE_NO_SESSION = "No session is recorded for %s.";
     public static final String MESSAGE_SUCCESS = "Cancelled session on %s for %s.";
-    public static final String MESSAGE_CLIENTS_SHIFTED =
-            " Displayed indices have changed. Check the client list before your next index-based command.";
 
     private final Index index;
     private final String name;
@@ -49,16 +48,14 @@ public class CancelSessionCommand extends Command {
         Person target = SessionCommand.findClient(model, index, name);
         NextSession cancelledSession = target.getNextSession().orElseThrow(() ->
                 new CommandException(String.format(MESSAGE_NO_SESSION, target.getName())));
-        int previousIndex = model.getFilteredPersonList().indexOf(target);
+        List<Person> shownBefore = List.copyOf(model.getFilteredPersonList());
         Person cancelled = target.withNextSession(null);
         model.setPerson(target, cancelled);
         // Keep date/search filters: a cancelled client should disappear from a session-date view.
         model.updateFilteredPersonList(model.getFilteredPersonListPredicate());
-        String message = String.format(MESSAGE_SUCCESS, cancelledSession, target.getName());
         // Cancellation can remove a filtered row or move a client behind other bookings in the full list.
-        if (previousIndex >= 0 && previousIndex != model.getFilteredPersonList().indexOf(cancelled)) {
-            message += MESSAGE_CLIENTS_SHIFTED;
-        }
+        String message = String.format(MESSAGE_SUCCESS, cancelledSession, target.getName())
+                + ClientOrderNote.forChange(shownBefore, target, cancelled, model.getFilteredPersonList());
         return new CommandResult(message, false, false, true);
     }
 

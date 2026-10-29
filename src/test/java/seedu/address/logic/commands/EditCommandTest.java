@@ -35,6 +35,7 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Measurement;
 import seedu.address.model.person.MeasurementType;
+import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
@@ -90,7 +91,8 @@ public class EditCommandTest {
                 .withPhone(VALID_PHONE_BOB).withTags(VALID_TAG_HUSBAND).build();
         EditCommand editCommand = new EditCommand(indexLastPerson, descriptor);
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
+                + ClientOrderNote.MESSAGE;
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(lastPerson, editedPerson);
@@ -177,7 +179,8 @@ public class EditCommandTest {
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
                 new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build());
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
+                + ClientOrderNote.MESSAGE;
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(model.getFilteredPersonList().get(0), editedPerson);
@@ -202,7 +205,8 @@ public class EditCommandTest {
         expectedModel.setPerson(original, edited);
         String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(edited))
                 + "\nWarning: Zoe Tan also has this phone number."
-                + "\nWarning: Amy Tan also has this phone number.";
+                + "\nWarning: Amy Tan also has this phone number."
+                + ClientOrderNote.MESSAGE;
 
         assertCommandSuccess(command, model, expectedMessage, expectedModel);
     }
@@ -222,9 +226,60 @@ public class EditCommandTest {
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(original, edited);
         String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(edited))
-                + "\nWarning: Other Client also has this phone number.";
+                + "\nWarning: Other Client also has this phone number."
+                // Only a rename that sorts after "Other Client" swaps the two clients' indices.
+                + (Name.alphabeticalComparator().compare(edited.getName().fullName, other.getName().fullName) > 0
+                        ? ClientOrderNote.MESSAGE : "");
 
         assertCommandSuccess(new EditCommand(INDEX_FIRST_PERSON, descriptor), model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_filterResetShiftsOtherClient_notesOrderChange() throws Exception {
+        // #210: Aaron keeps index 1, but index 2 changes from Chris to Bea once the filter is cleared
+        Person aaron = new PersonBuilder().withName("Aaron").withPhone("81110000").withTags("keep").build();
+        Person bea = new PersonBuilder().withName("Bea").withPhone("82220000").withTags("other").build();
+        Person chris = new PersonBuilder().withName("Chris").withPhone("83330000").withTags("keep").build();
+        model = new ModelManager();
+        model.addPerson(aaron);
+        model.addPerson(bea);
+        model.addPerson(chris);
+        model.updateFilteredPersonList(person -> person.getTags().equals(aaron.getTags()));
+        assertEquals(List.of(aaron, chris), model.getFilteredPersonList());
+
+        CommandResult result = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhone("99998888").build()).execute(model);
+
+        assertTrue(result.getFeedbackToUser().endsWith(ClientOrderNote.MESSAGE));
+        Person editedAaron = new PersonBuilder(aaron).withPhone("99998888").build();
+        assertEquals(List.of(editedAaron, bea, chris), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_filterResetAppendsClientsOnly_noOrderNote() throws Exception {
+        // Every previously displayed index still selects the same client, so there is nothing to recheck.
+        Person first = model.getFilteredPersonList().get(0);
+        model.updateFilteredPersonList(person -> person.equals(first));
+        CommandResult result = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build()).execute(model);
+        assertFalse(result.getFeedbackToUser().contains(ClientOrderNote.MESSAGE));
+    }
+
+    @Test
+    public void execute_phoneOnlyEditInFullList_noOrderNote() throws Exception {
+        List<Person> before = List.copyOf(model.getFilteredPersonList());
+        CommandResult result = new EditCommand(INDEX_SECOND_PERSON,
+                new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build()).execute(model);
+        assertFalse(result.getFeedbackToUser().contains(ClientOrderNote.MESSAGE));
+        assertEquals(before.get(2), model.getFilteredPersonList().get(2));
+    }
+
+    @Test
+    public void execute_renameReordersFullList_notesOrderChange() throws Exception {
+        CommandResult result = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withName("Zack Last").build()).execute(model);
+        assertTrue(result.getFeedbackToUser().endsWith(ClientOrderNote.MESSAGE));
+        assertEquals("Zack Last", model.getFilteredPersonList().getLast().getName().fullName);
     }
 
     @ParameterizedTest

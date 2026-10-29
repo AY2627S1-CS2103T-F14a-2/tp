@@ -191,6 +191,9 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [t/TAG]... `
 * Zero, negative or oversized numeric indexes show `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.`.
   A missing or nonnumeric index shows `Invalid command format!` followed by the command usage.
 * After a successful edit, the full client list is shown again, even if a `find` or `filter` was active.
+  If this, or a new name, changes which client any previously shown index refers to, the message adds
+  `The client list order has changed; check the index numbers before your next command.`
+  A phone-only edit in the full list keeps every index, so no note is shown.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st client to be `91234567` and `johndoe@example.com` respectively.
@@ -591,6 +594,11 @@ filtered lists, and startup. Sorting the displayed list does not reorder the JSO
 After each successful command, the order and session card rows are refreshed to account for bookings that have passed.
 An index-based command acts on the client shown at that index before this refresh.
 **Index numbers can change after a booking or a client change. Check the displayed list before any index-based command.**
+If the booking or the cleared filter changes which client any previously shown index refers to, the message adds
+`The client list order has changed; check the index numbers before your next command.`
+For example, if a filter shows only Aaron and Chris out of Aaron, Bea and Chris, `session 1 d/2026-12-15 t/0900`
+keeps Aaron at index 1 but shows the full list, so index 2 becomes Bea and the note is shown. Clients that only appear below the previously
+shown ones do not trigger the note.
 
 The card shows `Next session: Tue 15 Dec, 7:00pm` for an upcoming booking (with the year for a booking in another
 year, e.g. `Wed 15 Dec 2027, 7:00pm`), `Next session: - (none booked)`
@@ -625,8 +633,8 @@ Format: `cancelsession INDEX` or `cancelsession n/NAME`
 * The current filter stays active. A cancelled client disappears from a `sessions` date view, but remains in Spotter.
   In the full list, their card shows `Next session: - (none booked)` and moves to the unbooked group.
 * Indices may change after cancellation. Check the displayed list before entering the next index-based command.
-  If the cancelled client moves to a different index or disappears from the displayed list, the message adds
-  `Displayed indices have changed. Check the client list before your next index-based command.`
+  If any previously shown client moves to a different index or disappears from the displayed list, the message adds
+  `The client list order has changed; check the index numbers before your next command.`
 * A client with no recorded session is rejected with `No session is recorded for NAME.`
   An invalid index shows `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.`
   Missing, non-numeric or mixed identifiers show
@@ -644,8 +652,8 @@ Example: `cancelsession 1` cancels the first displayed client's session.
 Alternatively, `cancelsession n/Sarah Lim` cancels Sarah's booking without relying on a changing list index.
 Success: `Cancelled session on 2026-12-15 09:00 for Sarah Lim.` (when that is her recorded booking).
 The confirmation includes the removed booking's date and 24-hour time, including for expired bookings.
-If displayed indices change, it continues:
-`Displayed indices have changed. Check the client list before your next index-based command.`
+If displayed indices change, it continues on a new line:
+`The client list order has changed; check the index numbers before your next command.`
 
 ### Listing sessions on a date: `sessions`
 
@@ -697,6 +705,10 @@ Back up any existing destination file before replacing it. Spotter does not sear
 ### Editing the data file
 
 Spotter data is saved automatically as a JSON file `[JAR file location]/data/spotter.json`. Advanced users are welcome to update data directly by editing that data file. Save it as UTF-8, with or without a byte-order mark (BOM).
+
+Email is optional. Omitting a client's `email` field, setting it to `null` or `""`, or using a whitespace-only
+string loads that client without an email. Other clients and training records are retained. A nonblank
+email must still satisfy the email rules; for example, `"not-an-email"` makes the file invalid.
 
 The future-date restriction for measurements and performances applies when entering `measure` and `performance`.
 Valid future-dated records already in the data file are retained without a warning, for example after a system
