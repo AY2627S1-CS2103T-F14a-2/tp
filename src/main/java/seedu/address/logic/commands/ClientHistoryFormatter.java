@@ -11,6 +11,7 @@ import seedu.address.commons.util.PhoneDisplayFormatter;
 import seedu.address.model.person.Measurement;
 import seedu.address.model.person.Person;
 import seedu.address.model.progress.PerformanceHistory;
+import seedu.address.model.tag.Tag;
 
 /**
  * Builds the text shown in the detail panel opened by {@code view}: a client's details followed by their
@@ -29,6 +30,11 @@ public final class ClientHistoryFormatter {
     public static final String NO_EMAIL = "-";
     public static final String NO_SESSION = "- (none booked)";
     public static final String NO_TAGS = "-";
+
+    /** Orders tag labels alphabetically, with a case-sensitive tie-break for deterministic case variants. */
+    public static final Comparator<Tag> TAGS_ALPHABETICALLY =
+            Comparator.comparing((Tag tag) -> tag.tagName, String.CASE_INSENSITIVE_ORDER)
+                    .thenComparing(tag -> tag.tagName);
 
     /**
      * Orders measurements newest date first; same-date measurements follow the type order weight, body fat, waist.
@@ -53,8 +59,8 @@ public final class ClientHistoryFormatter {
         requireNonNull(person);
         requireNonNull(now);
         String tags = person.getTags().stream()
+                .sorted(TAGS_ALPHABETICALLY)
                 .map(tag -> tag.tagName)
-                .sorted()
                 .collect(Collectors.joining(", "));
         return PHONE_LABEL + PhoneDisplayFormatter.format(person.getPhone().value)
                 + "\n" + EMAIL_LABEL + formatEmail(person)

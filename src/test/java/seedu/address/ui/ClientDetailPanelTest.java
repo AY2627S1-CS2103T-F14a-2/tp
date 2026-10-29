@@ -1,6 +1,7 @@
 package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.TypicalGymPerformances.BENCH_PRESS;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
@@ -8,6 +9,7 @@ import static seedu.address.testutil.TypicalPersons.BENSON;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +21,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.FlowPane;
 import javafx.stage.Stage;
 import seedu.address.logic.commands.ClientHistoryFormatter;
 import seedu.address.model.person.Measurement;
@@ -58,6 +61,19 @@ public class ClientDetailPanelTest {
         assertEquals("Performance · 0 records", labelText("#performanceHeading"));
         assertEquals("None recorded yet.", labelText("#measurements"));
         assertEquals("None recorded yet.", labelText("#performances"));
+    }
+
+    @Test
+    public void refresh_mixedCaseTags_matchesCardOrder(FxRobot robot) {
+        Person person = new PersonBuilder().withTags("Zebra", "apple", "Apple", "banana").build();
+        robot.interact(() -> {
+            viewedPerson.set(person);
+            PersonCard card = new PersonCard(person, 1);
+            FlowPane tags = (FlowPane) card.getRoot().lookup("#tags");
+            assertEquals(List.of("Apple", "apple", "banana", "Zebra"),
+                    tags.getChildren().stream().map(node -> ((Label) node).getText()).toList());
+        });
+        assertTrue(labelText("#details").endsWith("Tags: Apple, apple, banana, Zebra"));
     }
 
     @Test
