@@ -1213,10 +1213,13 @@ Unless a section says otherwise:
       Close Spotter, disconnect that monitor, then relaunch.<br>
       Expected: If the saved window no longer overlaps any screen, it is restored on the primary screen.
 
-1. Unknown commands
+1. Unknown and mixed-case command words
 
    1. Enter `hlep`.<br>
-      Expected: `Unknown command. Type "help" to see all commands.`
+      Expected: `Unknown command. Type "help" for a link to the user guide.`
+
+   1. Enter `LIST`, then `List`.<br>
+      Expected: The same result as `list` each time, as command words are case-insensitive.
 
 1. Opening and restoring the Help window
 
