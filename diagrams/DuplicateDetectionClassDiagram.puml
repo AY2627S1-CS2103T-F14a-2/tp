@@ -28,4 +28,6 @@ Person *--> "1" Phone
 
 UniquePersonList --> "~* all" Person
 SharedPhoneWarning ..> Phone : getDigits
+SharedPhoneWarning ..> Person
+note right of SharedPhoneWarning : In the Logic component\n(logic.commands)
 @enduml

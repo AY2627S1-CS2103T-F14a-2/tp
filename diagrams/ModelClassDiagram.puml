@@ -43,8 +43,8 @@ UserPrefs .up.|> ReadOnlyUserPrefs
 
 AddressBook *--> "1" UniquePersonList
 UniquePersonList --> "~* all" Person
-Person *--> Name
-Person *--> Phone
+Person *--> "1" Name
+Person *--> "1" Phone
 Person *--> "0..1" Email
 Person *--> "*" Tag
 Person *--> "0..1" NextSession
@@ -62,4 +62,6 @@ Name -[hidden]right-> Phone
 Phone -[hidden]right-> Email
 
 ModelManager --> "~* filtered" Person
+ModelManager --> "~* upcoming\n" Person
+ModelManager --> "0..1\nviewed" Person
 @enduml

@@ -12,17 +12,26 @@ box Model MODEL_COLOR_T1
 participant "m:Model" as Model MODEL_COLOR
 participant "client:Person" as Client MODEL_COLOR
 participant "history:PerformanceHistory" as History MODEL_COLOR
+participant "remaining:PerformanceHistory" as Remaining MODEL_COLOR
 participant "updated:Person" as Updated MODEL_COLOR
 end box
 
 [-> Logic : execute("deleteperformance 1 d/2026-09-18 e/Bench Press")
 activate Logic
-Logic -> Parser : parseCommand(...)
+Logic -> Parser : parseCommand("deleteperformance 1 d/2026-09-18 e/Bench Press")
 activate Parser
-Parser -> DeleteParser : parse(arguments)
+create DeleteParser
+Parser -> DeleteParser
+activate DeleteParser
+DeleteParser --> Parser
+deactivate DeleteParser
+Parser -> DeleteParser : parse(" 1 d/2026-09-18 e/Bench Press")
 activate DeleteParser
 create Command
-DeleteParser -> Command : new(index, date, exerciseName)
+DeleteParser -> Command : DeletePerformanceCommand(index, date, exerciseName)
+activate Command
+Command --> DeleteParser
+deactivate Command
 DeleteParser --> Parser : d
 deactivate DeleteParser
 Parser --> Logic : d
@@ -30,24 +39,47 @@ deactivate Parser
 Logic -> Command : execute(m)
 activate Command
 Command -> Model : getFilteredPersonList()
-Model --> Command : displayedClients
+activate Model
+Model --> Command : displayed clients
+deactivate Model
 Command -> Client : getPerformanceHistory()
+activate Client
 Client --> Command : history
+deactivate Client
 Command -> History : find(date, exerciseName)
-History --> Command : record
-note right of Command : An empty result fails\nbefore any state changes
+activate History
+History --> Command : match
+deactivate History
+note right of Command : match is an Optional<GymPerformance>. If it is empty,\nCommandException is thrown before any change;\notherwise record is its value
 Command -> Client : withoutGymPerformance(record)
 activate Client
 Client -> History : withoutRecord(record)
-History --> Client : remaining history
+activate History
+create Remaining
+History -> Remaining : PerformanceHistory(updatedRecords)
+activate Remaining
+Remaining --> History
+deactivate Remaining
+History --> Client : remaining
+deactivate History
 create Updated
-Client -> Updated : new(..., remaining history)
+Client -> Updated : Person(..., remaining)
+activate Updated
+Updated --> Client
+deactivate Updated
 Client --> Command : updated
 deactivate Client
 Command -> Model : setPerson(client, updated)
-Command --> Logic : CommandResult(deletion message)
+activate Model
+Model --> Command
+deactivate Model
+Command --> Logic : result
 deactivate Command
-note right of Logic : Saves the address book,\nas for any other command
-Logic -->[ : deletion message
+Logic -> Model : updateSessionLists(now)
+activate Model
+Model --> Logic
+deactivate Model
+note right of Logic : The data changed, so LogicManager saves it\nand rolls back on failure, as in the deletemeasure diagram
+[<-- Logic : result
 deactivate Logic
 @enduml

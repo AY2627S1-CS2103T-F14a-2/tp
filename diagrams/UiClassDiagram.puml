@@ -39,10 +39,10 @@ MainWindow *-down-> "1" PersonListPanel
 MainWindow *-down-> "1" UpcomingSessionPanel
 MainWindow *-down-> "1" ClientDetailPanel
 MainWindow *-down-> "1" StatusBarFooter
-MainWindow --> "0..1" HelpWindow
+MainWindow --> "1" HelpWindow
 
-PersonListPanel -down-> "*" PersonCard
-UpcomingSessionPanel -down-> "*" UpcomingSessionCard
+PersonListPanel .down.> PersonCard : <<create>>
+UpcomingSessionPanel .down.> UpcomingSessionCard : <<create>>
 
 MainWindow -left-|> UiPart
 
@@ -61,6 +61,9 @@ UpcomingSessionCard ..> Model
 ClientDetailPanel ..> Model
 UiManager -right-> Logic
 MainWindow -left-> Logic
+ClientDetailPanel ..> Logic
+UpcomingSessionCard ..> Logic
+note bottom of HiddenLogic : The panel and card use Logic's\nClientHistoryFormatter for their text.
 
 PersonListPanel -[hidden]left- HelpWindow
 HelpWindow -[hidden]left- CommandBox

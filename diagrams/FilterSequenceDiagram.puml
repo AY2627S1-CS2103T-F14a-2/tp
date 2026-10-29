@@ -68,7 +68,7 @@ activate Model
 note right of Model
   Shows only clients with a tag
   equal to "rehab", ignoring case,
-  sorted as before.
+  re-sorted by next session.
 end note
 
 Model --> FilterCommand
@@ -79,6 +79,12 @@ activate Model
 
 Model --> FilterCommand : clients
 deactivate Model
+
+FilterCommand -> Predicate : getKeywords()
+activate Predicate
+
+Predicate --> FilterCommand : tags
+deactivate Predicate
 
 create CommandResult
 FilterCommand -> CommandResult : message naming the tags

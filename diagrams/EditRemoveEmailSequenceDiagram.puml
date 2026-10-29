@@ -28,7 +28,7 @@ activate EditCommandParser
 EditCommandParser --> AddressBookParser
 deactivate EditCommandParser
 
-AddressBookParser -> EditCommandParser : parse("1 e/")
+AddressBookParser -> EditCommandParser : parse(" 1 e/")
 activate EditCommandParser
 
 create EditPersonDescriptor
@@ -46,7 +46,7 @@ EditPersonDescriptor --> EditCommandParser
 deactivate EditPersonDescriptor
 
 create EditCommand
-EditCommandParser -> EditCommand : EditCommand(1, d)
+EditCommandParser -> EditCommand : EditCommand(index, d)
 activate EditCommand
 
 EditCommand --> EditCommandParser
@@ -64,11 +64,40 @@ deactivate AddressBookParser
 LogicManager -> EditCommand : execute(m)
 activate EditCommand
 
-EditCommand -> Model : setPerson(client, client without email)
+EditCommand -> Model : getFilteredPersonList()
+activate Model
+
+Model --> EditCommand : displayed clients
+deactivate Model
+
+note right of EditCommand
+  client is the client at index 1;
+  edited is a copy of client
+  without an email.
+end note
+
+EditCommand -> Model : setPerson(client, edited)
 activate Model
 
 Model --> EditCommand
 deactivate Model
+
+EditCommand -> Model : updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS)
+activate Model
+
+Model --> EditCommand
+deactivate Model
+
+EditCommand -> Model : getAddressBook()
+activate Model
+
+Model --> EditCommand : addressBook
+deactivate Model
+
+note right of EditCommand
+  The address book is used to warn
+  if another client has the same phone.
+end note
 
 create CommandResult
 EditCommand -> CommandResult

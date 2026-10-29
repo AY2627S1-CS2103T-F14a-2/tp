@@ -35,4 +35,5 @@ XYZCommandParser ..> ParserUtil
 ParserUtil .down.> Prefix
 ArgumentTokenizer .down.> Prefix
 XYZCommand -up-|> Command
+note right of AddressBookParser : Creates ListCommand, ClearCommand,\nExitCommand and HelpCommand itself,\nwithout an XYZCommandParser
 @enduml
