@@ -571,7 +571,7 @@ Examples:
 * `session n/Sarah Lim d/2026-12-15 t/19:00`
 * `session n/sarah lim d/2026-12-15 t/1900`
 
-Success: `Recorded next session for Sarah Lim on 2026-12-15 at 19:00`.
+Success: `Recorded next session for Sarah Lim on 2026-12-15 at 19:00.`
 The stored client's name is used in the message; both time formats are stored and reported as `HH:mm`.
 Replacing a different booking reports `Rescheduled next session for Sarah Lim from 2026-12-15 19:00 to 2026-12-16 09:00.`
 Entering the same booking again reports `Next session for Sarah Lim is already recorded on 2026-12-15 19:00.`

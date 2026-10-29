@@ -29,7 +29,7 @@ public class SessionCommandTest {
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 10, 26, 14, 0);
     private static final Clock FIXED_CLOCK =
             Clock.fixed(NOW.atZone(ZoneId.systemDefault()).toInstant(), ZoneId.systemDefault());
-    private static final String NORMAL_MESSAGE = "Recorded next session for Sarah Lim on %s at %s";
+    private static final String NORMAL_MESSAGE = "Recorded next session for Sarah Lim on %s at %s.";
     private static final String PAST_NOTE = "\n" + SessionCommand.MESSAGE_PAST_SESSION;
     // @@author gabriel-wan
     private final Person sarah = new PersonBuilder().withName("Sarah Lim").build();
@@ -48,7 +48,7 @@ public class SessionCommandTest {
     public void execute_displayedIndex_recordsAndSorts() throws Exception {
         CommandResult result = new SessionCommand(Index.fromOneBased(2), session).execute(model);
         Person booked = sarah.withNextSession(session);
-        assertEquals("Recorded next session for Sarah Lim on " + session.value.toLocalDate() + " at 17:00",
+        assertEquals("Recorded next session for Sarah Lim on " + session.value.toLocalDate() + " at 17:00.",
                 result.getFeedbackToUser());
         assertEquals(List.of(booked, alex), model.getFilteredPersonList());
         // Sorting is a display transform; storage remains in its original order.

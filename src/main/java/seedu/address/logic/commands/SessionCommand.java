@@ -30,7 +30,7 @@ public class SessionCommand extends Command {
     public static final String MESSAGE_EMPTY_NAME = "Name cannot be empty.";
     public static final String MESSAGE_NAME_SLASH = "Names containing '/' cannot be used for session name lookup."
             + " Use the client's displayed index with session or cancelsession instead.";
-    public static final String MESSAGE_SUCCESS = "Recorded next session for %s on %s at %s";
+    public static final String MESSAGE_SUCCESS = "Recorded next session for %s on %s at %s.";
     public static final String MESSAGE_RESCHEDULED = "Rescheduled next session for %s from %s to %s.";
     public static final String MESSAGE_UNCHANGED = "Next session for %s is already recorded on %s.";
     public static final String MESSAGE_CLASH = "\nWarning: This time is also booked for %s. All bookings are kept.";

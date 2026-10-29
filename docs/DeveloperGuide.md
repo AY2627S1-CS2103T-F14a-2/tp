@@ -1463,7 +1463,7 @@ replace `DATE` in every command below, and `TODAY` with today's date. Add unique
    Run `find SessionCancelAda`, then book Ada at `1000` again: the warning still names Zoe outside the filter.
    Move Ada to `1001`: the warning disappears, because only exact start times are compared.
 1. Enter `add n/SessionPastEve p/93456789`, then `session n/SessionPastEve d/2020-01-01 t/0900`.<br>
-   Expected: `Recorded next session for SessionPastEve on 2020-01-01 at 09:00`, followed by
+   Expected: `Recorded next session for SessionPastEve on 2020-01-01 at 09:00.`, followed by
    `Note: this session is in the past, so it shows as "- (none upcoming)".` The booking is kept, and Eve's card
    shows `Next session: - (none upcoming)`. `sessions d/2020-01-01` lists Eve.
 1. Enter `session n/SessionPastEve d/DATE t/2400`.<br>
