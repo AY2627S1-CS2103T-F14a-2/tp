@@ -392,6 +392,10 @@ Format: `performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`
 * If the client already has a record for the same exercise on the same date, the new sets, repetitions and load
   replace the old record. Spotter keeps one result per exercise per client per day, so you can correct a mistake
   by recording it again.
+* A record stores one summary: the number of sets, the repetitions per set and the load, e.g. 3 sets of 8 reps at
+  60 kg. `REPS` must be a whole number, so Spotter cannot record sets with different repetitions (e.g. 10, 8 and 6
+  reps), timed exercises (e.g. a 60-second plank) or distances (e.g. a 5 km run). Inputs such as `r/60s` or
+  `r/8-10` are rejected.
 
 Parameter | Accepted values
 ----------|----------------
@@ -502,7 +506,7 @@ with the name as its title:
 Alex Tan
 Phone: 9123 4567
 Email: alex@example.com
-Next session: Fri 23 Oct, 6:00pm
+Next session: Tue 15 Dec, 6:00pm
 Tags: knee, rehab
 
 Measurements · 3 records
@@ -721,16 +725,14 @@ If your changes make the data file invalid, Spotter starts with no clients at th
 Furthermore, certain edits can cause Spotter to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
 
-### Archiving data files `[coming in v2.0]`
-
-_Details coming soon ..._
-
 --------------------------------------------------------------------------------------------------------------------
 
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous Spotter home folder.
+**A**: Close Spotter on both computers. Copy the whole `data` folder from beside `spotter.jar` on the old computer
+to beside `spotter.jar` on the new computer, replacing any `data` folder already there (this replaces any clients
+already on the new computer). Then launch Spotter on the new computer. Your clients are stored in `data/spotter.json`.
 
 **Q**: How do I back up my clients' data?<br>
 **A**: Close Spotter and copy `[JAR file location]/data/spotter.json` to a safe place. To restore it, close Spotter and copy the backup back to the same location. See [Saving the data](#saving-the-data).
