@@ -13,7 +13,8 @@
 
 ## **Acknowledgements**
 
-
+* OpenAI Codex and Claude Code assisted the team with implementation, testing, documentation and PR reviews
+  across most Spotter features.
 * The GUI tests use [TestFX](https://github.com/TestFX/TestFX) to run JavaFX UI parts in tests.
 
 --------------------------------------------------------------------------------------------------------------------
