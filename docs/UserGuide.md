@@ -441,8 +441,9 @@ Format: `view INDEX`
 * `Next session` shows the same text as the client's card: `- (none booked)` if no session is booked, or
   `- (none upcoming)` once the booked session has passed.
 * Tags are listed alphabetically. A client with no email or no tags shows `-`.
-* If the history is too long to fit, scroll inside the panel. Viewing a different client starts at the top, while
-  updates to the client you are viewing keep your scroll position.
+* If the history is too long to fit, scroll inside the panel. Viewing a different client starts at the top.
+  Updates to the client you are viewing, such as a new record or a changed phone number, keep your scroll position,
+  but renaming the client returns to the top.
 
 Examples:
 * `list` followed by `view 2` shows the history of the 2nd client in Spotter.

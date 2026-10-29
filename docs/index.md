@@ -20,7 +20,7 @@ without reaching for the mouse.
 
 * **Client records:** keep each client's name, phone, email and tags, and find clients by name or tag.
 * **Next sessions:** book or cancel a client's next session, and list the sessions on any date.
-* **Upcoming sessions:** see every booked session, soonest first, with each client's latest progress.
+* **Upcoming sessions:** see upcoming booked sessions, soonest first, with each client's latest progress.
 * **Body measurements:** record weight, body fat and waist measurements over time.
 * **Gym performance:** record exercises with sets, reps and load.
 * **Client history:** open one client's full measurement and performance history before a session.
