@@ -129,7 +129,7 @@ Here are the other classes in `Logic` (omitted from the class diagram above) tha
 
 How the parsing works:
 * When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
-* `list`, `clear`, `exit` and `help` take no arguments, so `AddressBookParser` creates their commands itself without an `XYZCommandParser`. It rejects extra text after `list` and `clear`.
+* `list`, `clear`, `exit` and `help` have no prefixed fields, so `AddressBookParser` creates their commands itself without an `XYZCommandParser`. It rejects unexpected text after `list` and `clear`.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 ### Model component
