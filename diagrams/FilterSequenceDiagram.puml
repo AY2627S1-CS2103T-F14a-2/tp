@@ -32,8 +32,9 @@ AddressBookParser -> FilterCommandParser : parse(" t/rehab")
 activate FilterCommandParser
 
 note right of FilterCommandParser
-  Rejects a missing or empty tag,
-  and a tag that is not alphanumeric.
+  Requires a non-empty tag of 1-50 characters:
+  English letters/digits, optionally separated
+  by single internal hyphens.
 end note
 
 create Predicate
