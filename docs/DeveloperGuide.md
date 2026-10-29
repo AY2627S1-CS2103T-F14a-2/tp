@@ -245,6 +245,27 @@ name identifiers. Those clients remain accessible through displayed indexes. Bro
 prefix escaping require consistent parser, identity, search and storage rules, so they are deferred rather than
 partially implemented here. These limits do not establish that every user's naming needs are met.
 
+### Duplicate detection
+
+Spotter identifies a client by name, not by phone or email. `Person#isSamePerson` delegates to
+`Name#isSameName`, which compares names after Unicode NFC normalization, ignoring letter case and collapsing
+repeated whitespace, so `john tan` and `John  Tan` are the same client. `UniquePersonList#contains` uses
+`isSamePerson`, and `add` reaches it through `Model#hasPerson`; `edit` performs the same check only when the
+edited name differs from the original.
+
+Duplicate detection is therefore name-only: two clients cannot share a name, even when their phone numbers and
+emails differ. Because phone numbers are not unique in the real world, `add` and `edit` instead append a
+**non-blocking warning** (`SharedPhoneWarning`) when another client has the same complete phone digit sequence
+(`Phone#getDigits`). The saved client is excluded from this comparison, so editing a client without changing
+their phone never warns about themselves.
+
+The two checks are deliberately separate: a name clash blocks the command, because `session n/NAME` and
+`cancelsession n/NAME` find a client by name, while a shared phone only warns, leaving the trainer to decide
+whether the entry is a genuine duplicate. Warning instead of blocking when two clients share a name is left as
+future work.
+
+<puml src="diagrams/DuplicateDetectionClassDiagram.puml" width="520" />
+
 ### Upcoming sessions panel
 
 The right side of the window shows the clients with an upcoming session, soonest first, so that a trainer can
@@ -723,7 +744,7 @@ not promises about the current release.
 
 * 1a. A required detail is missing.
 
-    * 1a1. Spotter shows an error message stating which detail is missing.
+    * 1a1. Spotter shows an error message with the expected command format.
 
       Use case resumes at step 1.
 
@@ -736,6 +757,12 @@ not promises about the current release.
 * 1c. A client with the same name already exists. Names are compared ignoring case and leading/trailing spaces, with repeated spaces treated as one.
 
     * 1c1. Spotter informs the trainer that the client already exists.
+
+      Use case ends.
+
+* 2a. Another client has the same phone number, ignoring formatting.
+
+    * 2a1. Spotter adds the client and warns the trainer which client shares the number.
 
       Use case ends.
 
