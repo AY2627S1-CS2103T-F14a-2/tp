@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -85,6 +86,25 @@ public class FileUtilTest {
 
         assertThrows(IOException.class, () -> FileUtil.writeToFile(file, writeFully, failToMove));
 
+        assertArrayEquals(oldBytes, Files.readAllBytes(file));
+        assertEquals(List.of(file), filesIn(tempDir));
+    }
+
+    @Test
+    public void writeToFile_atomicMoveUnsupported_failsAndKeepsOldFile() throws IOException {
+        Path file = writeOldFile();
+        byte[] oldBytes = Files.readAllBytes(file);
+        AtomicMoveNotSupportedException unsupported =
+                new AtomicMoveNotSupportedException("spotter.tmp", "spotter.json", "not supported");
+        FileUtil.FileStep writeFully = (temp, target) -> Files.writeString(temp, NEW_CONTENT);
+        FileUtil.FileStep unsupportedMove = (temp, target) -> {
+            throw unsupported;
+        };
+
+        IOException thrown = assertThrows(IOException.class, () -> FileUtil.writeToFile(file, writeFully,
+                unsupportedMove));
+
+        assertEquals(unsupported, thrown);
         assertArrayEquals(oldBytes, Files.readAllBytes(file));
         assertEquals(List.of(file), filesIn(tempDir));
     }

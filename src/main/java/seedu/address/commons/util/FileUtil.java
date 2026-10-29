@@ -2,7 +2,6 @@ package seedu.address.commons.util;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
-import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -74,12 +73,13 @@ public class FileUtil {
         }
     }
 
+    /**
+     * Replaces {@code target} with {@code temp} in one atomic step. There is deliberately no non-atomic fallback:
+     * a failed non-atomic replacement can leave the target missing, so an unsupported atomic move fails the save
+     * instead and the old file is kept.
+     */
     private static void moveIntoPlace(Path temp, Path target) throws IOException {
-        try {
-            Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-        } catch (AtomicMoveNotSupportedException e) {
-            Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING);
-        }
+        Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
     }
 
     /** One I/O step of {@link #writeToFile(Path, FileStep, FileStep)} on the temporary and target files. */
