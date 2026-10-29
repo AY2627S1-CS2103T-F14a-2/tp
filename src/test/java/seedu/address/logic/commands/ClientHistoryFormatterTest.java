@@ -2,8 +2,9 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TrainingRecords.measurement;
+import static seedu.address.testutil.TrainingRecords.performance;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,9 +14,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.model.person.Measurement;
 import seedu.address.model.person.MeasurementType;
 import seedu.address.model.person.Person;
-import seedu.address.model.progress.ExerciseName;
 import seedu.address.model.progress.GymPerformance;
-import seedu.address.model.progress.Load;
 import seedu.address.model.progress.PerformanceHistory;
 import seedu.address.testutil.PersonBuilder;
 
@@ -175,14 +174,5 @@ public class ClientHistoryFormatterTest {
         String firstLine = ClientHistoryFormatter.formatPerformanceRecords(
                 person.getPerformanceHistory()).split("\n")[0];
         assertEquals(latest.getDate() + "  " + latest.getSummary(), firstLine);
-    }
-
-    private static Measurement measurement(LocalDate date, MeasurementType type, String value) {
-        return new Measurement(date, type, new BigDecimal(value));
-    }
-
-    private static GymPerformance performance(LocalDate date, String exercise, int sets, int reps, String load) {
-        return new GymPerformance(date, new ExerciseName(exercise), sets, reps,
-                new Load(load));
     }
 }

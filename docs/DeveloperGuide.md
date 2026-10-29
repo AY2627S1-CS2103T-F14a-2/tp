@@ -150,7 +150,13 @@ How the parsing works:
 ### Model component
 **API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-F14a-2/tp/blob/master/src/main/java/seedu/address/model/Model.java)
 
-<puml src="diagrams/ModelClassDiagram.puml" width="450" />
+<!-- AI assistance: Helen used OpenAI Codex to update the Model and Storage diagrams and their explanations for issue #160. -->
+<puml src="diagrams/ModelClassDiagram.puml" width="900" alt="Spotter Model component and client training records" />
+
+Each `Person` holds contact details, tags, an optional `NextSession`, an immutable list of `Measurement`
+records and a `PerformanceHistory`. Each measurement has a `MeasurementType`; the performance history
+holds `GymPerformance` records with an `ExerciseName` and `Load`. Email is optional, and a client may have
+no session or progress records. The diagram shows the current model; there is no postal-address field.
 
 
 The `Model` component,
@@ -175,7 +181,13 @@ The `Model` component,
 
 **API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-F14a-2/tp/blob/master/src/main/java/seedu/address/storage/Storage.java)
 
-<puml src="diagrams/StorageClassDiagram.puml" width="550" />
+<puml src="diagrams/StorageClassDiagram.puml" width="800" alt="Spotter JSON storage and progress-record adapters" />
+
+`JsonAdaptedPerson` stores tags, measurements and gym performances as collections of `JsonAdaptedTag`,
+`JsonAdaptedMeasurement` and `JsonAdaptedGymPerformance` respectively. The optional next session is
+stored directly as a `String`, rather than through a separate adapter. On loading, these values are
+validated and converted into the corresponding client fields and records; older files without progress
+collections load with empty histories.
 
 The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
@@ -208,6 +220,30 @@ Client-data save failures retain the existing rollback behaviour.
 The path tests package the real resolver and logger into a small executable JAR and launch it in separate JVMs
 from unrelated folders. This verifies archive detection, special-character paths, existing-data preservation,
 relaunch behaviour and a blocked log file without changing the test JVM's working directory.
+
+### Client name and phone formats
+
+`Name` and `Phone` own validation and normalization so command input and JSON loading use the same rules.
+`ParserUtil` reports length-specific errors before constructing the value objects. Names are trainer-facing labels,
+not verified legal identities: the current scope accepts Latin-script letters (including accents), digits `0–9`
+and the punctuation listed in the User Guide, rather than claiming support for every language.
+
+`Name.normalize` first normalizes whitespace, then applies Unicode NFC. This gives composed and decomposed versions
+of the same accented name one stored representation and one length check. Name identity and full-name lookup ignore
+case and extra whitespace after normalization; search keywords do not yet fold equivalent accent encodings. Accents remain significant:
+`José Tan` and `Jose Tan` are different names. The 100-character limit uses Java string length after normalization,
+not a count of visually rendered glyphs. No transliteration or compatibility folding is performed.
+
+`Phone` requires at least three digits and permits English-letter labels and common punctuation within a
+50-character normalized value. Plain digits separated by spaces remain stored as digits only for compatibility
+with older files. Other accepted formatting is retained. This is a contact field, not a dialability validator.
+`getDigits` exposes the entire digit sequence; it does not infer country codes, extensions or individual numbers.
+
+**Trade-offs:** supporting common name formats avoids unnecessary rejection without redesigning command syntax.
+A space followed by a recognized prefix still starts a new field, and session commands reject slash-containing
+name identifiers. Those clients remain accessible through displayed indexes. Broader script support and literal
+prefix escaping require consistent parser, identity, search and storage rules, so they are deferred rather than
+partially implemented here. These limits do not establish that every user's naming needs are met.
 
 ### Upcoming sessions panel
 
@@ -310,6 +346,14 @@ Design notes:
 and `deleteperformance INDEX d/DATE e/EXERCISE` removes one. Both follow the usual `Logic` flow: the parser validates
 the fields, and the command resolves the index against `Model#getFilteredPersonList()`.
 
+Both parsers first check the command's shape: an integer index followed by each prefix exactly once
+(`ArgumentMultimap#hasEachPrefixOnce`). A shape error gives the invalid-format message. Otherwise the values are parsed
+in command order, so only the first invalid value is reported, followed by the expected format. Sets and repetitions
+share one counting rule, and the parser and `JsonAdaptedGymPerformance` both reuse the `GymPerformance` and `Load`
+checks, so commands and the data file accept the same values, except that the parser first trims surrounding spaces.
+The other difference is the date: `performance` uses `ParserUtil#parseRecordDate`, which rejects future dates, while `deleteperformance` and
+storage accept them so that a future-dated record in an edited data file can still be loaded and deleted.
+
 The following partial diagram shows how the records are stored and which classes change them. Contact fields and the
 other progress data are omitted.
 
@@ -318,11 +362,18 @@ other progress data are omitted.
 Each `Person` owns one immutable `PerformanceHistory`, which keeps the records in the order they were recorded and
 never holds two records for the same exercise on the same date. Exercise names are compared through
 `ExerciseName#equals`, which ignores letter case, repeated spaces and the difference between straight (`'`) and curly
-(`’`) apostrophes, so a name pasted from formatted text does not split a client's history. `PerformanceCommand` calls
+(`’`) apostrophes, so a name pasted from formatted text does not split a client's history. Names may also contain
+`&`, `+` and `.` (e.g. `Clean & Jerk`), but not `/`, which would let text such as ` w/` inside a name be tokenized as
+another prefix. `PerformanceCommand` calls
 `Person#withGymPerformance`, which replaces any record for the same exercise and date. `DeletePerformanceCommand`
 finds the record through `PerformanceHistory#find` and calls `Person#withoutGymPerformance`; a missing record raises a
 `CommandException` before any state changes. Either way, the command replaces the client through `Model#setPerson`,
 and `LogicManager` saves the address book.
+
+The sequence diagram below shows a successful `deleteperformance` command. Saving, and restoring the previous state
+if saving fails, is the same as for `deletemeasure`.
+
+<puml src="diagrams/DeletePerformanceSequenceDiagram.puml" alt="Interactions for the `deleteperformance 1 d/2026-09-18 e/Bench Press` command" />
 
 Both commands log rejected indices, missing records and successful changes at `INFO` level. The log records the
 displayed index, exercise and date, but not the client's name or contact details.
@@ -331,22 +382,45 @@ displayed index, exercise and date, but not the client's name or contact details
 rather than stored separately, so they cannot become stale after a replacement or deletion. Keeping the recording
 order means the record entered last is treated as the latest when several share a date.
 
-<!-- AI assistance: Claude Code helped draft this section and its class diagram. -->
+### Recording body measurements
+
+`measure INDEX d/DATE t/TYPE v/VALUE` records weight, body-fat percentage or waist circumference.
+`MeasureCommandParser` validates the displayed index, real non-future date, type and decimal value.
+`Measurement` enforces the type's range and at most two decimal places using `BigDecimal`.
+Future-date validation stays in the parser so saved records remain loadable after a clock change.
+
+`MeasureCommand` resolves the client through the displayed list and checks whether the date/type pair
+already exists. `Person#withMeasurement` returns a new client with that pair replaced, or a new record
+appended, preserving the client's other data. `Model#setPerson` refreshes the card and any open history
+panel. Counts and the latest measurement are derived from the records rather than stored separately.
+The command reports `Recorded` or `Updated`; `LogicManager` saves the result, restoring the previous
+records, filter and viewed client if saving fails.
+
+<puml src="diagrams/MeasureSequenceDiagram.puml" alt="Recording or replacing a body measurement" />
+
+The immutable copy keeps a failed change recoverable without a separate measurement cache. The same
+date/type pair identifies a record regardless of its value, so correcting a value does not increase the count.
+
+<!-- AI assistance: Helen used OpenAI Codex to document measurement recording and its sequence diagram for issue #187. -->
 
 ### Deleting body measurements
 
 `deletemeasure INDEX d/DATE t/TYPE` removes one measurement from the client at the displayed index.
 `DeleteMeasureCommandParser` validates the index, date and measurement type. The shared
-`ParserUtil#parseExistingRecordDate` accepts future dates because human-edited storage can contain them;
+`ParserUtil#parseCalendarDate` accepts future dates because human-edited storage can contain them;
 `parseRecordDate` adds the existing future-date restriction for recording measurements and performances.
+The same calendar parser validates session bookings and date filters, so all date-taking commands share
+format and impossible-date messages while retaining command-specific usage guidance.
+
+<!-- AI assistance: Helen used OpenAI Codex to update shared date-validation documentation for issue #164. -->
 
 `DeleteMeasureCommand` looks up the client through `Model#getFilteredPersonList()` and finds the record
 by date and type. A missing record raises a `CommandException` before any state changes.
 `Person#withoutMeasurement` creates an immutable copy with that record removed, preserving all contact,
 session and performance data. `Model#setPerson` replaces the original client without changing the filter.
 The card derives its latest measurement and count from the updated list, including same-date type ties
-and the empty state. History consumers read `Person#getMeasurements()` from the updated client; a
-previously formatted history result is a snapshot and must be requested again after deletion.
+and the empty state. An open client-history panel receives the updated client and refreshes automatically;
+the trainer does not need to run `view` again after deletion.
 
 <puml src="diagrams/DeleteMeasureSequenceDiagram.puml" alt="Measurement deletion sequence" />
 
@@ -513,6 +587,14 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 _{more aspects and alternatives to be added}_
 
+### \[Proposed\] Broader client-name support
+
+A future enhancement is to support client names in additional scripts and provide an unambiguous way to enter
+literal command delimiters. The design should preserve original spellings while defining consistent Unicode
+normalization, duplicate detection and name lookup across add/edit, search, sessions and JSON storage.
+It must also retain compatibility with saved Latin-script names and provide tests for the newly supported scripts.
+This proposal does not change the supported input formats in v1.5 or promise a delivery date.
+
 ### \[Proposed\] Data archiving
 
 _{Explain here how the data archiving feature will be implemented}_
@@ -551,6 +633,11 @@ _{Explain here how the data archiving feature will be implemented}_
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
+The first table describes implemented behaviour. Deferred stories are retained separately below and are
+not promises about the current release.
+
+<!-- AI assistance: Helen used OpenAI Codex to align requirements and the glossary with implemented commands for issue #187. -->
+
 | Priority | As a … | I can … | So that … |
 |----------|--------|---------|-----------|
 | `* *` | potential user exploring the app | see the app pre-loaded with sample data | I can understand how it looks in use before entering real data |
@@ -570,24 +657,29 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *` | busy user | receive a warning when I schedule two sessions at the same time | I can avoid double-booking myself |
 | `* * *` | user | record a client's body measurements | I can track changes in their measurements over time |
 | `* * *` | user | record a client's gym performance | I can track changes in their performance over time |
-| `* *` | user | add a note after a session | I can remember what we did when preparing for the next session |
+| `* *` | user | delete a wrongly recorded gym performance | a client's progress history stays accurate |
 | `* *` | user | view a client's progress history | I can assess how their measurements and performance have changed over time |
-| `* *` | user | record a client's goal | I can plan their training with that goal in mind |
 | `* *` | user | edit or delete a progress entry | I can correct mistakes in recorded data |
-| `* *` | user | tag clients with labels such as rehab or weight-loss | I can group similar clients together |
+| `* *` | user | tag clients with labels such as rehab or weightloss | I can group similar clients together |
 | `* *` | user | filter clients by tag | I can focus on one group at a time |
-| `* *` | user | sort clients by name or next session | I can find the client I need more quickly |
+| `* *` | user | see clients automatically ordered by upcoming session and then name | I can prepare for the next appointment quickly |
+| `* * *` | user | have my data saved automatically and loaded when the app starts | I can resume my work without manually saving or re-entering records |
+| `* * *` | user | have my data stored in a human-editable local file | I can inspect its contents and copy it for backup or transfer between computers |
+| `* *` | expert user | edit the data file directly | I can make bulk changes quickly |
+
+**Deferred user stories (not implemented)**
+
+| Priority | As a … | I can … | So that … |
+|----------|--------|---------|-----------|
+| `* *` | user | add a note after a session | I can remember what we did when preparing for the next session |
+| `* *` | user | record a client's goal | I can plan their training with that goal in mind |
+| `* *` | user | choose the client-list sort order | I can arrange the list for my current task |
 | `* *` | user | find clients I have not seen in a while | I can follow up with them about booking another session |
 | `* *` | expert user | create shortcuts or aliases for frequent commands | I can save time on actions I repeat often |
 | `* *` | long-time user | archive or hide inactive clients | I can focus on active clients without deleting older records |
 | `* *` | user | restore an archived client | I can resume training someone who returns without re-entering their details |
-| `* * *` | user | have my data saved automatically and loaded when the app starts | I can resume my work without manually saving or re-entering records |
-| `* * *` | user | have my data stored in a human-editable local file | I can inspect its contents and copy it for backup or transfer between computers |
 | `* *` | user | export my client data | I can keep a separate backup in case my laptop fails |
 | `* *` | user | import client data from a file | I can move my data to a new computer |
-| `* *` | expert user | edit the data file directly | I can make bulk changes quickly |                           |
-
-*{More to be added}*
 
 ### Use cases
 
@@ -625,15 +717,20 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 **Use case: UC02 - Find a client**
 
 <!-- AI assistance: Helen used OpenAI Codex to correct UC02's name-matching description for issue #124. -->
+<!-- AI assistance: v1-nce used AI assistance for issue #173's substring-search implementation, regression tests,
+User Guide find section, UC02 and manual testing instructions. -->
 
 **MSS**
 
-1.  Trainer requests to find clients using one or more whole-word keywords from their names.
-    Matching is case-insensitive, and clients matching at least one keyword are returned.
-    For example, `find Alex` matches `Alex Yeoh`, but `find Ale` does not.
+1.  Trainer requests to find clients using one or more keywords from their names.
+    Each keyword can match any part of a name. Matching is case-insensitive and independent of the system locale;
+    clients matching at least one keyword are returned. Only names are searched.
+    For example, `find han` and `find HAN` both match `Hans Gruber`, and `find han bo` also matches `Bo Yang`.
 2.  Spotter shows the list of matching clients.
 
     Use case ends.
+
+*Note:* search matches the stored NFC-composed spelling, so equivalent accent encodings are not yet folded in search keywords. This is a planned future enhancement; duplicate detection already treats the two forms as the same client.
 
 **Extensions**
 
@@ -967,8 +1064,49 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
       Use case ends.
 
+**Use case: UC10 - Delete a client's gym performance record**
+
+**MSS**
+
+1.  Trainer views a specific client's progress history (UC07).
+2.  Trainer requests to delete that client's record for an exercise on a date.
+3.  Spotter deletes the record and shows the deleted record. The client's latest performance and record count are
+    recalculated from the remaining records.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The specified client is not in the list.
+
+    * 2a1. Spotter shows an error message.
+
+      Use case resumes at step 2.
+
+* 2b. A required detail is missing or given more than once.
+
+    * 2b1. Spotter shows an error message with the expected input format.
+
+      Use case resumes at step 2.
+
+* 2c. The given date or exercise name is invalid.
+
+    * 2c1. Spotter shows an error message stating which detail is wrong and the expected format.
+
+      Use case resumes at step 2.
+
+* 2d. The client has no record for that exercise on that date.
+
+    * 2d1. Spotter informs the trainer that no matching record was found, and leaves all records unchanged.
+
+      Use case resumes at step 2.
+
 
 ### Non-Functional Requirements
+
+These are acceptance targets, not a claim that every target has been measured on every platform.
+For NFRs 2 and 3, record the dataset, exact reference-computer specification, JAR revision, timings and
+pass/fail results with the release test evidence. Functional tests alone do not establish performance.
 
 1. **Keyboard operation:** After launching Spotter, the trainer must be able to complete all core client-management, next-session and progress-recording workflows using the keyboard without requiring mouse interaction.
 
@@ -984,7 +1122,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 7. **Human-editable storage:** Spotter must store client records in a documented, plain-text format that can be inspected and edited using a standard text editor while Spotter is closed.
 
-8. **Platform compatibility:** Spotter must launch and support all core workflows on mainstream operating systems with Java 25 installed, without requiring another Java version.
+8. **Platform compatibility:** Spotter must launch and support all core workflows on Windows, Linux and macOS with Java 25 installed, without requiring another Java version.
 
 9. **Portability:** Spotter must be distributed as an executable JAR that runs on a computer with Java 25 installed, without requiring an installer for Spotter.
 
@@ -996,41 +1134,29 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * **Client**: A person whose contact details and training-related information are managed by the trainer in Spotter.
 
-* **Client record**: The information stored for a client, including their contact details and any associated session information, progress records, goals, notes and tags.
+* **Client record**: A client's contact details, optional next session, measurements, gym-performance records and tags.
 
 * **Session**: A training appointment between the trainer and a client.
 
-* **Next session**: The upcoming training appointment recorded for a client, identified by its date and time. Spotter records at most one next session per client.
-
-* **Body measurement**: A numerical measurement of a client's physical characteristics, such as body weight or body-fat percentage.
+* **Next session**: The single appointment stored for a client, identified by date and time. Past appointments remain stored but are not shown as upcoming; a new booking replaces the previous appointment.
 
 * **Body-measurement record**: A dated entry containing one body measurement for a client, such as body weight, body-fat percentage or waist circumference. A client has at most one record of each measurement type on each date.
 
-* **Gym-performance record**: A dated entry describing a client's performance in an exercise, such as the weight lifted or the number of repetitions completed.
+* **Gym-performance record**: A dated exercise result with a set count, one repetition count shared by all sets, and load in kilograms. The same exercise/date pair identifies a record.
 
 * **Progress record / Progress entry**: A body-measurement record or gym-performance record associated with a client. These terms refer to the same concept.
 
-* **Progress history**: A client's body-measurement and gym-performance records presented together in date order.
+* **Progress history**: The client's measurement and gym-performance sections in the history panel, each ordered newest first.
 
-* **Goal**: A training outcome that a client wants to achieve, such as improving strength or reducing body weight.
-
-* **Session note**: A textual description recorded by the trainer after a session to help them prepare for subsequent sessions.
-
-* **Tag**: A label attached to a client record to support grouping and filtering, such as `rehab` or `weight-loss`.
-
-* **Archived client**: A client whose record is retained but excluded from the normal active-client view and can subsequently be restored.
-
-* **Command alias**: An alternative name or shortcut for a command.
+* **Tag**: An alphanumeric label attached to a client for grouping and filtering, such as `rehab` or `weightloss`.
 
 * **Automatic data persistence**: Saving changes without requiring an explicit save command and loading saved data when Spotter starts.
 
-* **Local data file**: A file on the trainer's computer containing Spotter's saved records.
-
-* **Human-editable storage**: Storage in a documented plain-text format that can be inspected and edited using a standard text editor while Spotter is closed.
+* **Local data file**: The human-editable JSON file containing saved client records, stored inside the JAR folder or its subfolders.
 
 * **Sample data**: Fictional client records supplied to demonstrate Spotter's behaviour without using real client information.
 
-* **Core workflows**: Adding, listing, finding, editing and deleting clients; managing next sessions; recording, viewing, editing and deleting progress entries; managing goals, notes and tags; filtering and sorting clients; archiving and restoring clients; and managing local data, including saving, loading, importing and exporting.
+* **Core workflows**: Adding, listing, finding, editing and deleting clients; booking, replacing, cancelling and listing sessions; recording, replacing, viewing and deleting measurement/performance records; editing and filtering tags; and automatically saving/loading local data. These workflows use the commands listed in the User Guide, not the deferred stories above.
 
 * **Response time**: The elapsed time between submitting a command and Spotter displaying its result.
 
@@ -1038,16 +1164,12 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * **Reference computer**: The baseline computer for verifying NFRs 2 and 3: a CPU with four physical cores and a 2.0 GHz base clock, 8 GB RAM, SSD storage, Windows 11 (64-bit) and JDK 25. Performance tests use this configuration with no other user applications running. The exact CPU and SSD models, JDK distribution and version, and operating-system version must be recorded alongside the test results.
 
-* **Offline operation**: Operation without an internet connection after downloading the release JAR, on a computer with Java 25 installed.
-
-* **Mainstream OS**: For Spotter, Windows, Linux or macOS.
-
 
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Appendix: Instructions for manual testing**
 
-Given below are instructions to test the app manually.
+Given below are instructions to test the app manually. They cover every command, grouped by feature.
 
 <box type="info" seamless>
 
@@ -1055,31 +1177,158 @@ Given below are instructions to test the app manually.
 testers are expected to do more *exploratory* testing.
 </box>
 
-### Launch and shutdown
+Unless a section says otherwise:
+
+* Put a freshly built `spotter.jar` in an empty test folder and use Java 25. On first launch, Spotter shows six
+  fictional sample clients. To return to the sample data, close Spotter and delete `data/spotter.json` in that folder.
+* Use only fictional data.
+* An index refers to the currently displayed client list. Commands that change the list order or filter can change
+  which client an index refers to, so check the list before each index-based command.
+* Every rejected command leaves client data, the displayed list and the data file unchanged.
+
+### Launch, help and shutdown
 
 1. Initial launch
 
-   1. Download the JAR file and copy it into an empty folder.
-
-   1. Double-click the JAR file.<br>
-      Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
+   1. Open a terminal in the test folder and run `java -jar spotter.jar`.<br>
+      Expected: The Spotter window opens with six sample clients, starting with `Alex Yeoh`. The right side shows
+      `Upcoming sessions` with `No upcoming sessions.` The window size may not be optimal.
 
 1. Saving window preferences
 
    1. Resize the window to an optimal size. Move the window to a different location. Close the window.
 
-   1. Relaunch the app by double-clicking the JAR file.<br>
-       Expected: The most recent window size and location are retained.
+   1. Relaunch the app.<br>
+      Expected: The most recent window size and location are retained if they fit an available screen.
 
-1. Restoring the Help window
+1. Recovering saved window bounds
 
-   1. Enter `help`, minimize the Help window, return to Spotter and enter `help` again.<br>
+   1. Close Spotter and change the saved window coordinates in `preferences.json` to `x: 100000` and
+      `y: 100000`, keeping the JSON syntax valid. Relaunch.<br>
+      Expected: The default-sized window is centered on the primary screen, reduced if needed to fit
+      the usable desktop area. The preferences file does not need to be deleted.
+
+   1. Move the window partly beyond the right or bottom screen edge, close it, then relaunch.<br>
+      Expected: The entire window is moved into the usable area and resized only if necessary.
+
+   1. With a secondary monitor connected, place the window fully within that monitor and restart.<br>
+      Expected: Its size and position are preserved, including negative desktop coordinates.
+      Close Spotter, disconnect that monitor, then relaunch.<br>
+      Expected: If the saved window no longer overlaps any screen, it is restored on the primary screen.
+
+1. Unknown commands
+
+   1. Enter `hlep`.<br>
+      Expected: `Unknown command. Type "help" to see all commands.`
+
+1. Opening and restoring the Help window
+
+   1. Enter `help`.<br>
+      Expected: The result box shows `Opened help window.` The Help window shows the link to the Spotter User Guide
+      and a `Copy URL` button.
+
+   1. Minimize the Help window, return to Spotter and enter `help` again.<br>
       Expected: The same Help window is restored and brought forward.
 
    1. Repeat using the Help menu and `F1`, minimizing the window before each attempt.<br>
       Expected: Both routes restore the existing Help window and bring it forward.
 
-1. _{ more test cases … }_
+1. Shutdown
+
+   1. Enter `exit`.<br>
+      Expected: Spotter closes. Relaunching it shows the same clients as before.
+
+### Adding and listing clients
+
+Start from the sample data.
+
+1. Enter `add n/Sarah Lim p/9123 4567 e/sarah@example.com t/rehab`.<br>
+   Expected: `New client added: Sarah Lim; Phone: 9123 4567; Email: sarah@example.com`. Her card shows the
+   `rehab` tag and `Phone: 9123 4567`.
+1. Enter `add n/John Tan p/88776655`.<br>
+   Expected: `New client added: John Tan; Phone: 8877 6655`. His card shows `Email: -`.
+1. Enter `add n/sarah  lim p/99998888`.<br>
+   Expected: `This client already exists in Spotter.` Names are compared ignoring case and extra spaces.
+1. Enter `add n/Kim Lee p/12`, then `add n/Kim Lee`.<br>
+   Expected: An error explaining the phone-number rules, then `Invalid command format!` followed by the `add`
+   usage. No client is added.
+1. Enter `add n/Kim Lee p/8877 6655`.<br>
+   Expected: `New client added: Kim Lee; Phone: 8877 6655`, followed by
+   `Warning: John Tan also has this phone number.` The warning does not block the command, so Kim Lee is added.
+1. Enter `list`.<br>
+   Expected: `Listed 9 clients.`
+1. Enter `list all`.<br>
+   Expected: `"list" does not take any parameters.` followed by `Example: list`.
+
+### Editing a client
+
+Continue from the previous section.
+
+1. Enter `find sarah`, then `edit 1 p/9876 5432 t/`.<br>
+   Expected: `Edited client: Sarah Lim; Phone: 9876 5432; Email: sarah@example.com`. Her `rehab` tag is removed.
+   After a successful edit, the list shows all clients again.
+1. Enter `find sarah`, then `edit 1 e/`.<br>
+   Expected: `Edited client: Sarah Lim; Phone: 9876 5432`. Her card shows `Email: -`.
+1. Enter `find sarah`, then `edit 1` and `edit 1 n/John Tan`.<br>
+   Expected: `At least one field to edit must be provided.`, then `This client already exists in Spotter.`
+   Sarah's details are unchanged.
+
+### Client name and phone formats
+
+Use a disposable dataset. Before index-based commands, run `list` and read the client's current displayed index;
+replace `INDEX` below with that number. Do not assume insertion order is the displayed order.
+
+1. Run `add n/Raju s/o Kumar p/+65 9123 4567` and
+   `add n/Mary-Jane O'Brien p/1234 5678 (HP) 1111-3333 (Office)`.<br>
+   Expected: Both clients are added and the formatted phone values are retained.
+1. Run `add n/José Tan p/91234567`, then try the same name encoded as `Jose` followed by U+0301 and ` Tan`.<br>
+   Expected: The second add is rejected as an existing client. `find José` finds the client, but a keyword using the
+   decomposed encoding does not yet match. `Jose` without an accent is not the same name.
+1. Run `add n/-Bob p/91234567`, `add n/王明 p/91234567` and `add n/Phone Probe p/12`.<br>
+   Expected: Validation feedback explains the supported name or phone characters/digit requirement; no client is added.
+1. For Raju, run `session INDEX d/2026-12-15 t/1900`, check the displayed list again, then run
+   `cancelsession INDEX` with his current index.<br>
+   Expected: Both commands succeed. The equivalent `n/Raju s/o Kumar` forms are rejected as documented, without
+   changing stored data; the index form is the supported alternative.
+1. Edit one test client's phone to `8743 8807`, close Spotter and restart it.<br>
+   Expected: The stored phone is `87438807` (displayed as `8743 8807`), the formatted phones of other clients are
+   unchanged, and the punctuation/accented names remain available. Remove the test clients when finished.
+
+### Finding and filtering clients
+
+Start from the sample data, or continue from [Editing a client](#editing-a-client).
+
+1. Enter `find alex david`.<br>
+   Expected: `Listed 2 clients.` The list shows `Alex Yeoh` and `David Li`.
+1. Enter `find ALEX`, `find ale`, then `find iveir`.<br>
+   Expected: `Listed 1 client.` each time: first `Alex Yeoh` twice, then `Charlotte Oliveiro`. A keyword can match
+   any part of a name, ignoring case.
+1. Enter `find 8743`, `find example`, then `find friends`.<br>
+   Expected: `No clients found.` with an empty list each time, as phone numbers, emails and tags are not searched.
+1. Enter `find`.<br>
+   Expected: `Invalid command format!` followed by the `find` usage. The displayed list does not change.
+1. Enter `filter t/friends`, then `filter t/FAMILY t/neighbours`.<br>
+   Expected: `Listed 2 clients.` each time: first `Alex Yeoh` and `Bernice Yu`, then `Charlotte Oliveiro` and
+   `David Li`.
+1. Enter `filter t/re-hab`, `filter t/` and `filter friends`.<br>
+   Expected: `Tag names should be alphanumeric`, `Tags to filter by cannot be empty.` and
+   `Invalid command format!`, each followed by the `filter` usage. The displayed list does not change.
+1. Enter `list`.<br>
+   Expected: All clients are shown again.
+
+### Deleting a client
+
+Start from the sample data.
+
+1. Enter `find irfan david`, then `delete 2`.<br>
+   Expected: `Deleted client: Irfan Ibrahim; Phone: 9249 2021; Email: irfan@example.com`. The search stays active,
+   so the list now shows only `David Li`.
+1. Enter `delete 0`, `delete 99` and `delete`.<br>
+   Expected: `The client index provided is invalid.` twice, then `Invalid command format!` followed by the
+   `delete` usage. No client is deleted.
+1. Deleting a client also removes their session and records. Step 8 of
+   [Upcoming sessions and viewing a client's history](#upcoming-sessions-and-viewing-a-client-s-history) checks this
+   for a client with a booking.
 
 ### Clearing all clients
 
@@ -1089,39 +1338,83 @@ testers are expected to do more *exploratory* testing.
    and the data file are unchanged, including after restarting.
 3. Enter `clear` without parameters. Expected: All clients and their records are removed and remain absent after restart.
 
-### Launching from another directory
+### Booking, cancelling and listing sessions
 
-Use disposable folders and fictional data. Put the freshly built `spotter.jar` in an application folder such as
-`Spotter 100%`, and create two separate empty folders for launching it.
+Use a disposable folder containing the JAR and fictional data. Let `DATE` be tomorrow in `YYYY-MM-DD` format;
+replace `DATE` in every command below, and `TODAY` with today's date. Add unique test clients if the names already exist.
 
-1. Open a terminal in the first launch folder and run `java -jar "ABSOLUTE_PATH_TO_APP/spotter.jar"` using Java 25.
-   Add `add n/Storage Probe Client p/91234567`.<br>
-   Expected: The client appears and is saved. The data file, preferences and logs are inside the application folder;
-   the terminal's launch folder stays empty. The footer shows the data file's absolute path beside the JAR.
-1. Exit and launch the same JAR from the second launch folder. Run `find Storage Probe Client`.<br>
-   Expected: The saved client is found, with no files created in the second launch folder.
-1. Exit and back up the generated log files. Create a directory named `spotter.log.0` in the application folder,
-   then launch the JAR again.<br>
-   Expected: The console reports that file logging is unavailable and console logging is being used. Spotter still
-   opens and loads the saved client. No fallback log is created in the launch folder. After exiting, remove the
-   blocking directory and restore the backed-up logs before further testing.
+1. Enter `add n/SessionCancelAda p/91234567`, then `add n/SessionCancelZoe p/92345678`.
+   Book them with `session n/SessionCancelAda d/DATE t/0900` and `session n/SessionCancelZoe d/DATE t/1700`.
+1. Enter `find Nobody`, then `sessions d/DATE`.<br>
+   Expected: Both test clients are visible, Ada before Zoe, with consecutive indices. The date command searches all
+   clients, replacing the empty search. If other clients already have bookings that day, they also appear.
+1. Enter `find SessionCancelAda`, then `measure 1 d/TODAY t/weight v/72.4`.
+   Enter `find SessionCancelAda` again, then `performance 1 d/TODAY e/Squat s/3 r/5 w/100`.
+   Re-enter `sessions d/DATE` and note Ada's current index `INDEX` before continuing.
+1. Enter `cancelsession INDEX` for Ada.<br>
+   Expected: `Cancelled session on DATE 09:00 for SessionCancelAda. SessionCancelAda is no longer shown here; clients
+   below have moved up one place.` (with tomorrow's date). Ada disappears from the date view; Zoe remains.
+   Enter `list` and locate Ada. The card shows `Next session: - (none booked)` while both progress rows remain populated.
+   Close and restart Spotter. Ada remains unbooked and the contact/progress data are unchanged.
+1. Enter `find SessionCancelAda`, then try `cancelsession 1`.<br>
+   Expected: `No session is recorded for SessionCancelAda.` No client data or displayed results change.
+1. Enter `find SessionCancelAda`, then `cancelsession n/sessioncancelzoe`.<br>
+   Expected: Zoe's session is cancelled even though only Ada is displayed. The filter still shows Ada,
+   and Zoe's other data are preserved. Repeat the command: `No session is recorded for SessionCancelZoe.`
+   Try `cancelsession n/Unknown`: the unknown-name error is shown and nothing changes.
+1. Try `cancelsession 0`, `cancelsession 999999`, `cancelsession 1 2`, `sessions d/2026-02-30`,
+   `sessions d/DATE d/DATE` and `sessions d/DATE x/foo`.<br>
+   Expected: Invalid index, format or calendar errors, with no changes to clients, the current filter or saved data.
+1. Enter `sessions d/0001-01-01` in this test dataset.<br>
+   Expected: `No sessions recorded on 0001-01-01.` and an empty panel. `list` restores all clients.
+1. For a save-failure test, first book Ada again and display `sessions d/DATE`.
+   While Spotter is running, move `data/spotter.json` to a backup and create a directory named `data/spotter.json`.
+   Cancel Ada's current displayed index.<br>
+   Expected: `Unable to save Spotter data.` The booking and date-filtered list are restored with all progress intact.
+   Close Spotter, remove the empty blocking directory and restore the backup file before further testing.
+1. Book Ada at `session n/SessionCancelAda d/DATE t/0900`, then change it to
+   `session n/SessionCancelAda d/DATE t/1000`.<br>
+   Expected: The rescheduling message includes the old `09:00` and new `10:00` bookings. The full list scrolls
+   to the top. Repeat the second command: Spotter reports that the booking is already recorded.
+1. Keep Spotter open across a session's start time, then run `help`.<br>
+   Expected: Expired cards show `- (none upcoming)` and sort after future bookings. For an index-based command
+   entered before this refresh, the client shown at that index receives the change before the list is reordered.
+1. Book both Ada and Zoe for `DATE` at `1000`, using their full names.<br>
+   Expected: The second booking succeeds with a warning naming the other client. Both remain in `sessions d/DATE`.
+   Run `find SessionCancelAda`, then book Ada at `1000` again: the warning still names Zoe outside the filter.
+   Move Ada to `1001`: the warning disappears, because only exact start times are compared.
+1. Enter `add n/SessionPastEve p/93456789`, then `session n/SessionPastEve d/2020-01-01 t/0900`.<br>
+   Expected: `Recorded next session for SessionPastEve on 2020-01-01 at 09:00`, followed by
+   `Note: this session is in the past, so it shows as "- (none upcoming)".` The booking is kept, and Eve's card
+   shows `Next session: - (none upcoming)`. `sessions d/2020-01-01` lists Eve.
+1. Enter `session n/SessionPastEve d/DATE t/2400`.<br>
+   Expected: `Time must be a 24-hour time such as 930, 0930, 9:30 or 19:00.` Eve's booking is unchanged.
 
-### Deleting a person
+### Upcoming sessions and viewing a client's history
 
-1. Deleting a person while all persons are being shown
+Start from the sample data, which has no bookings. Booking a session moves that client to the top of the client
+list, so the indices below follow the list as it changes.
 
-   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
-
-   1. Test case: `delete 1`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
-
-   1. Test case: `delete 0`<br>
-      Expected: No person is deleted. The status message shows error details.
-
-   1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
-      Expected: Similar to previous.
-
-1. _{ more test cases … }_
+1. Launch Spotter.<br>
+   Expected: The right side shows `Upcoming sessions` with `No upcoming sessions.` and how to book one.
+1. Enter `session 1 d/2099-12-01 t/1800`, then `session 2 d/2099-11-30 t/0900`.<br>
+   Expected: Two cards appear, with the 30 Nov session above the 1 Dec one. The client list shows the same
+   two clients at indices 1 and 2.
+1. Enter `view 1`.<br>
+   Expected: The result box shows `Showing details and history of <name>.` The right side shows that client's
+   details and history instead of Upcoming sessions.
+1. Enter `measure 1 d/2026-10-20 t/weight v/70.5`.<br>
+   Expected: Without running `view` again, the history lists `2026-10-20  weight 70.5 kg` under `Measurements`.
+1. Enter `find zzz`.<br>
+   Expected: The client list is empty, but the history is still shown.
+1. Enter `list`.<br>
+   Expected: Upcoming sessions is back, and the 30 Nov card shows the new measurement as its latest.
+1. Enter `cancelsession 1`.<br>
+   Expected: The 30 Nov card disappears; the 1 Dec card remains.
+1. Enter `view 1`, then `delete 1`.<br>
+   Expected: Upcoming sessions is back and shows `No upcoming sessions.`
+1. Enter `view 0`.<br>
+   Expected: `The client index provided is invalid.` The right side does not change.
 
 ### Recording body measurements
 
@@ -1132,13 +1425,16 @@ Repeat while replacing selected text, and check Undo/Redo before pressing Enter.
 
 Use fictional data in a disposable test folder. Start with a client without measurements,
 run `list` and substitute that client's displayed index for `1` below.
+Run `view 1` to keep that client's history open during the following checks. These September 2026 examples
+assume the computer date is later than 12 September 2026; card dates include the year when it differs from today.
 
 1. Enter `measure 1 d/2026-09-12 t/weight v/72.4`.<br>
    Expected: `Recorded measurement for NAME: weight = 72.4 kg on 2026-09-12.`
-   The card shows `Latest measurement: 12 Sep - weight 72.4 kg (1 record)`.
+   The card shows `Latest measurement: 12 Sep - weight 72.4 kg (1 record)` in 2026.
+   The open history panel shows the record without another `view` command.
 1. Enter `measure 1 d/2026-09-12 t/weight v/71.8`.<br>
    Expected: `Updated measurement for NAME: weight = 71.8 kg on 2026-09-12.`
-   The card value changes to 71.8 and the count stays at one.
+   The card and open history value change to 71.8 and their counts stay at one.
 1. Add `measure 1 d/2026-09-12 t/waist v/81`, then
    `measure 1 d/2026-09-11 t/bodyfat v/18.4`.<br>
    Expected: Both commands record new entries. The card still shows weight 71.8 kg, with three records.
@@ -1160,12 +1456,14 @@ run `list` and substitute that client's displayed index for `1` below.
 Use fictional data in a disposable test folder. Run `list`, choose a client, and substitute that client's
 displayed index for `1` below. Start with no measurements for that client and retain a session and a
 performance record to check that unrelated data survives deletion.
+Run `view 1` before the deletion checks so the open history panel can be checked alongside the card.
 
 1. Run `measure 1 d/2026-09-11 t/weight v/73`, `measure 1 d/2026-09-12 t/waist v/81`,
    and `measure 1 d/2026-09-12 t/weight v/72.4`.
    Expected: latest weight 72.4 kg with three records.
 2. Run `deletemeasure 1 d/2026-09-12 t/weight`.
-   Expected: a deletion message; the card shows waist 81 cm with two records.
+   Expected: a deletion message; the card shows waist 81 cm with two records. The open history panel
+   removes the weight entry and updates its count without another `view` command.
 3. Run `deletemeasure 1 d/2026-09-12 t/waist`.
    Expected: the card shows weight 73 kg on 11 Sep with one record.
 4. Restart Spotter, run `list` and locate the same client again.
@@ -1218,7 +1516,8 @@ run `list` and substitute that client's displayed index for `1` below. `NAME` is
       Expected: `No performance record for Squat on 2026-09-18 was found for NAME.`, then the same message for
       2026-09-14. The expected command format is not shown, and the card is unchanged.
    1. Enter `deleteperformance 1 d/15-09-2026 e/Squat`, then `deleteperformance 1 d/2026-02-30 e/Squat`.<br>
-      Expected: `The date must use the format yyyy-MM-dd.`, then `2026-02-30 is not a real date.`,
+      Expected: `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`,
+      then `2026-02-30 is not a real date.`,
       each followed by the expected command format. The card is unchanged.
    1. Try a missing `e/` prefix, a repeated `d/` prefix, and an index outside the displayed list.<br>
       Expected: Each command is rejected with an error and the expected command format, without changing records.
@@ -1246,78 +1545,6 @@ run `list` and substitute that client's displayed index for `1` below. `NAME` is
       Expected: The card still shows `Latest performance: -`, while the session and measurement remain.
 
 <!-- AI assistance: Claude (Anthropic) helped draft these gym-performance manual tests. -->
-
-### Cancelling and listing sessions
-
-Use a disposable folder containing the JAR and fictional data. Let `DATE` be tomorrow in `YYYY-MM-DD` format;
-replace `DATE` in every command below, and `TODAY` with today's date. Add unique test clients if the names already exist.
-
-1. Enter `add n/SessionCancelAda p/91234567`, then `add n/SessionCancelZoe p/92345678`.
-   Book them with `session n/SessionCancelAda d/DATE t/0900` and `session n/SessionCancelZoe d/DATE t/1700`.
-1. Enter `find Nobody`, then `sessions d/DATE`.<br>
-   Expected: Both test clients are visible, Ada before Zoe, with consecutive indices. The date command searches all
-   clients, replacing the empty search. If other clients already have bookings that day, they also appear.
-1. Enter `find SessionCancelAda`, then `measure 1 d/TODAY t/weight v/72.4`.
-   Enter `find SessionCancelAda` again, then `performance 1 d/TODAY e/Squat s/3 r/5 w/100`.
-   Re-enter `sessions d/DATE` and note Ada's current index `INDEX` before continuing.
-1. Enter `cancelsession INDEX` for Ada.<br>
-   Expected: `Cancelled session on DATE 09:00 for SessionCancelAda.` (with tomorrow's date).
-   Ada disappears from the date view; Zoe remains.
-   Enter `list` and locate Ada. The card shows `Next session: - (none booked)` while both progress rows remain populated.
-   Close and restart Spotter. Ada remains unbooked and the contact/progress data are unchanged.
-1. Enter `find SessionCancelAda`, then try `cancelsession 1`.<br>
-   Expected: `No session is recorded for SessionCancelAda.` No client data or displayed results change.
-1. Enter `find SessionCancelAda`, then `cancelsession n/sessioncancelzoe`.<br>
-   Expected: Zoe's session is cancelled even though only Ada is displayed. The filter still shows Ada,
-   and Zoe's other data are preserved. Repeat the command: `No session is recorded for SessionCancelZoe.`
-   Try `cancelsession n/Unknown`: the unknown-name error is shown and nothing changes.
-1. Try `cancelsession 0`, `cancelsession 999999`, `cancelsession 1 2`, `sessions d/2026-02-30`,
-   `sessions d/DATE d/DATE` and `sessions d/DATE x/foo`.<br>
-   Expected: Invalid index, format or calendar errors, with no changes to clients, the current filter or saved data.
-1. Enter `sessions d/0001-01-01` in this test dataset.<br>
-   Expected: `No sessions recorded on 0001-01-01.` and an empty panel. `list` restores all clients.
-1. For a save-failure test, first book Ada again and display `sessions d/DATE`.
-   While Spotter is running, move `data/spotter.json` to a backup and create a directory named `data/spotter.json`.
-   Cancel Ada's current displayed index.<br>
-   Expected: `Unable to save Spotter data.` The booking and date-filtered list are restored with all progress intact.
-   Close Spotter, remove the empty blocking directory and restore the backup file before further testing.
-1. Book Ada at `session n/SessionCancelAda d/DATE t/0900`, then change it to
-   `session n/SessionCancelAda d/DATE t/1000`.<br>
-   Expected: The rescheduling message includes the old `09:00` and new `10:00` bookings. The full list scrolls
-   to the top. Repeat the second command: Spotter reports that the booking is already recorded.
-1. Keep Spotter open across a session's start time, then run `help`.<br>
-   Expected: Expired cards show `- (none upcoming)` and sort after future bookings. For an index-based command
-   entered before this refresh, the client shown at that index receives the change before the list is reordered.
-1. Book both Ada and Zoe for `DATE` at `1000`, using their full names.<br>
-   Expected: The second booking succeeds with a warning naming the other client. Both remain in `sessions d/DATE`.
-   Run `find SessionCancelAda`, then book Ada at `1000` again: the warning still names Zoe outside the filter.
-   Move Ada to `1001`: the warning disappears, because only exact start times are compared.
-
-### Upcoming sessions and viewing a client's history
-
-Start from the sample data, which has no bookings. Booking a session moves that client to the top of the client
-list, so the indices below follow the list as it changes.
-
-1. Launch Spotter.<br>
-   Expected: The right side shows `Upcoming sessions` with `No upcoming sessions.` and how to book one.
-1. Enter `session 1 d/2099-12-01 t/1800`, then `session 2 d/2099-11-30 t/0900`.<br>
-   Expected: Two cards appear, with the 30 Nov session above the 1 Dec one. The client list shows the same
-   two clients at indices 1 and 2.
-1. Enter `view 1`.<br>
-   Expected: The result box shows `Showing details and history of <name>.` The right side shows that client's
-   details and history instead of Upcoming sessions.
-1. Enter `measure 1 d/2026-10-20 t/weight v/70.5`.<br>
-   Expected: Without running `view` again, the history lists `2026-10-20  weight 70.5 kg` under `Measurements`.
-1. Enter `find zzz`.<br>
-   Expected: The client list is empty, but the history is still shown.
-1. Enter `list`.<br>
-   Expected: Upcoming sessions is back, and the 30 Nov card shows the new measurement as its latest.
-1. Enter `cancelsession 1`.<br>
-   Expected: The 30 Nov card disappears; the 1 Dec card remains.
-1. Enter `view 1`, then `delete 1`.<br>
-   Expected: Upcoming sessions is back and shows `No upcoming sessions.`
-1. Enter `view 0`.<br>
-   Expected: `The client index provided is invalid.` The right side does not change.
 
 ### UI readability and feedback sizing
 
@@ -1400,3 +1627,20 @@ command changes client data; that command overwrites it with the current records
 </box>
 
 <!-- AI assistance: OpenAI Codex helped draft storage persistence and recovery acceptance tests. -->
+
+### Launching from another directory
+
+Use disposable folders and fictional data. Put the freshly built `spotter.jar` in an application folder such as
+`Spotter 100%`, and create two separate empty folders for launching it.
+
+1. Open a terminal in the first launch folder and run `java -jar "ABSOLUTE_PATH_TO_APP/spotter.jar"` using Java 25.
+   Add `add n/Storage Probe Client p/91234567`.<br>
+   Expected: The client appears and is saved. The data file, preferences and logs are inside the application folder;
+   the terminal's launch folder stays empty. The footer shows the data file's absolute path beside the JAR.
+1. Exit and launch the same JAR from the second launch folder. Run `find Storage Probe Client`.<br>
+   Expected: The saved client is found, with no files created in the second launch folder.
+1. Exit and back up the generated log files. Create a directory named `spotter.log.0` in the application folder,
+   then launch the JAR again.<br>
+   Expected: The console reports that file logging is unavailable and console logging is being used. Spotter still
+   opens and loads the saved client. No fallback log is created in the launch folder. After exiting, remove the
+   blocking directory and restore the backed-up logs before further testing.

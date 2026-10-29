@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
@@ -38,6 +39,14 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void hashCode_consistentWithEquals() {
+        NameContainsKeywordsPredicate first = new NameContainsKeywordsPredicate(List.of("first"));
+        NameContainsKeywordsPredicate same = new NameContainsKeywordsPredicate(List.of("first"));
+
+        assertEquals(first.hashCode(), same.hashCode());
+    }
+
+    @Test
     public void test_nameContainsKeywords_returnsTrue() {
         // One keyword
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("Alice"));
@@ -54,6 +63,42 @@ public class NameContainsKeywordsPredicateTest {
         // Mixed-case keywords
         predicate = new NameContainsKeywordsPredicate(List.of("aLIce", "bOB"));
         assertTrue(predicate.test(new PersonBuilder().withName("Alice Bob").build()));
+    }
+
+    @Test
+    public void test_nameContainsPartialKeyword_returnsTrue() {
+        Person person = new PersonBuilder().withName("Hans Gruber").build();
+        for (String keyword : List.of("han", "HAN", "an", "ANS", "grub", "BER")) {
+            NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of(keyword));
+            assertTrue(predicate.test(person), keyword);
+        }
+    }
+
+    @Test
+    public void test_onlyOnePartialKeywordMatches_returnsTrue() {
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("xyz", "HAN"));
+        assertTrue(predicate.test(new PersonBuilder().withName("Hans Gruber").build()));
+    }
+
+    @Test
+    public void test_turkishDefaultLocale_matchesIndependentlyOfLocale() {
+        Locale originalLocale = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.forLanguageTag("tr-TR"));
+            NameContainsKeywordsPredicate lowercasePredicate = new NameContainsKeywordsPredicate(List.of("is"));
+            assertTrue(lowercasePredicate.test(new PersonBuilder().withName("ISABELLE").build()));
+            NameContainsKeywordsPredicate uppercasePredicate = new NameContainsKeywordsPredicate(List.of("IS"));
+            assertTrue(uppercasePredicate.test(new PersonBuilder().withName("Isabelle").build()));
+        } finally {
+            Locale.setDefault(originalLocale);
+        }
+    }
+
+    @Test
+    public void test_keywordMatchesOnlyOtherFields_returnsFalse() {
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("123", "email", "friend"));
+        assertFalse(predicate.test(new PersonBuilder().withName("Hans Gruber").withPhone("12345")
+                .withEmail("alice@email.com").withTags("friends").build()));
     }
 
     @Test

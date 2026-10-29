@@ -23,7 +23,7 @@ import seedu.address.model.tag.Tag;
 
 public class ParserUtilTest {
     private static final String INVALID_NAME = "R@chel";
-    private static final String INVALID_PHONE = "+651234";
+    private static final String INVALID_PHONE = "123/456";
     private static final String INVALID_EMAIL = "example.com";
     private static final String INVALID_TAG = "#friend";
 
@@ -98,8 +98,8 @@ public class ParserUtilTest {
     @Test
     public void parseRecordDate_wrongFormat_throwsParseException() {
         for (String wrongFormat : List.of("", "18-09-2026", "2026/09/18", "2026-9-18", "12026-09-18",
-                "+2026-09-18", "today", "2026-13-01", "2026-00-10", "2026-10-32")) {
-            assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_RECORD_DATE, ()
+                "+2026-09-18", "today", "2026-13-01", "2026-00-10", "2026-10-32", "0000-01-01")) {
+            assertThrows(ParseException.class, ParserUtil.MESSAGE_DATE_FORMAT, ()
                 -> ParserUtil.parseRecordDate(wrongFormat, FUTURE_DATE_MESSAGE));
         }
     }
@@ -107,8 +107,8 @@ public class ParserUtilTest {
     @Test
     public void parseRecordDate_nonexistentDate_throwsParseException() {
         // the format is right but the date does not exist, so the message names the date instead of the format
-        for (String nonexistentDate : List.of("2026-02-30", "2027-02-29", "2026-04-31", "0000-01-01")) {
-            assertThrows(ParseException.class, String.format(ParserUtil.MESSAGE_NONEXISTENT_RECORD_DATE,
+        for (String nonexistentDate : List.of("2026-02-30", "2027-02-29", "2026-04-31")) {
+            assertThrows(ParseException.class, String.format(ParserUtil.MESSAGE_NONEXISTENT_DATE,
                     nonexistentDate), () -> ParserUtil.parseRecordDate(nonexistentDate, FUTURE_DATE_MESSAGE));
         }
 
@@ -125,16 +125,14 @@ public class ParserUtilTest {
     }
 
     @Test
-    public void parseExistingRecordDate_invalidDate_throwsParseException() {
-        assertThrows(NullPointerException.class, () -> ParserUtil.parseExistingRecordDate(null));
-        for (String wrongFormat : List.of("", "18-09-2026", "12026-09-18", "2026-13-01")) {
-            assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_RECORD_DATE, ()
-                -> ParserUtil.parseExistingRecordDate(wrongFormat));
+    public void parseCalendarDate_invalidDate_throwsParseException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseCalendarDate(null));
+        for (String wrongFormat : List.of("", "18-09-2026", "12026-09-18", "2026-13-01", "0000-01-01")) {
+            assertThrows(ParseException.class, ParserUtil.MESSAGE_DATE_FORMAT, ()
+                -> ParserUtil.parseCalendarDate(wrongFormat));
         }
-        for (String nonexistentDate : List.of("2026-02-30", "0000-01-01")) {
-            assertThrows(ParseException.class, String.format(ParserUtil.MESSAGE_NONEXISTENT_RECORD_DATE,
-                    nonexistentDate), () -> ParserUtil.parseExistingRecordDate(nonexistentDate));
-        }
+        assertThrows(ParseException.class, "2026-02-30 is not a real date.", ()
+            -> ParserUtil.parseCalendarDate("2026-02-30"));
     }
 
     @Test
@@ -158,11 +156,11 @@ public class ParserUtilTest {
     }
 
     @Test
-    public void parseExistingRecordDate_anyRealDate_returnsDate() throws Exception {
+    public void parseCalendarDate_anyRealDate_returnsDate() throws Exception {
         // future dates are accepted, so that future-dated records loaded from a data file can be deleted
         LocalDate tomorrow = LocalDate.now().plusDays(1);
-        assertEquals(tomorrow, ParserUtil.parseExistingRecordDate(tomorrow.toString()));
-        assertEquals(LocalDate.of(2026, 9, 18), ParserUtil.parseExistingRecordDate(" 2026-09-18 "));
+        assertEquals(tomorrow, ParserUtil.parseCalendarDate(tomorrow.toString()));
+        assertEquals(LocalDate.of(2026, 9, 18), ParserUtil.parseCalendarDate(" 2026-09-18 "));
     }
 
     @Test
@@ -245,9 +243,15 @@ public class ParserUtilTest {
     }
 
     @Test
-    public void parsePhone_spacesWithOtherCharacters_throwsFormatMessage() {
-        assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> ParserUtil.parsePhone("9927-2758"));
-        assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> ParserUtil.parsePhone("+65 9927 2758"));
+    public void parsePhone_formattedNumbers_preservesFormat() throws Exception {
+        assertEquals("9927-2758", ParserUtil.parsePhone("9927-2758").value);
+        assertEquals("+65 9927 2758", ParserUtil.parsePhone(" +65  9927 2758 ").value);
+        assertEquals("1234 5678 (HP) 1111-3333 (Office)",
+                ParserUtil.parsePhone("1234 5678 (HP) 1111-3333 (Office)").value);
+    }
+
+    @Test
+    public void parsePhone_missingDigits_throwsFormatMessage() {
         assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> ParserUtil.parsePhone("   "));
         assertThrows(ParseException.class, Phone.MESSAGE_CONSTRAINTS, () -> ParserUtil.parsePhone("1 2")); // 2 digits
     }

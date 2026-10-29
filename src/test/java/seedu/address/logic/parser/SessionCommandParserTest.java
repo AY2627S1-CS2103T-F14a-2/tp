@@ -67,14 +67,15 @@ public class SessionCommandParserTest {
     public void parse_invalidDateFormat_failure() {
         for (String malformed : List.of("", "2026-1-01", "0000-01-01", "+2028-01-01", "12028-01-01",
                 "01-01-2028", "2026-13-01", "2026-00-10", "2026-01-00", "2026-01-32")) {
-            assertParseFailure(parser, " 1 d/" + malformed + " t/1700", ParserUtil.MESSAGE_SESSION_DATE_FORMAT);
+            assertParseFailure(parser, " 1 d/" + malformed + " t/1700", ParserUtil.MESSAGE_DATE_FORMAT);
         }
     }
 
     @Test
     public void parse_impossibleCalendarDate_failure() {
         for (String impossible : List.of("2028-02-30", "2027-02-29", "2028-04-31")) {
-            assertParseFailure(parser, " 1 d/" + impossible + " t/1700", ParserUtil.MESSAGE_INVALID_SESSION_DATE);
+            assertParseFailure(parser, " 1 d/" + impossible + " t/1700",
+                    String.format(ParserUtil.MESSAGE_NONEXISTENT_DATE, impossible));
         }
     }
 
