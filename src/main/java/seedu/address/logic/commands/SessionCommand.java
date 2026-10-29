@@ -6,6 +6,7 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -83,7 +84,11 @@ public class SessionCommand extends Command {
         requireNonNull(model);
         Person target = findClient(model, index, name);
         String feedback = getFeedback(target) + getClashWarning(model, target);
-        model.setPerson(target, target.withNextSession(nextSession));
+        // @@author
+        List<Person> shownBefore = List.copyOf(model.getFilteredPersonList());
+        Person booked = target.withNextSession(nextSession);
+        // @@author gabriel-wan
+        model.setPerson(target, booked);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
         // @@author
         // Past sessions are kept for record-keeping; warn rather than block, as the booking is not upcoming.
@@ -91,6 +96,8 @@ public class SessionCommand extends Command {
         if (nextSession.value.isBefore(LocalDateTime.now(clock))) {
             feedback += "\n" + MESSAGE_PAST_SESSION;
         }
+        // Re-sorting and clearing a filter can both change what a previously displayed index refers to.
+        feedback += ClientOrderNote.forChange(shownBefore, target, booked, model.getFilteredPersonList());
         return new CommandResult(feedback, false, false, true);
     }
 

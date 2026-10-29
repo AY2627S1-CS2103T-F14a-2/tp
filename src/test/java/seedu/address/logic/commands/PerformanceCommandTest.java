@@ -124,7 +124,7 @@ public class PerformanceCommandTest {
         assertFalse(command.equals(null));
 
         // different types -> returns false
-        assertFalse(command.equals(new ClearCommand()));
+        assertFalse(command.equals(new ClearCommand(true)));
 
         // different index -> returns false
         assertFalse(command.equals(new PerformanceCommand(INDEX_SECOND_PERSON, BENCH_PRESS)));

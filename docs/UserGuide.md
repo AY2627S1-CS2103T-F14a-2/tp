@@ -41,7 +41,7 @@ Spotter is a **desktop application for freelance personal trainers to manage the
 
    * `delete 3` : Deletes the 3rd client shown in the current list.
 
-   * `clear` : Deletes all clients.
+   * `clear confirm` : Deletes all clients.
 
    * `exit` : Exits the app.
 
@@ -69,7 +69,7 @@ Spotter is a **desktop application for freelance personal trainers to manage the
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Extraneous parameters for `help` and `exit` are ignored. `clear` rejects extra parameters.<br>
+* Extraneous parameters for `help` and `exit` are ignored. `clear` accepts only `confirm` (see [`clear`](#clearing-all-entries-clear)).<br>
   For example, `help 123` is interpreted as `help`. `list` does not accept any extra text (see [`list`](#listing-all-clients-list)).
 
 * Tabs pasted into the command box become spaces, preserving separators in commands copied from tabular notes.
@@ -201,6 +201,9 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [t/TAG]... `
 * Zero, negative or oversized numeric indexes show `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.`.
   A missing or nonnumeric index shows `Invalid command format!` followed by the command usage.
 * After a successful edit, the full client list is shown again, even if a `find` or `filter` was active.
+  If this, or a new name, changes which client any previously shown index refers to, the message adds
+  `The client list order has changed; check the index numbers before your next command.`
+  A phone-only edit in the full list keeps every index, so no note is shown.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st client to be `91234567` and `johndoe@example.com` respectively.
@@ -399,6 +402,10 @@ Format: `performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`
 * If the client already has a record for the same exercise on the same date, the new sets, repetitions and load
   replace the old record. Spotter keeps one result per exercise per client per day, so you can correct a mistake
   by recording it again.
+* A record stores one summary: the number of sets, the repetitions per set and the load, e.g. 3 sets of 8 reps at
+  60 kg. `REPS` must be a whole number, so Spotter cannot record sets with different repetitions (e.g. 10, 8 and 6
+  reps), timed exercises (e.g. a 60-second plank) or distances (e.g. a 5 km run). Inputs such as `r/60s` or
+  `r/8-10` are rejected.
 
 Parameter | Accepted values
 ----------|----------------
@@ -509,7 +516,7 @@ with the name as its title:
 Alex Tan
 Phone: 9123 4567
 Email: alex@example.com
-Next session: Fri 23 Oct, 6:00pm
+Next session: Tue 15 Dec, 6:00pm
 Tags: knee, rehab
 
 Measurements · 3 records
@@ -541,13 +548,22 @@ If a command fails, the panel keeps showing the client as they were before that 
 
 ### Clearing all entries: `clear`
 
-Clears all clients from Spotter.
+Clears all clients from Spotter, together with their sessions, measurements and performance records.
 
-Format: `clear`
+Format: `clear confirm`
 
-`clear` takes no parameters. Inputs such as `clear 1` or `clear all` are rejected without changing clients,
-their records, the current view or the saved data. To remove one client, use `delete INDEX`.
-`clear` currently deletes everything without a confirmation step; requiring confirmation is a future enhancement.
+* `clear` on its own deletes nothing. It explains what `clear confirm` deletes, so one mistyped command cannot
+  remove every client.
+* `confirm` is case-insensitive, so `clear CONFIRM` also works.
+* Any other text after `clear`, such as `clear 1`, `clear all` or `clear confrim`, is rejected without changing
+  clients, their records, the current view or the saved data.
+* To remove one client, use `delete INDEX`.
+
+<box type="warning" seamless>
+
+**Caution:** `clear confirm` cannot be undone. To keep a copy of your data, back up the data file first
+(see [How do I back up my clients' data?](#faq)).
+</box>
 
 ### Exiting the program: `exit`
 
@@ -601,6 +617,11 @@ filtered lists, and startup. Sorting the displayed list does not reorder the JSO
 After each successful command, the order and session card rows are refreshed to account for bookings that have passed.
 An index-based command acts on the client shown at that index before this refresh.
 **Index numbers can change after a booking or a client change. Check the displayed list before any index-based command.**
+If the booking or the cleared filter changes which client any previously shown index refers to, the message adds
+`The client list order has changed; check the index numbers before your next command.`
+For example, if a filter shows only Aaron and Chris out of Aaron, Bea and Chris, `session 1 d/2026-12-15 t/0900`
+keeps Aaron at index 1 but shows the full list, so index 2 becomes Bea and the note is shown. Clients that only appear below the previously
+shown ones do not trigger the note.
 
 The card shows `Next session: Tue 15 Dec, 7:00pm` for an upcoming booking (with the year for a booking in another
 year, e.g. `Wed 15 Dec 2027, 7:00pm`), `Next session: - (none booked)`
@@ -635,8 +656,8 @@ Format: `cancelsession INDEX` or `cancelsession n/NAME`
 * The current filter stays active. A cancelled client disappears from a `sessions` date view, but remains in Spotter.
   In the full list, their card shows `Next session: - (none booked)` and moves to the unbooked group.
 * Indices may change after cancellation. Check the displayed list before entering the next index-based command.
-  If the cancelled client moves to a different index or disappears from the displayed list, the message adds
-  `Displayed indices have changed. Check the client list before your next index-based command.`
+  If any previously shown client moves to a different index or disappears from the displayed list, the message adds
+  `The client list order has changed; check the index numbers before your next command.`
 * A client with no recorded session is rejected with `No session is recorded for NAME.`
   An invalid index shows `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.`
   Missing, non-numeric or mixed identifiers show
@@ -654,8 +675,8 @@ Example: `cancelsession 1` cancels the first displayed client's session.
 Alternatively, `cancelsession n/Sarah Lim` cancels Sarah's booking without relying on a changing list index.
 Success: `Cancelled session on 2026-12-15 09:00 for Sarah Lim.` (when that is her recorded booking).
 The confirmation includes the removed booking's date and 24-hour time, including for expired bookings.
-If displayed indices change, it continues:
-`Displayed indices have changed. Check the client list before your next index-based command.`
+If displayed indices change, it continues on a new line:
+`The client list order has changed; check the index numbers before your next command.`
 
 ### Listing sessions on a date: `sessions`
 
@@ -714,6 +735,10 @@ command until you have repaired the file or restored a backup, as described belo
 
 Spotter data is saved automatically as a JSON file `[JAR file location]/data/spotter.json`. Advanced users are welcome to update data directly by editing that data file. Save it as UTF-8, with or without a byte-order mark (BOM).
 
+Email is optional. Omitting a client's `email` field, setting it to `null` or `""`, or using a whitespace-only
+string loads that client without an email. Other clients and training records are retained. A nonblank
+email must still satisfy the email rules; for example, `"not-an-email"` makes the file invalid.
+
 The future-date restriction for measurements and performances applies when entering `measure` and `performance`.
 Valid future-dated records already in the data file are retained without a warning, for example after a system
 clock change. Use `deletemeasure` or `deleteperformance` to remove such a record; both accept future dates.
@@ -725,16 +750,14 @@ If your changes make the data file invalid, Spotter starts with no clients at th
 Furthermore, certain edits can cause Spotter to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
 
-### Archiving data files `[coming in v2.0]`
-
-_Details coming soon ..._
-
 --------------------------------------------------------------------------------------------------------------------
 
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous Spotter home folder.
+**A**: Close Spotter on both computers. Copy the whole `data` folder from beside `spotter.jar` on the old computer
+to beside `spotter.jar` on the new computer, replacing any `data` folder already there (this replaces any clients
+already on the new computer). Then launch Spotter on the new computer. Your clients are stored in `data/spotter.json`.
 
 **Q**: How do I back up my clients' data?<br>
 **A**: Close Spotter and copy `[JAR file location]/data/spotter.json` to a safe place. To restore it, close Spotter and copy the backup back to the same location. See [Saving the data](#saving-the-data).
@@ -792,7 +815,7 @@ You do not need to delete `preferences.json` after disconnecting a monitor.
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add**    | `add n/NAME p/PHONE [e/EMAIL] [t/TAG]...` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com t/rehab`
-**Clear**  | `clear`
+**Clear**  | `clear confirm`
 **Exit**   | `exit`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`

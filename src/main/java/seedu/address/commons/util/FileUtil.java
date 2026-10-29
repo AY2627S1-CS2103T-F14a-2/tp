@@ -1,8 +1,10 @@
 package seedu.address.commons.util;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 /**
  * Writes and reads files
@@ -46,11 +48,44 @@ public class FileUtil {
     }
 
     /**
-     * Writes given string to a file.
-     * Will create the file if it does not exist yet.
+     * Writes given string to a file, creating the file and its parent folders if needed.
+     * The content is written to a temporary file in the same folder first, so a failed write leaves any
+     * existing file unchanged.
      */
     public static void writeToFile(Path file, String content) throws IOException {
-        Files.write(file, content.getBytes(CHARSET));
+        byte[] bytes = content.getBytes(CHARSET);
+        writeToFile(file, (temp, target) -> Files.write(temp, bytes), FileUtil::moveIntoPlace);
+    }
+
+    // Package-private only so that tests can make writing or moving the temporary file fail.
+    static void writeToFile(Path file, FileStep write, FileStep move) throws IOException {
+        if (Files.exists(file) && !Files.isWritable(file)) {
+            // A move would replace a read-only file, so keep refusing as a direct write did.
+            throw new AccessDeniedException(file.toString());
+        }
+        createParentDirsOfFile(file);
+        Path temp = Files.createTempFile(file.toAbsolutePath().getParent(), "spotter-", ".tmp");
+        try {
+            write.apply(temp, file);
+            move.apply(temp, file);
+        } finally {
+            Files.deleteIfExists(temp);
+        }
+    }
+
+    /**
+     * Replaces {@code target} with {@code temp} in one atomic step. There is deliberately no non-atomic fallback:
+     * a failed non-atomic replacement can leave the target missing, so an unsupported atomic move fails the save
+     * instead and the old file is kept.
+     */
+    private static void moveIntoPlace(Path temp, Path target) throws IOException {
+        Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    /** One I/O step of {@link #writeToFile(Path, FileStep, FileStep)} on the temporary and target files. */
+    @FunctionalInterface
+    interface FileStep {
+        void apply(Path temp, Path target) throws IOException;
     }
 
 }

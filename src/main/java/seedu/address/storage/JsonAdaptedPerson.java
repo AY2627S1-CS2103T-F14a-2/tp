@@ -124,11 +124,12 @@ class JsonAdaptedPerson {
         }
         final Phone modelPhone = new Phone(phone);
 
-        // Email is optional, so a missing email is stored as null rather than rejected.
-        if (email != null && !Email.isValidEmail(email)) {
+        // Missing and blank emails mean no email, matching a blank CLI e/ field.
+        final boolean hasEmail = email != null && !email.isBlank();
+        if (hasEmail && !Email.isValidEmail(email)) {
             throw new IllegalValueException(Email.MESSAGE_CONSTRAINTS);
         }
-        final Email modelEmail = email == null ? null : new Email(email);
+        final Email modelEmail = hasEmail ? new Email(email) : null;
 
         final Set<Tag> modelTags = new HashSet<>(personTags);
 

@@ -1,8 +1,10 @@
 package seedu.address.logic;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
@@ -16,6 +18,7 @@ import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -86,7 +89,7 @@ public class LogicManagerTest {
         String savedData = Files.readString(file);
         AddressBook before = new AddressBook(model.getAddressBook());
 
-        for (String argument : List.of("1", "all", "n/Alice")) {
+        for (String argument : List.of("1", "all", "n/Alice", "confirm now")) {
             assertThrows(ParseException.class, ClearCommand.MESSAGE_EXTRA_PARAMETERS, () -> {
                 logic.execute("clear " + argument);
             });
@@ -95,6 +98,35 @@ public class LogicManagerTest {
             assertEquals(ALICE, model.getViewedPerson().getValue());
             assertEquals(savedData, Files.readString(file));
         }
+    }
+
+    @Test
+    public void execute_clearWithoutConfirm_preservesClientsFilterViewedClientAndStoredData() throws Exception {
+        model.addPerson(ALICE);
+        model.addPerson(BENSON);
+        model.updateFilteredPersonList(person -> person.isSamePerson(BENSON));
+        model.setViewedPerson(ALICE);
+        Path file = temporaryFolder.resolve("addressBook.json");
+        new JsonAddressBookStorage(file).saveAddressBook(model.getAddressBook());
+        String savedData = Files.readString(file);
+        AddressBook before = new AddressBook(model.getAddressBook());
+
+        CommandResult result = logic.execute("clear");
+
+        assertEquals(ClearCommand.MESSAGE_CONFIRMATION_REQUIRED, result.getFeedbackToUser());
+        assertEquals(before, model.getAddressBook());
+        assertEquals(List.of(BENSON), model.getFilteredPersonList());
+        assertEquals(ALICE, model.getViewedPerson().getValue());
+        assertEquals(savedData, Files.readString(file));
+    }
+
+    @Test
+    public void execute_clearConfirm_clearsClientsAndSavesEmptyData() throws Exception {
+        model.addPerson(ALICE);
+        Path file = temporaryFolder.resolve("addressBook.json");
+
+        assertCommandSuccess("clear confirm", ClearCommand.MESSAGE_SUCCESS, new ModelManager());
+        assertEquals(new AddressBook(), new JsonAddressBookStorage(file).readAddressBook().orElseThrow());
     }
 
     @Test
@@ -114,6 +146,29 @@ public class LogicManagerTest {
         Path dataFile = temporaryFolder.resolve("addressBook.json");
         logic.execute(ADD_AMY_COMMAND);
         assertTrue(Files.exists(dataFile));
+    }
+
+    @Test
+    public void execute_readOnlyDataFolder_reportsSaveFailureAndKeepsDataFile() throws Exception {
+        // Windows ignores the read-only attribute on folders, so this needs POSIX permissions.
+        assumeTrue(FileSystems.getDefault().supportedFileAttributeViews().contains("posix"));
+        Path dataFolder = temporaryFolder.resolve("data");
+        Path dataFile = dataFolder.resolve("spotter.json");
+        new JsonAddressBookStorage(dataFile).saveAddressBook(new AddressBook());
+        byte[] savedBytes = Files.readAllBytes(dataFile);
+        logic = new LogicManager(model, new StorageManager(new JsonAddressBookStorage(dataFile),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"))));
+
+        String expectedMessage = LogicManager.MESSAGE_SAVE_FAILURE;
+        assertTrue(dataFolder.toFile().setWritable(false));
+        try {
+            assertThrows(CommandException.class, expectedMessage, () -> logic.execute(ADD_AMY_COMMAND));
+        } finally {
+            dataFolder.toFile().setWritable(true);
+        }
+
+        assertArrayEquals(savedBytes, Files.readAllBytes(dataFile));
+        assertTrue(model.getAddressBook().getPersonList().isEmpty());
     }
 
     @Test
@@ -170,7 +225,8 @@ public class LogicManagerTest {
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         logic = new LogicManager(model, createStorageThrowing(DUMMY_IO_EXCEPTION));
 
-        assertCommandFailure("clear", CommandException.class, LogicManager.MESSAGE_SAVE_FAILURE, expectedModel);
+        assertCommandFailure("clear confirm", CommandException.class, LogicManager.MESSAGE_SAVE_FAILURE,
+                expectedModel);
     }
 
     @Test

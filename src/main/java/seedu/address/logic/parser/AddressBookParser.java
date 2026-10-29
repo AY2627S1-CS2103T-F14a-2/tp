@@ -97,12 +97,18 @@ public class AddressBookParser {
         return new ListCommand();
     }
 
-    /** Rejects accidental indices or other arguments before a destructive clear can execute. */
+    /**
+     * Returns a confirmed {@code ClearCommand} for {@code confirm} (any case) and an unconfirmed one for blank
+     * arguments, rejecting accidental indices or other arguments before a destructive clear can execute.
+     */
     private ClearCommand parseClearCommand(String arguments) throws ParseException {
-        if (!arguments.isBlank()) {
-            throw new ParseException(ClearCommand.MESSAGE_EXTRA_PARAMETERS);
+        if (arguments.isBlank()) {
+            return new ClearCommand(false);
         }
-        return new ClearCommand();
+        if (arguments.strip().equalsIgnoreCase(ClearCommand.CONFIRM_KEYWORD)) {
+            return new ClearCommand(true);
+        }
+        throw new ParseException(ClearCommand.MESSAGE_EXTRA_PARAMETERS);
     }
 
 }

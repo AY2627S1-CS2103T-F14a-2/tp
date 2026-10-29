@@ -31,6 +31,8 @@ public class SessionCommandTest {
             Clock.fixed(NOW.atZone(ZoneId.systemDefault()).toInstant(), ZoneId.systemDefault());
     private static final String NORMAL_MESSAGE = "Recorded next session for Sarah Lim on %s at %s";
     private static final String PAST_NOTE = "\n" + SessionCommand.MESSAGE_PAST_SESSION;
+    // bookSarahAt books the second client, who then sorts first.
+    private static final String MOVED = ClientOrderNote.MESSAGE;
     // @@author gabriel-wan
     private final Person sarah = new PersonBuilder().withName("Sarah Lim").build();
     private final Person alex = new PersonBuilder().withName("Alex Tan").build();
@@ -48,12 +50,39 @@ public class SessionCommandTest {
     public void execute_displayedIndex_recordsAndSorts() throws Exception {
         CommandResult result = new SessionCommand(Index.fromOneBased(2), session).execute(model);
         Person booked = sarah.withNextSession(session);
-        assertEquals("Recorded next session for Sarah Lim on " + session.value.toLocalDate() + " at 17:00",
-                result.getFeedbackToUser());
+        assertEquals("Recorded next session for Sarah Lim on " + session.value.toLocalDate() + " at 17:00"
+                + MOVED, result.getFeedbackToUser());
         assertEquals(List.of(booked, alex), model.getFilteredPersonList());
         // Sorting is a display transform; storage remains in its original order.
         assertEquals(List.of(booked, alex), model.getAddressBook().getPersonList());
         assertTrue(result.isScrollToTop());
+    }
+
+    @Test
+    public void execute_bookingKeepsOrder_noOrderNote() throws Exception {
+        // Alex is already first, and booking keeps him there
+        CommandResult result = new SessionCommand(Index.fromOneBased(1), session).execute(model);
+        assertFalse(result.getFeedbackToUser().contains(ClientOrderNote.MESSAGE));
+        assertEquals(List.of(alex.withNextSession(session), sarah), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_filterResetShiftsOtherClient_notesOrderChange() throws Exception {
+        // #210: Aaron stays at index 1 after booking, but index 2 changes from Chris to Bea
+        Person aaron = new PersonBuilder().withName("Aaron").withPhone("81110000").withTags("keep").build();
+        Person bea = new PersonBuilder().withName("Bea").withPhone("82220000").withTags("other").build();
+        Person chris = new PersonBuilder().withName("Chris").withPhone("83330000").withTags("keep").build();
+        model = new ModelManager();
+        model.addPerson(aaron);
+        model.addPerson(bea);
+        model.addPerson(chris);
+        model.updateFilteredPersonList(person -> person.getTags().equals(aaron.getTags()));
+        assertEquals(List.of(aaron, chris), model.getFilteredPersonList());
+
+        CommandResult result = new SessionCommand(Index.fromOneBased(1), session).execute(model);
+
+        assertTrue(result.getFeedbackToUser().endsWith(ClientOrderNote.MESSAGE));
+        assertEquals(List.of(aaron.withNextSession(session), bea, chris), model.getFilteredPersonList());
     }
 
     @Test
@@ -87,7 +116,8 @@ public class SessionCommandTest {
         new SessionCommand("Sarah Lim", session).execute(model);
         model.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of("Alex")));
         CommandResult result = new SessionCommand("Sarah Lim", session).execute(model);
-        assertEquals("Next session for Sarah Lim is already recorded on " + session + ".",
+        // Clearing the filter moves Alex from index 1 to index 2, even though no booking changed.
+        assertEquals("Next session for Sarah Lim is already recorded on " + session + "." + MOVED,
                 result.getFeedbackToUser());
         assertEquals(List.of(sarah.withNextSession(session), alex), model.getFilteredPersonList());
         assertTrue(result.isScrollToTop());
@@ -99,7 +129,7 @@ public class SessionCommandTest {
         model.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of("Sarah")));
         CommandResult result = new SessionCommand(Index.fromOneBased(1), session).execute(model);
         assertTrue(result.getFeedbackToUser().endsWith(
-                "\nWarning: This time is also booked for Alex Tan. All bookings are kept."));
+                "\nWarning: This time is also booked for Alex Tan. All bookings are kept." + MOVED));
         assertEquals(List.of(alex.withNextSession(session), sarah.withNextSession(session)),
                 model.getFilteredPersonList());
         assertEquals(2, model.getAddressBook().getPersonList().size());
@@ -122,7 +152,7 @@ public class SessionCommandTest {
         model.addPerson(new PersonBuilder().withName("Émile").withNextSession(session.toString()).build());
         CommandResult result = new SessionCommand("Sarah Lim", session).execute(model);
         assertTrue(result.getFeedbackToUser().endsWith(
-                "\nWarning: This time is also booked for Émile, Zoe. All bookings are kept."));
+                "\nWarning: This time is also booked for Émile, Zoe. All bookings are kept." + MOVED));
     }
 
     @Test
@@ -137,7 +167,7 @@ public class SessionCommandTest {
     @Test
     public void execute_earlierCalendarDate_recordsWithPastNote() throws Exception {
         // #117: a valid past date is recorded, not rejected, so a trainer can log a session late
-        assertEquals(String.format(NORMAL_MESSAGE, "2026-10-25", "17:00") + PAST_NOTE,
+        assertEquals(String.format(NORMAL_MESSAGE, "2026-10-25", "17:00") + PAST_NOTE + MOVED,
                 bookSarahAt("2026-10-25 17:00"));
         assertEquals(new NextSession("2026-10-25 17:00"),
                 model.getAddressBook().getPersonList().getFirst().getNextSession().orElseThrow());
@@ -146,7 +176,7 @@ public class SessionCommandTest {
     @Test
     public void execute_earlierTimeToday_recordsWithPastNote() throws Exception {
         // #132: today's date is not enough; a time that has passed today gets the same note
-        assertEquals(String.format(NORMAL_MESSAGE, "2026-10-26", "13:59") + PAST_NOTE,
+        assertEquals(String.format(NORMAL_MESSAGE, "2026-10-26", "13:59") + PAST_NOTE + MOVED,
                 bookSarahAt("2026-10-26 13:59"));
         assertEquals(new NextSession("2026-10-26 13:59"),
                 model.getAddressBook().getPersonList().getFirst().getNextSession().orElseThrow());
@@ -156,20 +186,23 @@ public class SessionCommandTest {
     public void execute_earlierTimeTodayByName_recordsWithPastNote() throws Exception {
         CommandResult result = new SessionCommand("Sarah Lim", new NextSession("2026-10-26 13:59"), FIXED_CLOCK)
                 .execute(model);
-        assertEquals(String.format(NORMAL_MESSAGE, "2026-10-26", "13:59") + PAST_NOTE,
+        assertEquals(String.format(NORMAL_MESSAGE, "2026-10-26", "13:59") + PAST_NOTE + MOVED,
                 result.getFeedbackToUser());
     }
 
     @Test
     public void execute_laterTodayOrFutureDate_noPastNote() throws Exception {
-        assertEquals(String.format(NORMAL_MESSAGE, "2026-10-26", "14:01"), bookSarahAt("2026-10-26 14:01"));
-        assertEquals(String.format(NORMAL_MESSAGE, "2026-10-27", "09:00"), bookSarahAt("2026-10-27 09:00"));
+        assertEquals(String.format(NORMAL_MESSAGE, "2026-10-26", "14:01") + MOVED,
+                bookSarahAt("2026-10-26 14:01"));
+        assertEquals(String.format(NORMAL_MESSAGE, "2026-10-27", "09:00") + MOVED,
+                bookSarahAt("2026-10-27 09:00"));
     }
 
     @Test
     public void execute_exactlyNow_noPastNote() throws Exception {
         // Matches the card, which still shows a session at exactly "now" as upcoming
-        assertEquals(String.format(NORMAL_MESSAGE, "2026-10-26", "14:00"), bookSarahAt("2026-10-26 14:00"));
+        assertEquals(String.format(NORMAL_MESSAGE, "2026-10-26", "14:00") + MOVED,
+                bookSarahAt("2026-10-26 14:00"));
     }
 
     @Test
@@ -180,7 +213,7 @@ public class SessionCommandTest {
         model.setPerson(sarah, sarah.withNextSession(session));
         CommandResult result = new SessionCommand("Sarah Lim", earlierToday, FIXED_CLOCK).execute(model);
         assertEquals("Rescheduled next session for Sarah Lim from " + session + " to " + earlierToday + "."
-                + "\nWarning: This time is also booked for Alex Tan. All bookings are kept." + PAST_NOTE,
+                + "\nWarning: This time is also booked for Alex Tan. All bookings are kept." + PAST_NOTE + MOVED,
                 result.getFeedbackToUser());
     }
 
