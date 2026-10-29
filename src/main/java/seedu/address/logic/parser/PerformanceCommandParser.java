@@ -8,7 +8,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_REPS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SETS;
 
 import java.time.LocalDate;
-import java.util.stream.Stream;
+import java.util.function.Predicate;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
@@ -21,7 +21,7 @@ import seedu.address.model.progress.Load;
 /**
  * Parses input arguments and creates a new {@code PerformanceCommand} object.
  *
- * <p>A missing, repeated or non-numeric part of the command gives the invalid-format message.
+ * <p>A missing, repeated, unknown or non-numeric part of the command gives the invalid-format message.
  * Any other invalid value gives its specific message, followed by the expected command format.
  *
  * <p>AI assistance: Claude (Anthropic) helped implement this parser and its tests.
@@ -39,12 +39,12 @@ public class PerformanceCommandParser implements Parser<PerformanceCommand> {
     @Override
     public PerformanceCommand parse(String args) throws ParseException {
         requireNonNull(args);
+        // Otherwise an unknown prefix, e.g. t/ in "w/60 t/x", is read as part of the previous value
+        ParserUtil.rejectUnsupportedPrefixes(args, PerformanceCommand.MESSAGE_INVALID_FORMAT, PREFIXES);
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIXES);
 
         String preamble = argMultimap.getPreamble();
-        boolean hasEachPrefixOnce = Stream.of(PREFIXES)
-                .allMatch(prefix -> argMultimap.getAllValues(prefix).size() == 1);
-        if (!hasEachPrefixOnce || !preamble.matches(ParserUtil.INTEGER_REGEX)) {
+        if (!argMultimap.hasEachPrefixOnce(PREFIXES) || !preamble.matches(ParserUtil.INTEGER_REGEX)) {
             throw new ParseException(PerformanceCommand.MESSAGE_INVALID_FORMAT);
         }
 
@@ -53,8 +53,10 @@ public class PerformanceCommandParser implements Parser<PerformanceCommand> {
             LocalDate date = ParserUtil.parseRecordDate(argMultimap.getValue(PREFIX_DATE).get(),
                     PerformanceCommand.MESSAGE_FUTURE_DATE);
             ExerciseName exerciseName = ParserUtil.parseExerciseName(argMultimap.getValue(PREFIX_EXERCISE).get());
-            int sets = parseSets(argMultimap.getValue(PREFIX_SETS).get());
-            int reps = parseReps(argMultimap.getValue(PREFIX_REPS).get());
+            int sets = parseCount(argMultimap.getValue(PREFIX_SETS).get(), GymPerformance::isValidSets,
+                    GymPerformance.MESSAGE_SETS_CONSTRAINTS);
+            int reps = parseCount(argMultimap.getValue(PREFIX_REPS).get(), GymPerformance::isValidReps,
+                    GymPerformance.MESSAGE_REPS_CONSTRAINTS);
             Load load = parseLoad(argMultimap.getValue(PREFIX_LOAD).get());
             return new PerformanceCommand(index, new GymPerformance(date, exerciseName, sets, reps, load));
         } catch (ParseException pe) {
@@ -62,20 +64,16 @@ public class PerformanceCommandParser implements Parser<PerformanceCommand> {
         }
     }
 
-    private static int parseSets(String sets) throws ParseException {
-        String trimmedSets = sets.trim();
-        if (!GymPerformance.isValidSets(trimmedSets)) {
-            throw new ParseException(GymPerformance.MESSAGE_SETS_CONSTRAINTS);
+    /**
+     * Parses a whole-number count, such as the number of sets, after checking it with {@code isValid}.
+     */
+    private static int parseCount(String count, Predicate<String> isValid, String constraintsMessage)
+            throws ParseException {
+        String trimmedCount = count.trim();
+        if (!isValid.test(trimmedCount)) {
+            throw new ParseException(constraintsMessage);
         }
-        return Integer.parseInt(trimmedSets);
-    }
-
-    private static int parseReps(String reps) throws ParseException {
-        String trimmedReps = reps.trim();
-        if (!GymPerformance.isValidReps(trimmedReps)) {
-            throw new ParseException(GymPerformance.MESSAGE_REPS_CONSTRAINTS);
-        }
-        return Integer.parseInt(trimmedReps);
+        return Integer.parseInt(trimmedCount);
     }
 
     private static Load parseLoad(String load) throws ParseException {

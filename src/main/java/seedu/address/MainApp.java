@@ -32,7 +32,7 @@ import seedu.address.ui.UiManager;
  */
 public class MainApp extends Application {
 
-    public static final String VERSION = "V1.4.0";
+    public static final String VERSION = "V1.5.0";
 
     public static final String MESSAGE_DATA_LOAD_FAILURE =
             "Unable to load saved Spotter data. The existing data file has not been modified.";
@@ -111,6 +111,12 @@ public class MainApp extends Application {
                 logger.info("Creating new preference file " + prefsFilePath);
             }
             initializedPrefs = prefsOptional.orElse(new UserPrefs());
+            if (initializedPrefs.getGuiSettings() == null) {
+                // Fields are read directly, so a hand-edited "guiSettings": null bypasses the setter's null check
+                logger.warning("Preference file at " + prefsFilePath + " has no window settings."
+                        + " Using default preferences.");
+                initializedPrefs = new UserPrefs();
+            }
         } catch (DataLoadingException e) {
             logger.warning("Preference file at " + prefsFilePath + " could not be loaded."
                     + " Using default preferences.");

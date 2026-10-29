@@ -39,8 +39,16 @@ public class DeleteMeasureCommandParserTest {
             assertEquals(DeleteMeasureCommand.MESSAGE_INVALID_FORMAT,
                     assertThrows(ParseException.class, () -> parser.parse(args)).getMessage());
         }
-        assertThrows(ParseException.class, () -> parser.parse("1 d/2026-09-12 t/weight v/72"));
         assertThrows(ParseException.class, () -> parser.parse("1 d/2026-09-12 t/weight extra"));
+    }
+
+    @Test
+    public void parse_unknownPrefix_rejectsFormat() {
+        // v/ copied from a measure command would otherwise be reported as an invalid type
+        for (String args : new String[] {"1 d/2026-09-12 t/weight v/72", "1 d/2026-09-12 x/1 t/weight"}) {
+            assertEquals(DeleteMeasureCommand.MESSAGE_INVALID_FORMAT,
+                    assertThrows(ParseException.class, () -> parser.parse(args)).getMessage());
+        }
     }
 
     @Test
@@ -53,10 +61,10 @@ public class DeleteMeasureCommandParserTest {
     @Test
     public void parse_invalidDateOrType_showsValidationErrorWithUsage() {
         for (String date : new String[] {"", "2026-9-12",
-            "12-09-2026", "2026-09-12 extra", "2026-13-01"}) {
-            assertError("1 d/" + date + " t/weight", ParserUtil.MESSAGE_INVALID_RECORD_DATE);
+            "12-09-2026", "2026-09-12 extra", "2026-13-01", "0000-01-01"}) {
+            assertError("1 d/" + date + " t/weight", ParserUtil.MESSAGE_DATE_FORMAT);
         }
-        for (String date : new String[] {"2026-02-30", "0000-01-01", "2027-02-29"}) {
+        for (String date : new String[] {"2026-02-30", "2027-02-29"}) {
             assertError("1 d/" + date + " t/weight", date + " is not a real date.");
         }
         for (String type : new String[] {"", "height", "body fat", "weight extra"}) {

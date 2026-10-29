@@ -2,10 +2,13 @@ package seedu.address.logic.parser;
 
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
+import static seedu.address.testutil.TypicalGymPerformances.BENCH_PRESS;
+import static seedu.address.testutil.TypicalGymPerformances.PULL_UP;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -17,15 +20,13 @@ import seedu.address.model.progress.Load;
 
 public class PerformanceCommandParserTest {
 
+    // Together these give TypicalGymPerformances.BENCH_PRESS
     private static final String DATE = " d/2026-09-18";
     private static final String EXERCISE = " e/Bench Press";
     private static final String SETS = " s/3";
     private static final String REPS = " r/8";
     private static final String LOAD = " w/60";
     private static final String ALL_FIELDS = DATE + EXERCISE + SETS + REPS + LOAD;
-
-    private static final GymPerformance BENCH_PRESS = new GymPerformance(LocalDate.of(2026, 9, 18),
-            new ExerciseName("Bench Press"), 3, 8, new Load("60"));
 
     private final PerformanceCommandParser parser = new PerformanceCommandParser();
 
@@ -44,23 +45,28 @@ public class PerformanceCommandParserTest {
     @Test
     public void parse_boundaryValues_success() {
         // bodyweight exercise with the smallest sets and reps
-        GymPerformance pullUp = new GymPerformance(LocalDate.of(2026, 9, 18), new ExerciseName("Pull-up"),
-                1, 1, new Load("0"));
         assertParseSuccess(parser, "2" + DATE + " e/Pull-up s/1 r/1 w/0",
-                new PerformanceCommand(INDEX_SECOND_PERSON, pullUp));
+                new PerformanceCommand(INDEX_SECOND_PERSON, PULL_UP));
 
         // largest sets, reps and load, with two decimal places
-        GymPerformance heaviest = new GymPerformance(LocalDate.of(2026, 9, 18), new ExerciseName("Leg Press"),
+        GymPerformance heaviest = new GymPerformance(BENCH_PRESS.getDate(), new ExerciseName("Leg Press"),
                 100, 1000, new Load("999.99"));
         assertParseSuccess(parser, "1" + DATE + " e/Leg Press s/100 r/1000 w/999.99",
                 new PerformanceCommand(INDEX_FIRST_PERSON, heaviest));
 
         // today is accepted
         LocalDate today = LocalDate.now();
-        GymPerformance todayRecord = new GymPerformance(today, new ExerciseName("Bench Press"), 3, 8,
-                new Load("60"));
-        assertParseSuccess(parser, "1 d/" + today + EXERCISE + SETS + REPS + LOAD,
+        GymPerformance todayRecord = new GymPerformance(today, BENCH_PRESS.getExerciseName(), 3, 8, new Load("60"));
+        assertParseSuccess(parser, withField(DATE, " d/" + today),
                 new PerformanceCommand(INDEX_FIRST_PERSON, todayRecord));
+    }
+
+    @Test
+    public void parse_exerciseWithSymbols_success() {
+        GymPerformance cleanAndJerk = new GymPerformance(BENCH_PRESS.getDate(), new ExerciseName("Clean & Jerk"),
+                3, 8, new Load("60"));
+        assertParseSuccess(parser, withField(EXERCISE, " e/Clean & Jerk"),
+                new PerformanceCommand(INDEX_FIRST_PERSON, cleanAndJerk));
     }
 
     @Test
@@ -74,11 +80,9 @@ public class PerformanceCommandParserTest {
         assertParseFailure(parser, ALL_FIELDS, expectedMessage);
 
         // each prefix missing
-        assertParseFailure(parser, "1" + EXERCISE + SETS + REPS + LOAD, expectedMessage);
-        assertParseFailure(parser, "1" + DATE + SETS + REPS + LOAD, expectedMessage);
-        assertParseFailure(parser, "1" + DATE + EXERCISE + REPS + LOAD, expectedMessage);
-        assertParseFailure(parser, "1" + DATE + EXERCISE + SETS + LOAD, expectedMessage);
-        assertParseFailure(parser, "1" + DATE + EXERCISE + SETS + REPS, expectedMessage);
+        for (String field : List.of(DATE, EXERCISE, SETS, REPS, LOAD)) {
+            assertParseFailure(parser, withField(field, ""), expectedMessage);
+        }
 
         // repeated prefix
         assertParseFailure(parser, "1" + ALL_FIELDS + DATE, expectedMessage);
@@ -88,6 +92,27 @@ public class PerformanceCommandParserTest {
         assertParseFailure(parser, "a" + ALL_FIELDS, expectedMessage);
         assertParseFailure(parser, "1 extra" + ALL_FIELDS, expectedMessage);
         assertParseFailure(parser, "1 2" + ALL_FIELDS, expectedMessage);
+    }
+
+    @Test
+    public void parse_unknownPrefix_failure() {
+        String expectedMessage = PerformanceCommand.MESSAGE_INVALID_FORMAT;
+
+        // after the last value, which would otherwise be reported as a non-numeric load
+        assertParseFailure(parser, "1" + ALL_FIELDS + " t/x", expectedMessage);
+
+        // inside another value, which would otherwise be reported as an invalid exercise name
+        assertParseFailure(parser, withField(EXERCISE, " e/Bench n/Press"), expectedMessage);
+
+        // a prefix from another command, e.g. measure's v/
+        assertParseFailure(parser, "1" + ALL_FIELDS + " v/60", expectedMessage);
+    }
+
+    @Test
+    public void parse_slashWithinValue_notTreatedAsPrefix() {
+        // a slash that does not follow a space is part of the value, so the value's own rules apply
+        assertParseFailure(parser, withField(EXERCISE, " e/Bench/Press"),
+                withUsage(ExerciseName.MESSAGE_CONSTRAINTS));
     }
 
     @Test
@@ -101,58 +126,63 @@ public class PerformanceCommandParserTest {
 
     @Test
     public void parse_invalidDate_failure() {
-        String formatMessage = withUsage(ParserUtil.MESSAGE_INVALID_RECORD_DATE);
+        String formatMessage = withUsage(ParserUtil.MESSAGE_DATE_FORMAT);
 
-        assertParseFailure(parser, "1 d/18-09-2026" + EXERCISE + SETS + REPS + LOAD, formatMessage);
-        assertParseFailure(parser, "1 d/2026-02-30" + EXERCISE + SETS + REPS + LOAD,
-                withUsage(String.format(ParserUtil.MESSAGE_NONEXISTENT_RECORD_DATE, "2026-02-30")));
-        assertParseFailure(parser, "1 d/" + EXERCISE + SETS + REPS + LOAD, formatMessage); // empty
+        assertParseFailure(parser, withField(DATE, " d/18-09-2026"), formatMessage);
+        assertParseFailure(parser, withField(DATE, " d/2026-02-30"),
+                withUsage(String.format(ParserUtil.MESSAGE_NONEXISTENT_DATE, "2026-02-30")));
+        assertParseFailure(parser, withField(DATE, " d/"), formatMessage); // empty
 
         // tomorrow is in the future
-        assertParseFailure(parser, "1 d/" + LocalDate.now().plusDays(1) + EXERCISE + SETS + REPS + LOAD,
+        assertParseFailure(parser, withField(DATE, " d/" + LocalDate.now().plusDays(1)),
                 withUsage(PerformanceCommand.MESSAGE_FUTURE_DATE));
     }
 
     @Test
     public void parse_invalidExercise_failure() {
+        // the name rules themselves are covered by ExerciseNameTest
         String expectedMessage = withUsage(ExerciseName.MESSAGE_CONSTRAINTS);
 
-        assertParseFailure(parser, "1" + DATE + " e/" + SETS + REPS + LOAD, expectedMessage); // empty
-        assertParseFailure(parser, "1" + DATE + " e/Bench@Press" + SETS + REPS + LOAD, expectedMessage);
-        assertParseFailure(parser, "1" + DATE + " e/Développé couché" + SETS + REPS + LOAD, expectedMessage);
-        assertParseFailure(parser, "1" + DATE + " e/" + "a".repeat(51) + SETS + REPS + LOAD, expectedMessage);
+        assertParseFailure(parser, withField(EXERCISE, " e/"), expectedMessage); // empty
+        assertParseFailure(parser, withField(EXERCISE, " e/Bench@Press"), expectedMessage); // unsupported character
     }
 
     @Test
     public void parse_invalidSetsOrReps_failure() {
         String setsMessage = withUsage(GymPerformance.MESSAGE_SETS_CONSTRAINTS);
-        assertParseFailure(parser, "1" + DATE + EXERCISE + " s/0" + REPS + LOAD, setsMessage);
-        assertParseFailure(parser, "1" + DATE + EXERCISE + " s/101" + REPS + LOAD, setsMessage);
-        assertParseFailure(parser, "1" + DATE + EXERCISE + " s/3.5" + REPS + LOAD, setsMessage);
-        assertParseFailure(parser, "1" + DATE + EXERCISE + " s/three" + REPS + LOAD, setsMessage);
+        assertParseFailure(parser, withField(SETS, " s/0"), setsMessage);
+        assertParseFailure(parser, withField(SETS, " s/101"), setsMessage);
+        assertParseFailure(parser, withField(SETS, " s/3.5"), setsMessage);
+        assertParseFailure(parser, withField(SETS, " s/three"), setsMessage);
 
         String repsMessage = withUsage(GymPerformance.MESSAGE_REPS_CONSTRAINTS);
-        assertParseFailure(parser, "1" + DATE + EXERCISE + SETS + " r/0" + LOAD, repsMessage);
-        assertParseFailure(parser, "1" + DATE + EXERCISE + SETS + " r/1001" + LOAD, repsMessage);
-        assertParseFailure(parser, "1" + DATE + EXERCISE + SETS + " r/-8" + LOAD, repsMessage);
+        assertParseFailure(parser, withField(REPS, " r/0"), repsMessage);
+        assertParseFailure(parser, withField(REPS, " r/1001"), repsMessage);
+        assertParseFailure(parser, withField(REPS, " r/-8"), repsMessage);
     }
 
     @Test
     public void parse_invalidLoad_failure() {
-        String prefix = "1" + DATE + EXERCISE + SETS + REPS;
-
-        assertParseFailure(parser, prefix + " w/sixty", withUsage(Load.MESSAGE_NOT_NUMERIC));
-        assertParseFailure(parser, prefix + " w/60kg", withUsage(Load.MESSAGE_NOT_NUMERIC));
-        assertParseFailure(parser, prefix + " w/-1", withUsage(Load.MESSAGE_RANGE_CONSTRAINTS));
-        assertParseFailure(parser, prefix + " w/1000.01", withUsage(Load.MESSAGE_RANGE_CONSTRAINTS));
-        assertParseFailure(parser, prefix + " w/60.555", withUsage(Load.MESSAGE_DECIMAL_PLACES_CONSTRAINTS));
+        assertParseFailure(parser, withField(LOAD, " w/sixty"), withUsage(Load.MESSAGE_NOT_NUMERIC));
+        assertParseFailure(parser, withField(LOAD, " w/60kg"), withUsage(Load.MESSAGE_NOT_NUMERIC));
+        assertParseFailure(parser, withField(LOAD, " w/-1"), withUsage(Load.MESSAGE_RANGE_CONSTRAINTS));
+        assertParseFailure(parser, withField(LOAD, " w/1000.01"), withUsage(Load.MESSAGE_RANGE_CONSTRAINTS));
+        assertParseFailure(parser, withField(LOAD, " w/60.555"), withUsage(Load.MESSAGE_DECIMAL_PLACES_CONSTRAINTS));
     }
 
     @Test
     public void parse_severalInvalidValues_reportsFirstInCommandOrder() {
         // invalid date and load: the date is reported first
         assertParseFailure(parser, "1 d/2026-13-01" + EXERCISE + SETS + REPS + " w/abc",
-                withUsage(ParserUtil.MESSAGE_INVALID_RECORD_DATE));
+                withUsage(ParserUtil.MESSAGE_DATE_FORMAT));
+    }
+
+    /**
+     * Returns a command for the first client with all fields valid, except {@code field} replaced by
+     * {@code replacement}.
+     */
+    private static String withField(String field, String replacement) {
+        return "1" + ALL_FIELDS.replace(field, replacement);
     }
 
     private static String withUsage(String message) {

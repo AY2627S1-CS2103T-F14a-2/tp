@@ -19,6 +19,9 @@ public class DeleteMeasureCommandParser implements Parser<DeleteMeasureCommand> 
     @Override
     public DeleteMeasureCommand parse(String args) throws ParseException {
         requireNonNull(args);
+        // Otherwise an unknown prefix, e.g. v/ copied from a measure command, is read as part of the previous value
+        ParserUtil.rejectUnsupportedPrefixes(args, DeleteMeasureCommand.MESSAGE_INVALID_FORMAT,
+                PREFIX_DATE, PREFIX_MEASUREMENT_TYPE);
         ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, PREFIX_DATE, PREFIX_MEASUREMENT_TYPE);
         if (arguments.getAllValues(PREFIX_DATE).size() != 1
                 || arguments.getAllValues(PREFIX_MEASUREMENT_TYPE).size() != 1
@@ -32,7 +35,7 @@ public class DeleteMeasureCommandParser implements Parser<DeleteMeasureCommand> 
             } catch (ParseException e) {
                 throw new ParseException(DeleteMeasureCommand.MESSAGE_INVALID_INDEX, e);
             }
-            LocalDate date = ParserUtil.parseExistingRecordDate(arguments.getValue(PREFIX_DATE).orElseThrow());
+            LocalDate date = ParserUtil.parseCalendarDate(arguments.getValue(PREFIX_DATE).orElseThrow());
             MeasurementType type;
             try {
                 type = MeasurementType.valueOf(arguments.getValue(PREFIX_MEASUREMENT_TYPE).orElseThrow()

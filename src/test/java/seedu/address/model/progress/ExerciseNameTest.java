@@ -49,6 +49,7 @@ public class ExerciseNameTest {
         assertFalse(ExerciseName.isValidExerciseName("   ")); // spaces only
         assertFalse(ExerciseName.isValidExerciseName("-")); // no letter or digit
         assertFalse(ExerciseName.isValidExerciseName("' -")); // no letter or digit
+        assertFalse(ExerciseName.isValidExerciseName("& + .")); // symbols only
         assertFalse(ExerciseName.isValidExerciseName("Bench@Press")); // unsupported character
         assertFalse(ExerciseName.isValidExerciseName("Squat/Deadlift")); // unsupported character
         assertFalse(ExerciseName.isValidExerciseName("a".repeat(51))); // too long
@@ -64,6 +65,10 @@ public class ExerciseNameTest {
         assertTrue(ExerciseName.isValidExerciseName("Farmer's Walk")); // straight apostrophe
         assertTrue(ExerciseName.isValidExerciseName("Farmer’s Walk")); // curly apostrophe
         assertTrue(ExerciseName.isValidExerciseName("21s Bicep Curl")); // letters and digits
+        assertTrue(ExerciseName.isValidExerciseName("Clean & Jerk")); // ampersand
+        assertTrue(ExerciseName.isValidExerciseName("Squat + Press")); // plus sign
+        assertTrue(ExerciseName.isValidExerciseName("1.5 Rep Squat")); // full stop
+        assertTrue(ExerciseName.isValidExerciseName("DB Press (Incline)")); // parentheses
         assertTrue(ExerciseName.isValidExerciseName("a".repeat(50))); // maximum length
         assertTrue(ExerciseName.isValidExerciseName(" " + "a".repeat(50) + " ")); // maximum length after trimming
         assertTrue(ExerciseName.isValidExerciseName("a".repeat(25) + "    " + "a".repeat(24))); // spaces collapsed

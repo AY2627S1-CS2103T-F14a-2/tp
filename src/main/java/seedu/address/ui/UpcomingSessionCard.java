@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
 import seedu.address.commons.util.PhoneDisplayFormatter;
+import seedu.address.logic.commands.ClientHistoryFormatter;
 import seedu.address.model.person.Person;
 
 /**
@@ -38,7 +39,7 @@ public class UpcomingSessionCard extends UiPart<Region> {
         assert person.getNextSession().isPresent() : "Only clients with a booked session are listed";
         sessionTime.setText(person.getNextSession().get().toDisplayString(LocalDateTime.now()));
         name.setText(person.getName().fullName);
-        phone.setText(PersonCard.PHONE_LABEL + PhoneDisplayFormatter.format(person.getPhone().value));
+        phone.setText(ClientHistoryFormatter.PHONE_LABEL + PhoneDisplayFormatter.format(person.getPhone().value));
         LocalDate today = LocalDate.now();
         latestMeasurement.setText(PersonCard.formatLatestMeasurement(person.getMeasurements(), today));
         latestPerformance.setText(PersonCard.formatLatestPerformance(person.getPerformanceHistory(), today));

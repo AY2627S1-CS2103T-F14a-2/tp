@@ -57,11 +57,11 @@ public class MeasurePersistenceTest {
         assertEquals(List.of(selected), model.getFilteredPersonList());
     }
 
-    private void assertMeasurementRollback(IOException failure, boolean replacing) throws Exception {
+    private void assertMeasurementRollback(IOException failure, boolean isReplacing) throws Exception {
         Model model = new ModelManager();
         model.addPerson(new PersonBuilder().withName("Fictional One").build());
         Person selected = new PersonBuilder().withName("Fictional Two").build();
-        if (replacing) {
+        if (isReplacing) {
             selected = selected.withMeasurement(new Measurement(LocalDate.of(2026, 9, 12),
                     MeasurementType.WEIGHT, new BigDecimal("73")));
         }
@@ -100,7 +100,7 @@ public class MeasurePersistenceTest {
                 new StorageManager(data, new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"))));
         assertEquals("Recorded measurement for Amy Bee: weight = 72.4 kg on 2026-09-12.",
                 logic.execute("measure 1 d/2026-09-12 t/weight v/72.4").getFeedbackToUser());
-        assertEquals("Updated measurement for Amy Bee: weight = 71.8 kg on 2026-09-12.",
+        assertEquals("Updated measurement for Amy Bee: weight on 2026-09-12: 72.4 → 71.8 kg.",
                 logic.execute("measure 1 d/2026-09-12 t/weight v/71.8").getFeedbackToUser());
         logic.execute("measure 1 d/2026-09-12 t/waist v/81");
         assertEquals("Recorded measurement for Amy Bee: bodyfat = 18.4 % on 2026-09-12.",

@@ -20,9 +20,11 @@ Spotter is a **desktop application for freelance personal trainers to manage the
 
 1. Download the latest `spotter.jar` file from [here](https://github.com/AY2627S1-CS2103T-F14a-2/tp/releases).
 
-1. Copy the file to the folder you want to use as the _home folder_ for Spotter.
+1. Copy the file to the folder you want to use as the _home folder_ for Spotter. The folder must be writable: a write-protected folder (such as a system folder) prevents Spotter from saving your data.
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar spotter.jar`.<br>
+1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar spotter.jar`.
+   Double-clicking the JAR may not launch Spotter on some systems, so the terminal command is the most reliable way
+   to start it.<br>
    A GUI similar to the one below should appear in a few seconds. On first launch, Spotter starts with some sample
    clients so that you can try the commands.<br>
    ![Ui](images/Ui.png)
@@ -52,6 +54,8 @@ Spotter is a **desktop application for freelance personal trainers to manage the
 <box type="info" seamless>
 
 **Notes about the command format:**<br>
+
+* Command words are case-insensitive: `LIST` and `List` work like `list`. Prefixes such as `n/` must be in lowercase.
 
 * Words in `UPPER_CASE` are the parameters to be supplied by the user.<br>
   For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
@@ -89,13 +93,13 @@ latest measurement and performance, so that you can prepare for the session at a
   shows `- (none upcoming)` as well.
 * The cards have no index numbers. To act on a client, use their index in the client list on the left.
 * `find`, `filter` and `sessions` change only the client list; Upcoming sessions still shows every booking.
-* With no bookings, it shows `No upcoming sessions.` and how to book one with [`session`](#recording-a-clients-next-session-session).
-* [`view INDEX`](#viewing-a-clients-history-view) replaces Upcoming sessions with that client's full history.
+* With no bookings, it shows `No upcoming sessions.` and how to book one with [`session`](#recording-a-client-s-next-session-session).
+* [`view INDEX`](#viewing-a-client-s-history-view) replaces Upcoming sessions with that client's full history.
   [`list`](#listing-all-clients-list) brings Upcoming sessions back.
 
 ### Viewing help: `help`
 
-Shows a message explaining how to access the help page.
+Opens a window with a link to the Spotter user guide.
 
 ![help message](images/helpMessage.png)
 
@@ -110,13 +114,29 @@ Adds a client to Spotter.
 
 Format: `add n/NAME p/PHONE [e/EMAIL] [t/TAG]...`
 
-* `NAME` may contain only English letters (A–Z), digits and spaces, and must be 1 to 100 characters long. Repeated spaces between words are merged into one, and leading or trailing spaces are removed.
-* `PHONE` must contain only digits and be 3 to 15 digits long. Spaces between digits are ignored, so you can type a
-  number the way Spotter displays it: `9927 2758` is stored as `99272758`. Other characters, such as `-` or `+`, are
-  not accepted.
+* `NAME` must start with a Latin-script letter or a digit `0–9`. Supported letters include English `A–Z`/`a–z`
+  and accented Latin letters such as `é`; combining accent marks, digits `0–9`, spaces, apostrophes (`'` and `’`),
+  hyphens (`-`), full stops (`.`) and slashes (`/`) are also accepted after the first character.
+  Names must be 1 to 100 characters after normalization: outer whitespace is removed, repeated whitespace is
+  merged, and equivalent accent encodings are stored consistently. Accents are not removed: `José` and `Jose`
+  are different names. Non-Latin scripts (for example, Chinese or Tamil letters) and emoji are not supported.
+* Names must not contain a space followed by a prefix used by the command, such as ` p/` or ` t/`, because that
+  starts another field. For names containing `/`, use the client's index with `session` and `cancelsession`,
+  rather than their `n/NAME` forms.
+* `PHONE` must contain at least 3 digits and at most 50 characters after normalization. Digits, spaces,
+  English letters `A–Z`/`a–z` (for labels), `+`, `-`, `(`, `)` and `.` are accepted; `/` is not.
+  Plain digits and spaces are stored as digits only: `9927 2758` becomes `99272758`. Otherwise, punctuation and
+  labels are kept, outer spaces are removed and repeated spaces are merged. For example,
+  `1234 5678 (HP) 1111-3333 (Office)` is accepted. Spotter does not check whether a number is dialable.
 * `EMAIL` is optional. A client without an email shows `-` in place of it.
   Entering `e/` without an email after it also adds the client without an email, as in `edit`.
-* A client whose name matches an existing client's, ignoring case and extra spaces, is rejected as a duplicate. For example, `john tan` is a duplicate of `John Tan`.
+* Duplicate clients: a name matching an existing client's, ignoring case and extra spaces, is rejected.
+  For example, `john tan` is a duplicate of `John Tan`. A matching phone digit sequence instead gives
+  `Warning: <other client's name> also has this phone number.` after the success message; the client is still saved.
+  Every matching client is checked, even if hidden by a search or filter, with one warning per match.
+* Duplicate detection does not catch typos, nicknames, or a different name order with a different phone.
+  Phone comparison ignores formatting and labels but compares **all digits**: numbers with and without a country
+  code are different, and a field containing several numbers does not match another field sharing only one.
 
 <box type="tip" seamless>
 
@@ -124,6 +144,9 @@ Format: `add n/NAME p/PHONE [e/EMAIL] [t/TAG]...`
 </box>
 
 Examples:
+* `add n/Raju s/o Kumar p/+65 9123 4567`
+* `add n/Mary-Jane O'Brien p/1234 5678 (HP) 1111-3333 (Office)`
+* `add n/José Tan p/91234567`
 * `add n/Sarah Lim p/91234567`
 * `add n/John Tan p/88776655 e/john.tan@example.com t/rehab`
 
@@ -139,7 +162,7 @@ Format: `list`
 * On success, Spotter shows `Listed N clients.` (or `Listed 1 client.` when you have exactly one client), and the
   client list scrolls back to the 1st client.
 * If you have no clients, Spotter shows `You have no clients yet. Use "add" to add your first client.`
-* If a client's history is shown with [`view`](#viewing-a-clients-history-view), the right side goes back to
+* If a client's history is shown with [`view`](#viewing-a-client-s-history-view), the right side goes back to
   Upcoming sessions.
 
 <box type="tip" seamless>
@@ -156,11 +179,18 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [t/TAG]... `
 * Edits the client at the specified `INDEX`. The index refers to the index number shown in the displayed client list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
-* When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
-* To remove all of a person's tags, enter `t/` without a tag after it.
+* When editing tags, all of the client's existing tags are removed; adding tags is not cumulative.
+* To remove all of a client's tags, enter `t/` without a tag after it.
 * To remove a client's email, enter `e/` without an email after it.
-* `PHONE` follows the same rules as in [`add`](#adding-a-client-add): spaces between digits are ignored, so
-  `edit 1 p/8743 8807` stores `87438807`.
+* `NAME` and `PHONE` follow the same rules as in [`add`](#adding-a-client-add), including prefix restrictions.
+  For example, `edit 1 p/8743 8807` stores `87438807`, while `edit 1 p/+65 8743 8807 (HP)` keeps its formatting.
+
+* Duplicate clients: the same name rules and shared-phone warnings as in [`add`](#adding-a-client-add) apply.
+  The edited client is excluded from phone comparison, so their own number does not cause a warning.
+  Changing another field can still warn if a different client shares the phone number.
+* Zero, negative or oversized numeric indexes show `The client index provided is invalid.`.
+  A missing or nonnumeric index shows `Invalid command format!` followed by the command usage.
+* After a successful edit, the full client list is shown again, even if a `find` or `filter` was active.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st client to be `91234567` and `johndoe@example.com` respectively.
@@ -176,13 +206,16 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
 * The search considers only names.
-* Only full words match; for example, `Han` does not match `Hans`.
+* Search matches the stored spelling of accented names, so equivalent accent encodings (an `e` plus a combining
+  mark versus a precomposed `é`) are not yet matched to one another. This is a planned future enhancement.
+* Partial names match anywhere in a name; for example, `han`, `HAN` and `ans` all match `Hans`.
 * Clients matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
 * Spotter shows how many clients were found: `Listed N clients.`, `Listed 1 client.`, or `No clients found.` when
   no client matches.
 
 Examples:
-* `find John` returns `john` and `John Doe`
+* `find yeo` returns `Alex Yeoh`.
+* `find IRFAN` returns `Irfan Ibrahim`.
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 
@@ -197,9 +230,13 @@ Format: `filter t/TAG [t/MORE_TAGS]...`
   symbols are not allowed, e.g. `t/re-hab` is rejected.
 * Matching is case-insensitive and requires the whole tag name: `REHAB` matches `rehab`, but `reh` does not.
 * Multiple tags use an `OR` search. `filter t/rehab t/strength` shows clients with either tag or both.
+  A tag repeated in a different case, e.g. `t/rehab t/REHAB`, counts once.
 * The command searches all clients and replaces any previous `find`, `filter` or `sessions` results.
   Clients without tags do not match. If no clients match, the displayed list is empty.
-* Like `find`, Spotter shows `Listed N clients.`, `Listed 1 client.`, or `No clients found.` when no client matches.
+* Spotter names the tags you searched for, as you typed them: `Listed N clients tagged rehab or knee.`,
+  `Listed 1 client tagged rehab.`, or `No clients tagged rehab or knee. Use "list" to show all clients.` when no
+  client matches. Three or more tags are listed as `rehab, knee or strength`.
+* The client list scrolls back to the top, so the first match is visible.
 * Filtering does not change client data. Use the indices in the filtered list for subsequent commands,
   and run `list` to show all clients again.
 
@@ -209,9 +246,9 @@ Examples:
 
 | Input problem | Message |
 | --- | --- |
-| No `t/` prefix, or text before the first prefix, e.g. `filter rehab` | `Invalid command format!` followed by the expected format |
-| An empty tag, e.g. `filter t/` or `filter t/rehab t/` | `Tags to filter by cannot be empty.` followed by the expected format |
-| A tag that is not alphanumeric, e.g. `filter t/re-hab` or `filter t/best friends` | `Tag names should be alphanumeric` followed by the expected format |
+| No `t/` prefix, or text before the first prefix, e.g. `filter rehab` | `Invalid command format!`, then `Use: filter t/TAG [t/MORE_TAGS]...` and `Example: filter t/rehab t/strength` |
+| An empty tag, e.g. `filter t/` or `filter t/rehab t/` | `Tags to filter by cannot be empty.`, then `Use: filter t/TAG [t/MORE_TAGS]...` |
+| A tag that is not alphanumeric, e.g. `filter t/re-hab`, `filter t/best friends`, or extra text after a tag such as `filter t/rehab extra` | `Tags can contain only letters and digits, e.g. t/rehab.`, then `Use: filter t/TAG [t/MORE_TAGS]...` |
 
 <!-- AI assistance: Helen used OpenAI Codex to draft the filter documentation and update UG terminology and the command summary. -->
 
@@ -227,11 +264,13 @@ Format: `delete INDEX`
 
 Examples:
 * `list` followed by `delete 2` deletes the 2nd client in Spotter.
-* `find Betsy` followed by `delete 1` deletes the 1st client in the results of the `find` command.
+* `find david` followed by `delete 1` deletes the 1st client in the results of the `find` command.
 
 ### Recording body measurements: `measure`
 
 Records a client's weight, body fat percentage or waist measurement.
+
+Only these three measurement types are supported in this version.
 
 Format: `measure INDEX d/DATE t/TYPE v/VALUE`
 
@@ -262,22 +301,27 @@ Run `list` first and use the displayed index of your intended client. These exam
 * `measure 1 d/2026-09-12 t/bodyfat v/18.4` adds a separate body fat record.
 
 Success messages begin with `Recorded measurement for` or `Updated measurement for`,
-followed by the client's name, measurement and date. Invalid input is rejected without changing records.
+followed by the client's name, measurement and date. Replacement messages show the old value → new value
+with the measurement unit, so you can check the correction. Entering the same value again shows equal old
+and new values and keeps the record count unchanged. Invalid input is rejected without changing records.
 
 For a client named Alex Tan, the first two examples produce:
 
 ```text
 Recorded measurement for Alex Tan: weight = 72.4 kg on 2026-09-12.
-Updated measurement for Alex Tan: weight = 71.8 kg on 2026-09-12.
+Updated measurement for Alex Tan: weight on 2026-09-12: 72.4 → 71.8 kg.
 ```
+
+<!-- AI assistance: Helen used OpenAI Codex to clarify measurement index errors for issue #166. -->
+<!-- AI assistance: Helen used OpenAI Codex to align date-error examples for issue #164. -->
 
 Common errors:
 
 | Input problem | Message |
 | --- | --- |
-| Missing or repeated prefix | `Invalid command format. Use: measure INDEX d/DATE t/TYPE v/VALUE` |
-| Invalid client index | `The client index provided is invalid.` |
-| Date not in `yyyy-MM-dd` format, or month or day out of range, e.g. `2026-13-01` | `The date must use the format yyyy-MM-dd.` |
+| Missing, repeated or unsupported prefix (e.g. `w/`), missing or malformed index (e.g. `one`, `+1`, `1.5`) | `Invalid command format. Use: measure INDEX d/DATE t/TYPE v/VALUE` |
+| Zero, negative, overflowing or out-of-range index | `The client index provided is invalid.` |
+| Date not in `yyyy-MM-dd` format, or year, month or day out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).` |
 | Date in the right format that does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.` |
 | Future date | `The measurement date cannot be in the future.` |
 | Unsupported type | `Measurement type must be weight, bodyfat, or waist.` |
@@ -325,9 +369,9 @@ and leaves the data unchanged.
 
 | Input problem | Message |
 | --- | --- |
-| Missing or repeated prefix, missing or non-numeric index | `Invalid command format. Use: deletemeasure INDEX d/DATE t/TYPE` |
+| Missing, repeated or unsupported prefix (e.g. `v/`), missing or non-numeric index | `Invalid command format. Use: deletemeasure INDEX d/DATE t/TYPE` |
 | Zero, negative, overflowing or out-of-range index | `The client index provided is invalid.` |
-| Date not in `yyyy-MM-dd` format, or month or day out of range, e.g. `2026-13-01` | `The date must use the format yyyy-MM-dd.` |
+| Date not in `yyyy-MM-dd` format, or year, month or day out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).` |
 | Date in the right format that does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.` |
 | Unsupported or empty type | `Measurement type must be weight, bodyfat, or waist.` |
 
@@ -351,7 +395,7 @@ Parameter | Accepted values
 ----------|----------------
 `INDEX` | A positive integer from the displayed client list, e.g. `1`.
 `DATE` | A real date in `yyyy-MM-dd` format, e.g. `2026-09-18`. It can be today or in the past, but not in the future.
-`EXERCISE` | 1 to 50 characters: English letters (A–Z), digits (0–9), spaces, hyphens (`-`), apostrophes (`'` or `’`) and parentheses (`(` and `)`), for example `Row (Cable)`. Accented and non-English letters, such as `é`, are not accepted. Parentheses do not need to be paired. It must contain at least one letter or digit. Extra spaces are ignored, and letter case and the apostrophe style do not matter when checking for an existing record, so `bench press` and `Bench Press` are the same exercise, and so are `Farmer's Walk` and `Farmer’s Walk`. The same rules apply when deleting a record or loading stored exercise names.
+`EXERCISE` | 1 to 50 characters: English letters (A–Z), digits (0–9), spaces, hyphens (`-`), apostrophes (`'` or `’`), parentheses (`(` and `)`), ampersands (`&`), plus signs (`+`) and full stops (`.`), for example `Row (Cable)`, `Clean & Jerk` or `1.5 Rep Squat`. Slashes (`/`) are not accepted, because Spotter would read text such as ` w/` as another prefix. Accented and non-English letters, such as `é`, are not accepted. Parentheses do not need to be paired. It must contain at least one letter or digit. Extra spaces are ignored, and letter case and the apostrophe style do not matter when checking for an existing record, so `bench press` and `Bench Press` are the same exercise, and so are `Farmer's Walk` and `Farmer’s Walk`. The same rules apply when deleting a record or loading stored exercise names.
 `SETS` | A whole number from 1 to 100.
 `REPS` | The repetitions per set, as a whole number from 1 to 1000.
 `LOAD` | The load in kg, from 0 to 1000, with at most two decimal places. Use `0` for bodyweight exercises. Do not type the unit.
@@ -370,12 +414,12 @@ If the command is not accepted, Spotter shows the reason followed by the expecte
 
 Problem | Message
 --------|--------
-A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invalid command format. Use: performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`
+A prefix is missing, repeated or not used by this command (e.g. `t/`), or `INDEX` is missing or not a number | `Invalid command format. Use: performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`
 `INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
-`DATE` is not in `yyyy-MM-dd` format, or its month or day is out of range, e.g. `2026-13-01` | `The date must use the format yyyy-MM-dd.`
+`DATE` is not in `yyyy-MM-dd` format, or its year, month or day is out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`
 `DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
 `DATE` is in the future | `The performance date cannot be in the future.`
-`EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only English letters (A-Z), digits (0-9), spaces, hyphens, apostrophes, and parentheses.`
+`EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only English letters (A-Z), digits (0-9), spaces, hyphens, apostrophes, parentheses, and the symbols & + .`
 `SETS` is invalid | `The number of sets must be a whole number between 1 and 100.`
 `REPS` is invalid | `The number of repetitions must be a whole number between 1 and 1000.`
 `LOAD` is not a number | `Exercise load must be numeric.`
@@ -410,11 +454,11 @@ is found, the reason is followed by the expected format:
 
 Problem | Message
 --------|--------
-A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invalid command format. Use: deleteperformance INDEX d/DATE e/EXERCISE`
+A prefix is missing, repeated or not used by this command (e.g. `s/`), or `INDEX` is missing or not a number | `Invalid command format. Use: deleteperformance INDEX d/DATE e/EXERCISE`
 `INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
-`DATE` is not in `yyyy-MM-dd` format, or its month or day is out of range, e.g. `2026-13-01` | `The date must use the format yyyy-MM-dd.`
+`DATE` is not in `yyyy-MM-dd` format, or its year, month or day is out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`
 `DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
-`EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only English letters (A-Z), digits (0-9), spaces, hyphens, apostrophes, and parentheses.`
+`EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only English letters (A-Z), digits (0-9), spaces, hyphens, apostrophes, parentheses, and the symbols & + .`
 The client has no record for that exercise on that date | `No performance record for <exercise> on <date> was found for <client name>.`
 
 ### Viewing a client's history: `view`
@@ -495,6 +539,7 @@ Format: `clear`
 
 `clear` takes no parameters. Inputs such as `clear 1` or `clear all` are rejected without changing clients,
 their records, the current view or the saved data. To remove one client, use `delete INDEX`.
+`clear` currently deletes everything without a confirmation step; requiring confirmation is a future enhancement.
 
 ### Exiting the program: `exit`
 
@@ -513,7 +558,9 @@ Format: `session INDEX d/DATE t/TIME` or `session n/NAME d/DATE t/TIME`
 
 * `INDEX` is the positive number shown on the **current displayed list**, including a filtered list.
 * `NAME` must match a client's full name. Matching ignores case, leading/trailing whitespace, and repeated
-  internal spaces. Names cannot be empty or contain `/`.
+  internal spaces, including equivalent accent encodings. Names cannot be empty.
+  The `n/NAME` form does not support `/`, even though `add` and `edit` allow it: use the displayed client index
+  for names such as `Raju s/o Kumar`.
 * `DATE` must be a real date in `YYYY-MM-DD` format, such as `2026-12-15`. A past date or time is accepted, so you
   can record a session late; the message then adds `Note: this session is in the past, so it shows as "- (none upcoming)".`
 * `TIME` is a 24-hour time with an optional colon and a one- or two-digit hour, such as `930`, `0930`, `9:30` or
@@ -559,9 +606,9 @@ Missing/repeated/unknown prefix or both identifiers | `Invalid command format! U
 Invalid index | `The client index provided is invalid.`
 Unknown name | `No client with that name exists in Spotter.`
 Empty name | `Name cannot be empty.`
-Name containing a slash | `Name must not contain '/'.`
+Name containing a slash | `Name must not contain '/'.`, or the format error above if part of the name is parsed as an unknown prefix (e.g. `s/` in `Raju s/o Kumar`); use the client index instead.
 Malformed date or component out of range | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`
-Impossible calendar date (e.g. 30 February) | `Date must be a valid calendar date.`
+Impossible calendar date (e.g. `2026-02-30`) | `2026-02-30 is not a real date.`
 Invalid time | `Time must be a 24-hour time such as 930, 0930, 9:30 or 19:00.`
 
 ### Cancelling a recorded session: `cancelsession`
@@ -573,13 +620,14 @@ Format: `cancelsession INDEX` or `cancelsession n/NAME`
 * `INDEX` must be a positive integer shown in the current list, including results from `find`, `filter` or `sessions`.
 * `NAME` follows the same full-name matching rules as `session n/NAME`: case and extra spaces are ignored.
   It searches all clients, even if the client is hidden by the current filter. Supply exactly one identifier.
+  For a name containing `/`, use `cancelsession INDEX` instead.
 * Both upcoming and expired recorded sessions can be cancelled.
 * Contact details, tags, measurements and performance records are preserved. The cancellation is saved automatically.
 * The current filter stays active. A cancelled client disappears from a `sessions` date view, but remains in Spotter.
   In the full list, their card shows `Next session: - (none booked)` and moves to the unbooked group.
 * Indices may change after cancellation. Check the displayed list before entering the next index-based command.
-  If the cancelled client disappears from the displayed list, the message adds
-  `NAME is no longer shown here; clients below have moved up one place.`
+  If the cancelled client moves to a different index or disappears from the displayed list, the message adds
+  `Displayed indices have changed. Check the client list before your next index-based command.`
 * A client with no recorded session is rejected with `No session is recorded for NAME.`
   An invalid index shows `The client index provided is invalid.`
   Missing, non-numeric or mixed identifiers show
@@ -589,14 +637,16 @@ Format: `cancelsession INDEX` or `cancelsession n/NAME`
 
 <box type="tip" seamless>
 
-**Tip:** In a `sessions` date view, prefer `cancelsession n/NAME`; index numbers shift after each cancellation.
+**Tip:** In a `sessions` date view, prefer `cancelsession n/NAME` for names without `/`.
+For slash-containing names, use the displayed index and check the list again after each cancellation.
 </box>
 
 Example: `cancelsession 1` cancels the first displayed client's session.
 Alternatively, `cancelsession n/Sarah Lim` cancels Sarah's booking without relying on a changing list index.
 Success: `Cancelled session on 2026-12-15 09:00 for Sarah Lim.` (when that is her recorded booking).
 The confirmation includes the removed booking's date and 24-hour time, including for expired bookings.
-In a `sessions` date view, it continues: `Sarah Lim is no longer shown here; clients below have moved up one place.`
+If displayed indices change, it continues:
+`Displayed indices have changed. Check the client list before your next index-based command.`
 
 ### Listing sessions on a date: `sessions`
 
@@ -616,7 +666,8 @@ Format: `sessions d/DATE`
 
 <box type="tip" seamless>
 
-**Tip:** In a `sessions` date view, prefer `cancelsession n/NAME`; index numbers shift after each cancellation.
+**Tip:** In a `sessions` date view, prefer `cancelsession n/NAME` for names without `/`.
+For slash-containing names, use the displayed index and check the list again after each cancellation.
 </box>
 
 Example: `sessions d/2026-12-15`.
@@ -666,14 +717,54 @@ _Details coming soon ..._
 **Q**: How do I transfer my data to another computer?<br>
 **A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous Spotter home folder.
 
+**Q**: How do I back up my clients' data?<br>
+**A**: Close Spotter and copy `[JAR file location]/data/spotter.json` to a safe place. To restore it, close Spotter and copy the backup back to the same location. See [Saving the data](#saving-the-data).
+
+**Q**: Spotter started with no clients after I edited the data file. Is my data lost?<br>
+**A**: Not yet. Spotter could not read the edited file, so it left the file unchanged. Close Spotter **before** running any command that changes data, as that would overwrite the file. Then fix your edit or restore your backup. See [Editing the data file](#editing-the-data-file).
+
+**Q**: I recorded a gym performance with the wrong numbers. How do I fix it?<br>
+**A**: Record it again for the same client, date and exercise. The new sets, repetitions and load replace the old record, and Spotter shows `Updated performance for ...`. To remove the record instead, use [`deleteperformance`](#deleting-a-gym-performance-deleteperformance).
+
+**Q**: Why are `bench press` and `Bench Press` the same exercise, but `Clean & Jerk` and `Clean and Jerk` are not?<br>
+**A**: Spotter ignores letter case, extra spaces and the apostrophe style, but otherwise compares exercise names as typed. Use the same wording each time so that a client's records for one exercise stay together.
+
+**Q**: Why can't I record a measurement or performance for a future date?<br>
+**A**: Measurements and performances record results a client has already achieved, so `measure` and `performance` accept only today or past dates. To plan a future session, use [`session`](#recording-a-client-s-next-session-session).
+
+**Q**: The Upcoming sessions panel has been replaced by one client's history. How do I get it back?<br>
+**A**: Use [`list`](#listing-all-clients-list). [`view INDEX`](#viewing-a-client-s-history-view) is what shows a client's history in place of Upcoming sessions.
+
 --------------------------------------------------------------------------------------------------------------------
+
+## Current contact-input limitations
+
+Client names are labels for the trainer's own records; Spotter does not verify legal names or require a legal-name
+match. The current Latin-script and punctuation support is a bounded design choice, not support for every language.
+A supported preferred spelling can be used if suitable for the trainer and client; otherwise that name cannot yet
+be recorded in its original script. Broader language support is a planned enhancement, not a current feature.
+
+Names containing command prefixes preceded by a space cannot be entered literally through those commands.
+Slash-containing names are accepted by `add` and `edit`, but session booking/cancellation must use the displayed
+client index. Phone labels support English letters only, and accepted numbers are not checked for dialability.
+
+--------------------------------------------------------------------------------------------------------------------
+
+## Restoring the window
+
+Spotter remembers the main window's size and position. At startup, a partly off-screen window is moved
+and, if needed, resized to fit within one available screen's usable area. Valid positions on secondary
+screens are preserved. If the saved window is completely off-screen or its dimensions are invalid,
+Spotter restores the default size, reduced if necessary to fit, centered on the primary screen.
+You do not need to delete `preferences.json` after disconnecting a monitor.
+
+--------------------------------------------------------------------------------------------------------------------
+
 
 ## Known issues
 
-1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
-3. **Unrecognized prefixes are not reported**: text such as `a/x` that uses a prefix Spotter doesn't support is treated as part of the field before it. For example, `add n/John Tan p/91234567 a/x` reports an invalid phone number. The remedy is to remove the unsupported prefix.
-4. **Warnings when launching from a terminal**: on some Java setups, such as JDKs that bundle JavaFX (e.g. Zulu FX), `java -jar spotter.jar` prints `WARNING` lines about a restricted method and enabling native access. These come from JavaFX loading its native libraries. They are harmless, and Spotter works normally.
+1. **Unrecognized prefixes are not reported**: text such as `a/x` that uses a prefix Spotter doesn't support is treated as part of the field before it. For example, `add n/John Tan p/91234567 a/x` reports an invalid phone number. The remedy is to remove the unsupported prefix. The session, measurement and performance commands already report such a prefix as an invalid command format.
+2. **Warnings when launching from a terminal**: on some Java setups, such as JDKs that bundle JavaFX (e.g. Zulu FX), `java -jar spotter.jar` prints `WARNING` lines about a restricted method and enabling native access. These come from JavaFX loading its native libraries. They are harmless, and Spotter works normally.
 
 --------------------------------------------------------------------------------------------------------------------
 

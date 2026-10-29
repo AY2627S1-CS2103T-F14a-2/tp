@@ -1,6 +1,6 @@
 ---
   layout: default.md
-  title: ""
+  title: "Spotter"
 ---
 
 # Spotter

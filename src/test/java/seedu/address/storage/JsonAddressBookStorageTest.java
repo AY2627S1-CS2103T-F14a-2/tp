@@ -18,6 +18,7 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.testutil.PersonBuilder;
 
 public class JsonAddressBookStorageTest {
     private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonAddressBookStorageTest");
@@ -84,6 +85,19 @@ public class JsonAddressBookStorageTest {
         readBack = jsonAddressBookStorage.readAddressBook().get(); // file path not specified
         assertEquals(original, new AddressBook(readBack));
 
+    }
+
+    @Test
+    public void readAndSaveAddressBook_realisticContactFormats_preservesValues() throws Exception {
+        AddressBook original = new AddressBook();
+        original.addPerson(new PersonBuilder().withName("Mary-Jane O'Brien")
+                .withPhone("1234 5678 (HP) 1111-3333 (Office)").build());
+        original.addPerson(new PersonBuilder().withName("Raju s/o Kumar").withPhone("+65 9123 4567").build());
+        original.addPerson(new PersonBuilder().withName("José Tan").withPhone("123.456 ext 7").build());
+        original.addPerson(new PersonBuilder().withName("Dr. Lim").withPhone("9123-4567").build());
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(testFolder.resolve("formats.json"));
+        storage.saveAddressBook(original);
+        assertEquals(original, new AddressBook(storage.readAddressBook().orElseThrow()));
     }
 
     @Test
