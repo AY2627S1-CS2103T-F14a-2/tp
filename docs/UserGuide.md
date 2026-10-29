@@ -613,8 +613,8 @@ Format: `cancelsession INDEX` or `cancelsession n/NAME`
 * The current filter stays active. A cancelled client disappears from a `sessions` date view, but remains in Spotter.
   In the full list, their card shows `Next session: - (none booked)` and moves to the unbooked group.
 * Indices may change after cancellation. Check the displayed list before entering the next index-based command.
-  If the cancelled client disappears from the displayed list, the message adds
-  `NAME is no longer shown here; clients below have moved up one place.`
+  If the cancelled client moves to a different index or disappears from the displayed list, the message adds
+  `Displayed indices have changed. Check the client list before your next index-based command.`
 * A client with no recorded session is rejected with `No session is recorded for NAME.`
   An invalid index shows `The client index provided is invalid.`
   Missing, non-numeric or mixed identifiers show
@@ -632,7 +632,8 @@ Example: `cancelsession 1` cancels the first displayed client's session.
 Alternatively, `cancelsession n/Sarah Lim` cancels Sarah's booking without relying on a changing list index.
 Success: `Cancelled session on 2026-12-15 09:00 for Sarah Lim.` (when that is her recorded booking).
 The confirmation includes the removed booking's date and 24-hour time, including for expired bookings.
-In a `sessions` date view, it continues: `Sarah Lim is no longer shown here; clients below have moved up one place.`
+If displayed indices change, it continues:
+`Displayed indices have changed. Check the client list before your next index-based command.`
 
 ### Listing sessions on a date: `sessions`
 

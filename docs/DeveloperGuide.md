@@ -447,12 +447,15 @@ never save the data file; rejected commands retain the displayed list.
 `cancelsession INDEX` or `cancelsession n/NAME` removes a client's single recorded session.
 `CancelSessionCommandParser` accepts exactly one index or full name. `CancelSessionCommand` resolves indices against
 `Model#getFilteredPersonList()`, so indices refer to the sorted/filtered UI rather than JSON order.
-Names use the booking command's case-insensitive, whitespace-normalized matching across the whole address book.
+Both commands share `SessionCommand#findClient` for displayed-index validation and case-insensitive,
+whitespace-normalized full-name matching across the whole address book.
 This lets a trainer cancel a known client's booking even after indices change or a filter hides the client,
 while preserving the current filter. Mixed identifiers, empty names and slashes are rejected during parsing.
 It rejects an invalid index or a client without a recorded session before changing the model.
-When the cancelled client drops out of the displayed list (e.g. in a `sessions` date view), the success message adds
-a note that the clients below have moved up one place, since a repeated index would now refer to a different client.
+The command compares the cancelled client's displayed index before and after the update. If the client moves
+(e.g. to the unbooked group) or disappears (e.g. from a `sessions` date view), the success message warns:
+`Displayed indices have changed. Check the client list before your next index-based command.`
+A hidden client or a client whose displayed position stays the same does not trigger this warning.
 
 The following partial model diagram shows the session field, the date predicate and the progress data that must survive
 cancellation. Contact fields are omitted to keep the diagram focused.

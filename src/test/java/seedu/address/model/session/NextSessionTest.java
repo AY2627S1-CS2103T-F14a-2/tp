@@ -60,6 +60,7 @@ public class NextSessionTest {
         assertEquals("Fri 1 Jan 2027, 9:00am", new NextSession("2027-01-01 09:00").toDisplayString(now));
     }
 
+    // @@author gabriel-wan
     @Test
     public void toDisplayString_englishDateAndTwelveHourTime() {
         LocalDateTime now = LocalDateTime.of(2030, 1, 1, 0, 0);
@@ -76,6 +77,7 @@ public class NextSessionTest {
         assertEquals("- (none upcoming)", session.toDisplayString(session.value.plusSeconds(1)));
     }
 
+    // @@author
     @Test
     public void equals() {
         NextSession nextSession = new NextSession("2026-10-08 18:00");

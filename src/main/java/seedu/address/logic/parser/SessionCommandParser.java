@@ -18,6 +18,7 @@ import seedu.address.model.session.NextSession;
  * Parses the two session command forms and rejects missing, duplicate, and unknown prefixes.
  */
 public class SessionCommandParser implements Parser<SessionCommand> {
+    // @@author gabriel-wan
     @Override
     public SessionCommand parse(String args) throws ParseException {
         requireNonNull(args);
@@ -34,16 +35,19 @@ public class SessionCommandParser implements Parser<SessionCommand> {
         if ((byName && !arguments.getPreamble().isEmpty()) || (!byName && arguments.getPreamble().isEmpty())) {
             throw new ParseException(SessionCommand.MESSAGE_INVALID_FORMAT);
         }
-        String name = null;
-        Index index = null;
         if (byName) {
-            name = ParserUtil.parseSessionClientName(arguments.getValue(PREFIX_NAME).orElseThrow());
-        } else {
-            index = ParserUtil.parseClientIndex(arguments.getPreamble(), SessionCommand.MESSAGE_INVALID_FORMAT);
+            String name = ParserUtil.parseSessionClientName(arguments.getValue(PREFIX_NAME).orElseThrow());
+            return new SessionCommand(name, parseNextSession(arguments));
         }
+        Index index = ParserUtil.parseClientIndex(arguments.getPreamble(), SessionCommand.MESSAGE_INVALID_FORMAT);
+        return new SessionCommand(index, parseNextSession(arguments));
+    }
+    // @@author
+
+    /** Builds the stored, minute-precision session after validating its calendar date and time. */
+    private NextSession parseNextSession(ArgumentMultimap arguments) throws ParseException {
         LocalDate date = ParserUtil.parseCalendarDate(arguments.getValue(PREFIX_DATE).orElseThrow());
         LocalTime time = ParserUtil.parseSessionTime(arguments.getValue(PREFIX_TIME).orElseThrow());
-        NextSession session = new NextSession(date + " " + time.format(DateTimeFormatter.ofPattern("HH:mm")));
-        return byName ? new SessionCommand(name, session) : new SessionCommand(index, session);
+        return new NextSession(date + " " + time.format(DateTimeFormatter.ofPattern("HH:mm")));
     }
 }
