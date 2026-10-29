@@ -1814,3 +1814,9 @@ When a fix is merged, its item will be removed from this list.
    Currently, `t/Rehab t/rehab` stores two separate tags on the client, and a data file with both spellings is
    loaded the same way. We plan to compare tags ignoring letter case, so that `t/Rehab t/rehab` stores one tag,
    keeping the spelling entered first, and a data file with both spellings is loaded with one of them.
+
+6. **Reject unrecognised prefixes in `add` and `edit`.**
+   Currently, `add` and `edit` treat text such as `x/` as part of the field before it, so
+   `add n/Alice x/ p/91234567` adds a client named `Alice x/`. We plan to reject any prefix that the command does
+   not support, showing the command's existing invalid-format message without changing any data, as `measure`,
+   `performance`, `deletemeasure` and `deleteperformance` already do.
