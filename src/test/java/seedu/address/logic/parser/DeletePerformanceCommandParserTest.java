@@ -69,6 +69,17 @@ public class DeletePerformanceCommandParserTest {
     }
 
     @Test
+    public void parse_unknownPrefix_failure() {
+        String expectedMessage = DeletePerformanceCommand.MESSAGE_INVALID_FORMAT;
+
+        // performance prefixes copied over would otherwise be reported as an invalid exercise name
+        assertParseFailure(parser, "1" + DATE + EXERCISE + " s/3 r/8 w/60", expectedMessage);
+
+        // an unknown prefix after the date would otherwise be reported as an invalid date
+        assertParseFailure(parser, "1" + DATE + " t/x" + EXERCISE, expectedMessage);
+    }
+
+    @Test
     public void parse_invalidIndex_failure() {
         String expectedMessage = withUsage(DeletePerformanceCommand.MESSAGE_INVALID_INDEX);
 

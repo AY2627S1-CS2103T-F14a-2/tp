@@ -28,6 +28,7 @@ import seedu.address.model.person.MeasurementType;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 
+// @@author gabriel-wan
 /**
  * Exercises sessions and measurements together across commands, copying, storage and failed saves.
  */
@@ -156,3 +157,4 @@ public class SessionMeasurementIntegrationTest {
         return new Measurement(LocalDate.parse(date), MeasurementType.WEIGHT, new BigDecimal(value));
     }
 }
+// @@author

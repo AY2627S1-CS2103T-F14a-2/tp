@@ -95,6 +95,27 @@ public class PerformanceCommandParserTest {
     }
 
     @Test
+    public void parse_unknownPrefix_failure() {
+        String expectedMessage = PerformanceCommand.MESSAGE_INVALID_FORMAT;
+
+        // after the last value, which would otherwise be reported as a non-numeric load
+        assertParseFailure(parser, "1" + ALL_FIELDS + " t/x", expectedMessage);
+
+        // inside another value, which would otherwise be reported as an invalid exercise name
+        assertParseFailure(parser, withField(EXERCISE, " e/Bench n/Press"), expectedMessage);
+
+        // a prefix from another command, e.g. measure's v/
+        assertParseFailure(parser, "1" + ALL_FIELDS + " v/60", expectedMessage);
+    }
+
+    @Test
+    public void parse_slashWithinValue_notTreatedAsPrefix() {
+        // a slash that does not follow a space is part of the value, so the value's own rules apply
+        assertParseFailure(parser, withField(EXERCISE, " e/Bench/Press"),
+                withUsage(ExerciseName.MESSAGE_CONSTRAINTS));
+    }
+
+    @Test
     public void parse_invalidIndex_failure() {
         String expectedMessage = withUsage(PerformanceCommand.MESSAGE_INVALID_INDEX);
 

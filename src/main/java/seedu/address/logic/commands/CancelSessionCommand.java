@@ -5,7 +5,6 @@ import static java.util.Objects.requireNonNull;
 import java.util.Objects;
 
 import seedu.address.commons.core.index.Index;
-import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Name;
@@ -14,7 +13,6 @@ import seedu.address.model.session.NextSession;
 
 /**
  * Removes a client's recorded session by displayed index or full name, preserving their data and filter.
- * AI assistance: Gabriel used OpenAI Codex for cancellation by name and its regression tests.
  */
 public class CancelSessionCommand extends Command {
     public static final String COMMAND_WORD = "cancelsession";
@@ -23,7 +21,7 @@ public class CancelSessionCommand extends Command {
     public static final String MESSAGE_NO_SESSION = "No session is recorded for %s.";
     public static final String MESSAGE_SUCCESS = "Cancelled session on %s for %s.";
     public static final String MESSAGE_CLIENTS_SHIFTED =
-            " %s is no longer shown here; clients below have moved up one place.";
+            " Displayed indices have changed. Check the client list before your next index-based command.";
 
     private final Index index;
     private final String name;
@@ -47,26 +45,18 @@ public class CancelSessionCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        Person target;
-        if (index == null) {
-            target = SessionCommand.findClientByName(model, name);
-        } else {
-            if (index.getZeroBased() >= model.getFilteredPersonList().size()) {
-                throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
-            }
-            target = model.getFilteredPersonList().get(index.getZeroBased());
-        }
+        Person target = SessionCommand.findClient(model, index, name);
         NextSession cancelledSession = target.getNextSession().orElseThrow(() ->
                 new CommandException(String.format(MESSAGE_NO_SESSION, target.getName())));
-        boolean wasShown = model.getFilteredPersonList().contains(target);
+        int previousIndex = model.getFilteredPersonList().indexOf(target);
         Person cancelled = target.withNextSession(null);
         model.setPerson(target, cancelled);
         // Keep date/search filters: a cancelled client should disappear from a session-date view.
         model.updateFilteredPersonList(model.getFilteredPersonListPredicate());
         String message = String.format(MESSAGE_SUCCESS, cancelledSession, target.getName());
-        // Index numbers below the cancelled client have shifted, so a repeated index would hit someone else.
-        if (wasShown && !model.getFilteredPersonList().contains(cancelled)) {
-            message += String.format(MESSAGE_CLIENTS_SHIFTED, target.getName());
+        // Cancellation can remove a filtered row or move a client behind other bookings in the full list.
+        if (previousIndex >= 0 && previousIndex != model.getFilteredPersonList().indexOf(cancelled)) {
+            message += MESSAGE_CLIENTS_SHIFTED;
         }
         return new CommandResult(message, false, false, true);
     }
