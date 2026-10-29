@@ -48,10 +48,10 @@ public class ClientHistoryFormatterTest {
     }
 
     @Test
-    public void formatDetails_mixedCaseTags_sortsAlphabeticallyWithDeterministicCaseTies() {
+    public void formatDetails_mixedCaseTags_sortsAlphabeticallyAndCollapsesCaseVariants() {
         Person person = new PersonBuilder().withTags("Zebra", "apple", "Apple", "banana").build();
         String details = ClientHistoryFormatter.formatDetails(person, NOW);
-        assertEquals("Tags: Apple, apple, banana, Zebra", details.substring(details.lastIndexOf("Tags: ")));
+        assertEquals("Tags: apple, banana, Zebra", details.substring(details.lastIndexOf("Tags: ")));
     }
 
     @Test

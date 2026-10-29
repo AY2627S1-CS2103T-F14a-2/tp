@@ -132,6 +132,12 @@ Format: `add n/NAME p/PHONE [e/EMAIL] [t/TAG]...`
   `1234 5678 (HP) 1111-3333 (Office)` is accepted. Spotter does not check whether a number is dialable.
 * `EMAIL` is optional. A client without an email shows `-` in place of it.
   Entering `e/` without an email after it also adds the client without an email, as in `edit`.
+* `TAG` must be 1–50 characters: English letters `A–Z`/`a–z` and digits `0–9`, optionally separated by
+  single hyphens, e.g. `lower-back` or `level-2`. Leading/trailing hyphens, repeated hyphens, spaces and
+  other symbols are rejected. Outer whitespace is trimmed.
+  Tags differing only in case count as one tag: `t/Rehab t/rehab` stores `Rehab`, the first spelling supplied.
+* Omit `t/` to add a client without tags. An empty `t/` on `add` is rejected with
+  `Tag names cannot be empty. Omit t/ to add a client without tags.`
 * Duplicate clients: a name matching an existing client's, ignoring case and extra spaces, is rejected.
   For example, `john tan` is a duplicate of `John Tan`. A matching phone digit sequence instead gives
   `Warning: <other client's name> also has this phone number.` after the success message; the client is still saved.
@@ -183,6 +189,10 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [t/TAG]... `
 * Existing values will be updated to the input values.
 * When editing tags, all of the client's existing tags are removed; adding tags is not cumulative.
 * To remove all of a client's tags, enter `t/` without a tag after it.
+* Non-empty tags follow the same rules as [`add`](#adding-a-client-add), including the 50-character limit,
+  single internal hyphens and case-insensitive duplicates. The first spelling supplied in this edit is retained.
+  An empty `t/` cannot be combined with other tags in the same command; this shows
+  `An empty t/ clears all tags, so it cannot be combined with other tags.`
 * To remove a client's email, enter `e/` without an email after it.
 * `NAME` and `PHONE` follow the same rules as in [`add`](#adding-a-client-add), including prefix restrictions.
   For example, `edit 1 p/8743 8807` stores `87438807`, while `edit 1 p/+65 8743 8807 (HP)` keeps its formatting.
@@ -231,8 +241,8 @@ Shows clients who have at least one of the specified tags.
 Format: `filter t/TAG [t/MORE_TAGS]...`
 
 * Supply at least one non-empty tag, with a separate `t/` prefix for each tag.
-* Each tag must contain only letters and digits, like the tags that `add` and `edit` accept. Spaces, hyphens and other
-  symbols are not allowed, e.g. `t/re-hab` is rejected.
+* Each tag follows the same 1–50 character rule as [`add`](#adding-a-client-add).
+  Single internal hyphens are allowed, e.g. `t/lower-back`; `t/lower--back`, spaces and other symbols are rejected.
 * Matching is case-insensitive and requires the whole tag name: `REHAB` matches `rehab`, but `reh` does not.
 * Multiple tags use an `OR` search. `filter t/rehab t/strength` shows clients with either tag or both.
   A tag repeated in a different case, e.g. `t/rehab t/REHAB`, counts once.
@@ -253,7 +263,7 @@ Examples:
 | --- | --- |
 | No `t/` prefix, or text before the first prefix, e.g. `filter rehab` | `Invalid command format!`, then `Use: filter t/TAG [t/MORE_TAGS]...` and `Example: filter t/rehab t/strength` |
 | An empty tag, e.g. `filter t/` or `filter t/rehab t/` | `Tags to filter by cannot be empty.`, then `Use: filter t/TAG [t/MORE_TAGS]...` |
-| A tag that is not alphanumeric, e.g. `filter t/re-hab`, `filter t/best friends`, or extra text after a tag such as `filter t/rehab extra` | `Tags can contain only letters and digits, e.g. t/rehab.`, then `Use: filter t/TAG [t/MORE_TAGS]...` |
+| An invalid tag, e.g. `filter t/lower--back`, `filter t/best friends`, a tag longer than 50 characters, or extra text such as `filter t/rehab extra` | `Tag names must be 1 to 50 characters: English letters and digits, with single hyphens between them (e.g. lower-back).`, then `Use: filter t/TAG [t/MORE_TAGS]...` |
 
 
 ### Deleting a client: `delete`
@@ -718,6 +728,12 @@ back up that data file and copy it to `[JAR file location]/data/spotter.json` wh
 Back up any existing destination file before replacing it. Spotter does not search other folders for old data.
 
 ### Editing the data file
+
+Stored tags follow the same rules as `add`: 1–50 English letters/digits with single internal hyphens.
+Case variants in a client's tag array collapse into one tag, keeping the first spelling in the file.
+Before upgrading from a build without a tag-length limit, back up the file and shorten any tags longer than
+50 characters while Spotter is closed. An invalid tag makes the file fail loading; do not run a data-changing
+command until you have repaired the file or restored a backup, as described below.
 
 Spotter data is saved automatically as a JSON file `[JAR file location]/data/spotter.json`. Advanced users are welcome to update data directly by editing that data file. Save it as UTF-8, with or without a byte-order mark (BOM).
 

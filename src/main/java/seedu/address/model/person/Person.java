@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.progress.GymPerformance;
@@ -218,7 +219,9 @@ public class Person {
         return name.equals(otherPerson.name)
                 && phone.equals(otherPerson.phone)
                 && Objects.equals(email, otherPerson.email)
-                && tags.equals(otherPerson.tags)
+                // Tag identity ignores case, but changed display spelling still needs to be saved.
+                && tags.stream().map(tag -> tag.tagName).collect(Collectors.toSet())
+                        .equals(otherPerson.tags.stream().map(tag -> tag.tagName).collect(Collectors.toSet()))
                 && Objects.equals(nextSession, otherPerson.nextSession)
                 && measurements.equals(otherPerson.measurements)
                 && performanceHistory.equals(otherPerson.performanceHistory);

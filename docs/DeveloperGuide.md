@@ -190,6 +190,12 @@ stored directly as a `String`, rather than through a separate adapter. On loadin
 validated and converted into the corresponding client fields and records; older files without progress
 collections load with empty histories.
 
+`Tag` validates 1–50 ASCII letters/digits separated by single internal hyphens. Its equality and hash code
+ignore case, while its stored spelling is preserved. `ParserUtil.parseTags` keeps the first supplied spelling;
+the tag set built by `JsonAdaptedPerson` likewise collapses case variants, retaining the first stored spelling.
+`Person.equals` compares stored tag spellings so a case-only edit is still persisted. Invalid stored tags,
+including older tags exceeding 50 characters, use the existing damaged-data recovery path; no tag is truncated.
+
 For optional email, `JsonAdaptedPerson#toModelType` treats missing, null and whitespace-only values as absent,
 matching a blank CLI `e/` field. Nonblank values retain normal email validation. Loading and read-only commands
 leave the source file unchanged; a subsequent save uses the existing representation for an absent email.
@@ -1210,7 +1216,7 @@ not promises about the current release.
 
       Use case resumes at step 1.
 
-* 1b. A tag contains characters other than letters and digits.
+* 1b. A tag violates the 1–50 character limit or the letters/digits and single internal hyphen rule.
 
     * 1b1. Spotter shows an error message and the expected format.
 
@@ -1335,7 +1341,8 @@ pass/fail results with the release test evidence. Functional tests alone do not 
 
 * **Progress history**: The client's measurement and gym-performance sections in the history panel, each ordered newest first.
 
-* **Tag**: An alphanumeric label attached to a client for grouping and filtering, such as `rehab` or `weightloss`.
+* **Tag**: A case-insensitive label of 1–50 English letters/digits, with optional single internal hyphens,
+  attached to a client for grouping and filtering, such as `rehab` or `lower-back`.
 
 * **Automatic data persistence**: Saving changes without requiring an explicit save command and loading saved data when Spotter starts.
 
@@ -1508,14 +1515,38 @@ Use a separate disposable test dataset. Run `clear confirm`, then add these fict
    `Chris Goh`, then `Listed 2 clients tagged strength.`, as a repeated tag is named once.
 1. Enter `filter t/cardio`.<br>
    Expected: `No clients tagged cardio. Use "list" to show all clients.` with an empty list.
-1. Enter `filter t/re-hab`, `filter t/` and `filter strength`.<br>
-   Expected: `Tags can contain only letters and digits, e.g. t/rehab.`, `Tags to filter by cannot be empty.` and
+1. Enter `filter t/re--hab`, `filter t/` and `filter strength`.<br>
+   Expected: `Tag names must be 1 to 50 characters: English letters and digits, with single hyphens between them (e.g. lower-back).`, `Tags to filter by cannot be empty.` and
    `Invalid command format!`, each followed by `Use: filter t/TAG [t/MORE_TAGS]...`; the last also shows
    `Example: filter t/rehab t/strength`. The displayed list does not change.
 1. Enter `list`, `view 1`, then `filter t/weightloss`.<br>
    Expected: Only `Bea Lim` is listed, but the right side still shows `Alex Tan`'s history.
 1. Enter `list`.<br>
    Expected: All clients are shown again, and Upcoming sessions replaces the history.
+
+#### Tag rules and persistence
+
+Use a separate disposable dataset containing only the client added below.
+
+1. Enter `add n/Tag Probe p/94567890 t/Lower-Back t/lower-back t/Rehab t/rehab`, then `view 1`.<br>
+   Expected: Two tags, `Lower-Back` and `Rehab`, retaining the first spelling of each case-insensitive tag.
+1. Enter `filter t/LOWER-BACK`.<br>
+   Expected: The client is found, ignoring case and accepting the internal hyphen.
+1. Enter `edit 1 t/Strength t/strength`, then close and restart Spotter.<br>
+   Expected: One `Strength` tag. Enter `edit 1 t/STRENGTH` and restart again: the changed spelling persists.
+1. Enter `edit 1 t/rehab t/`, then `edit 1 t/ t/rehab`.<br>
+   Expected: `An empty t/ clears all tags, so it cannot be combined with other tags.` The client and saved
+   data are unchanged. Enter `edit 1 t/`: all tags are cleared and remain cleared after restart.
+1. Enter `add n/Empty Tag Probe p/95678901 t/`.<br>
+   Expected: `Tag names cannot be empty. Omit t/ to add a client without tags.` No client is added.
+1. Enter `edit 1 t/TAG`, replacing `TAG` with 50 letter `a` characters; filter using that same tag.<br>
+   Expected: The edit succeeds and the filter finds the client. Repeat add/edit/filter with a 51-character tag,
+   `lower--back`, `-rehab` and `rehab-`: each is rejected without changing clients, the filter, viewed history
+   or saved data.
+1. Close Spotter, back up the JSON file and add a case variant next to an existing tag in the client's tag array.
+   Restart, make a valid data-changing command and restart again.<br>
+   Expected: One tag retaining the first spelling; all contact, session and progress data are preserved.
+   Invalid stored tags instead trigger the existing load warning. Repair the file before making any data-changing command.
 
 ### Deleting a client
 

@@ -19,9 +19,8 @@ public class FilterCommandParser implements Parser<FilterCommand> {
 
     public static final String MESSAGE_EMPTY_TAG =
             Messages.withUsage("Tags to filter by cannot be empty.", FilterCommand.MESSAGE_USAGE);
-    // Filter's own wording; Tag.MESSAGE_CONSTRAINTS stays as add and edit show it
     public static final String MESSAGE_INVALID_TAG =
-            Messages.withUsage("Tags can contain only letters and digits, e.g. t/rehab.", FilterCommand.MESSAGE_USAGE);
+            Messages.withUsage(Tag.MESSAGE_CONSTRAINTS, FilterCommand.MESSAGE_USAGE);
 
     /**
      * Parses the given {@code String} of arguments in the context of the FilterCommand

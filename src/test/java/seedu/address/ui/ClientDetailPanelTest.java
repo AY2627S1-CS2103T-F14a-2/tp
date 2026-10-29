@@ -70,10 +70,10 @@ public class ClientDetailPanelTest {
             viewedPerson.set(person);
             PersonCard card = new PersonCard(person, 1);
             FlowPane tags = (FlowPane) card.getRoot().lookup("#tags");
-            assertEquals(List.of("Apple", "apple", "banana", "Zebra"),
+            assertEquals(List.of("apple", "banana", "Zebra"),
                     tags.getChildren().stream().map(node -> ((Label) node).getText()).toList());
         });
-        assertTrue(labelText("#details").endsWith("Tags: Apple, apple, banana, Zebra"));
+        assertTrue(labelText("#details").endsWith("Tags: apple, banana, Zebra"));
     }
 
     @Test
