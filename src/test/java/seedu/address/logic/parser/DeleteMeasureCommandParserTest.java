@@ -39,8 +39,16 @@ public class DeleteMeasureCommandParserTest {
             assertEquals(DeleteMeasureCommand.MESSAGE_INVALID_FORMAT,
                     assertThrows(ParseException.class, () -> parser.parse(args)).getMessage());
         }
-        assertThrows(ParseException.class, () -> parser.parse("1 d/2026-09-12 t/weight v/72"));
         assertThrows(ParseException.class, () -> parser.parse("1 d/2026-09-12 t/weight extra"));
+    }
+
+    @Test
+    public void parse_unknownPrefix_rejectsFormat() {
+        // v/ copied from a measure command would otherwise be reported as an invalid type
+        for (String args : new String[] {"1 d/2026-09-12 t/weight v/72", "1 d/2026-09-12 x/1 t/weight"}) {
+            assertEquals(DeleteMeasureCommand.MESSAGE_INVALID_FORMAT,
+                    assertThrows(ParseException.class, () -> parser.parse(args)).getMessage());
+        }
     }
 
     @Test

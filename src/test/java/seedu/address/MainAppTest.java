@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.stage.Stage;
+import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.model.AddressBook;
@@ -136,6 +137,58 @@ public class MainAppTest {
     public void initModelManager_futureDatedRecords_loadsWithoutWarning() throws Exception {
         // Only commands reject future dates, so that saved records stay loadable however the clock is set
         assertLoadsBothClients(validClientWith("2026-10-01", LocalDate.now().plusDays(1).toString()));
+    }
+
+    // A hand-edited null must be reported as damaged data, not as a NullPointerException that stops startup (#193).
+
+    @Test
+    public void initModelManager_nullClientEntry_startsEmptyWithWarningAndKeepsFile() throws Exception {
+        assertInvalidClientStartsEmpty("null");
+    }
+
+    @Test
+    public void initModelManager_nullTagEntry_startsEmptyWithWarningAndKeepsFile() throws Exception {
+        assertInvalidClientStartsEmpty(validClientWith("\"email\": \"bob@example.com\", ",
+                "\"email\": \"bob@example.com\", \"tags\": [ null ], "));
+    }
+
+    @Test
+    public void initModelManager_nullFile_startsEmptyWithWarningAndKeepsFile() throws Exception {
+        assertStartsEmptyWithWarningAndKeepsFile("null");
+    }
+
+    @Test
+    public void initPrefs_validFile_returnsSavedPrefs() throws Exception {
+        Path prefsFile = temporaryFolder.resolve("preferences.json");
+        UserPrefs savedPrefs = new UserPrefs();
+        savedPrefs.setGuiSettings(new GuiSettings(800, 650, 10, 20));
+        new JsonUserPrefsStorage(prefsFile).saveUserPrefs(savedPrefs);
+
+        UserPrefs prefs = new MainApp().initPrefs(new JsonUserPrefsStorage(prefsFile));
+
+        assertEquals(savedPrefs, prefs);
+    }
+
+    @Test
+    public void initPrefs_nullFile_returnsDefaultPrefs() throws Exception {
+        assertInitPrefsReturnsDefaultPrefs("null");
+    }
+
+    @Test
+    public void initPrefs_nullGuiSettings_returnsDefaultPrefs() throws Exception {
+        assertInitPrefsReturnsDefaultPrefs("{ \"guiSettings\": null }");
+    }
+
+    /**
+     * Writes {@code content} as the preferences file, then checks that Spotter falls back to the default preferences.
+     */
+    private void assertInitPrefsReturnsDefaultPrefs(String content) throws Exception {
+        Path prefsFile = temporaryFolder.resolve("preferences.json");
+        Files.writeString(prefsFile, content);
+
+        UserPrefs prefs = new MainApp().initPrefs(new JsonUserPrefsStorage(prefsFile));
+
+        assertEquals(new UserPrefs(), prefs);
     }
 
     private static String createDataFile(String secondClientJson) {

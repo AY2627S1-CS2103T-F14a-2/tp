@@ -224,6 +224,27 @@ name identifiers. Those clients remain accessible through displayed indexes. Bro
 prefix escaping require consistent parser, identity, search and storage rules, so they are deferred rather than
 partially implemented here. These limits do not establish that every user's naming needs are met.
 
+### Duplicate detection
+
+Spotter identifies a client by name, not by phone or email. `Person#isSamePerson` delegates to
+`Name#isSameName`, which compares names after Unicode NFC normalization, ignoring letter case and collapsing
+repeated whitespace, so `john tan` and `John  Tan` are the same client. `UniquePersonList#contains` uses
+`isSamePerson`, and `add` reaches it through `Model#hasPerson`; `edit` performs the same check only when the
+edited name differs from the original.
+
+Duplicate detection is therefore name-only: two clients cannot share a name, even when their phone numbers and
+emails differ. Because phone numbers are not unique in the real world, `add` and `edit` instead append a
+**non-blocking warning** (`SharedPhoneWarning`) when another client has the same complete phone digit sequence
+(`Phone#getDigits`). The saved client is excluded from this comparison, so editing a client without changing
+their phone never warns about themselves.
+
+The two checks are deliberately separate: a name clash blocks the command, because `session n/NAME` and
+`cancelsession n/NAME` find a client by name, while a shared phone only warns, leaving the trainer to decide
+whether the entry is a genuine duplicate. Warning instead of blocking when two clients share a name is left as
+future work.
+
+<puml src="diagrams/DuplicateDetectionClassDiagram.puml" width="520" />
+
 ### Upcoming sessions panel
 
 The right side of the window shows the clients with an upcoming session, soonest first, so that a trainer can
@@ -324,8 +345,10 @@ Design notes:
 and `deleteperformance INDEX d/DATE e/EXERCISE` removes one. Both follow the usual `Logic` flow: the parser validates
 the fields, and the command resolves the index against `Model#getFilteredPersonList()`.
 
-Both parsers first check the command's shape: an integer index followed by each prefix exactly once
-(`ArgumentMultimap#hasEachPrefixOnce`). A shape error gives the invalid-format message. Otherwise the values are parsed
+Both parsers first check the command's shape: no prefix the command does not use
+(`ParserUtil#rejectUnsupportedPrefixes`, as the session and measurement commands do), and an integer index followed by each prefix
+exactly once (`ArgumentMultimap#hasEachPrefixOnce`). Without the first check, AB3's tokenizer would read an unknown
+prefix such as ` t/x` as part of the previous value and report that value as invalid. A shape error gives the invalid-format message. Otherwise the values are parsed
 in command order, so only the first invalid value is reported, followed by the expected format. Sets and repetitions
 share one counting rule, and the parser and `JsonAdaptedGymPerformance` both reuse the `GymPerformance` and `Load`
 checks, so commands and the data file accept the same values, except that the parser first trims surrounding spaces.
@@ -362,8 +385,14 @@ order means the record entered last is treated as the latest when several share 
 
 ### Recording body measurements
 
+`MeasurementLiveHistoryTest` executes commands with a real `LogicManager`, `ModelManager`, history panel
+and client list. It checks replacement, deletion of the latest and final records, and visible rollback
+after failed saves without reopening `view`. It also checks that the saved data agrees with the final state.
+
 `measure INDEX d/DATE t/TYPE v/VALUE` records weight, body-fat percentage or waist circumference.
 `MeasureCommandParser` validates the displayed index, real non-future date, type and decimal value.
+Like `DeleteMeasureCommandParser`, it first rejects prefixes the command does not use
+(`ParserUtil#rejectUnsupportedPrefixes`), so a stray prefix gives the invalid-format message.
 `Measurement` enforces the type's range and at most two decimal places using `BigDecimal`.
 Future-date validation stays in the parser so saved records remain loadable after a clock change.
 
@@ -379,6 +408,15 @@ records, filter and viewed client if saving fails.
 The immutable copy keeps a failed change recoverable without a separate measurement cache. The same
 date/type pair identifies a record regardless of its value, so correcting a value does not increase the count.
 
+
+### Measurement replacement feedback
+
+Before updating the client, `MeasureCommand` calls `Person#findMeasurement` to find the existing measurement
+with the same date and type. `Person#hasMeasurement` delegates to the same lookup.
+It retains that immutable record to format the old value → new value after `Model#setPerson` succeeds.
+Other dates and types are not used for this comparison. A repeated identical value is still reported as an
+update, with equal old and new values; recording a new date/type pair keeps the existing recorded message.
+The storage format and replacement rules are unchanged.
 
 ### Deleting body measurements
 
@@ -423,12 +461,15 @@ never save the data file; rejected commands retain the displayed list.
 `cancelsession INDEX` or `cancelsession n/NAME` removes a client's single recorded session.
 `CancelSessionCommandParser` accepts exactly one index or full name. `CancelSessionCommand` resolves indices against
 `Model#getFilteredPersonList()`, so indices refer to the sorted/filtered UI rather than JSON order.
-Names use the booking command's case-insensitive, whitespace-normalized matching across the whole address book.
+Both commands share `SessionCommand#findClient` for displayed-index validation and case-insensitive,
+whitespace-normalized full-name matching across the whole address book.
 This lets a trainer cancel a known client's booking even after indices change or a filter hides the client,
 while preserving the current filter. Mixed identifiers, empty names and slashes are rejected during parsing.
 It rejects an invalid index or a client without a recorded session before changing the model.
-When the cancelled client drops out of the displayed list (e.g. in a `sessions` date view), the success message adds
-a note that the clients below have moved up one place, since a repeated index would now refer to a different client.
+The command compares the cancelled client's displayed index before and after the update. If the client moves
+(e.g. to the unbooked group) or disappears (e.g. from a `sessions` date view), the success message warns:
+`Displayed indices have changed. Check the client list before your next index-based command.`
+A hidden client or a client whose displayed position stays the same does not trigger this warning.
 
 The following partial model diagram shows the session field, the date predicate and the progress data that must survive
 cancellation. Contact fields are omitted to keep the diagram focused.
@@ -567,6 +608,14 @@ normalization, duplicate detection and name lookup across add/edit, search, sess
 It must also retain compatibility with saved Latin-script names and provide tests for the newly supported scripts.
 This proposal does not change the supported input formats in v1.5 or promise a delivery date.
 
+### \[Proposed\] Latest measurement summary
+
+A future enhancement is to show the latest weight, body fat and waist together above the full history in
+`view`. Each value should include its own measurement date, with an explicit empty state for a type that
+has no records. The summary should be derived from the existing records and refresh after recording,
+replacement, deletion and failed-save rollback. This would avoid scanning frequent weight entries to find
+less frequent waist or body-fat records. It is not implemented in the current release.
+
 ### \[Proposed\] Data archiving
 
 _{Explain here how the data archiving feature will be implemented}_
@@ -669,7 +718,7 @@ not promises about the current release.
 
 * 1a. A required detail is missing.
 
-    * 1a1. Spotter shows an error message stating which detail is missing.
+    * 1a1. Spotter shows an error message with the expected command format.
 
       Use case resumes at step 1.
 
@@ -682,6 +731,12 @@ not promises about the current release.
 * 1c. A client with the same name already exists. Names are compared ignoring case and leading/trailing spaces, with repeated spaces treated as one.
 
     * 1c1. Spotter informs the trainer that the client already exists.
+
+      Use case ends.
+
+* 2a. Another client has the same phone number, ignoring formatting.
+
+    * 2a1. Spotter adds the client and warns the trainer which client shares the number.
 
       Use case ends.
 
@@ -899,7 +954,8 @@ not promises about the current release.
 
 * 3f. A measurement of the same type on the same date already exists for the client.
 
-    * 3f1. Spotter replaces the existing value with the new value, and shows the updated measurement.
+    * 3f1. Spotter replaces the existing value and shows the client, measurement type, date, old value,
+      new value and unit. The record count is unchanged.
 
       Use case ends.
 
@@ -1184,10 +1240,13 @@ Unless a section says otherwise:
       Close Spotter, disconnect that monitor, then relaunch.<br>
       Expected: If the saved window no longer overlaps any screen, it is restored on the primary screen.
 
-1. Unknown commands
+1. Unknown and mixed-case command words
 
    1. Enter `hlep`.<br>
-      Expected: `Unknown command. Type "help" to see all commands.`
+      Expected: `Unknown command. Type "help" for a link to the user guide.`
+
+   1. Enter `LIST`, then `List`.<br>
+      Expected: The same result as `list` each time, as command words are case-insensitive.
 
 1. Opening and restoring the Help window
 
@@ -1401,8 +1460,11 @@ assume the computer date is later than 12 September 2026; card dates include the
    The card shows `Latest measurement: 12 Sep - weight 72.4 kg (1 record)` in 2026.
    The open history panel shows the record without another `view` command.
 1. Enter `measure 1 d/2026-09-12 t/weight v/71.8`.<br>
-   Expected: `Updated measurement for NAME: weight = 71.8 kg on 2026-09-12.`
+   Expected: `Updated measurement for NAME: weight on 2026-09-12: 72.4 → 71.8 kg.`
    The card and open history value change to 71.8 and their counts stay at one.
+1. Repeat `measure 1 d/2026-09-12 t/weight v/71.8`.<br>
+   Expected: `Updated measurement for NAME: weight on 2026-09-12: 71.8 → 71.8 kg.`
+   The value and record count remain unchanged.
 1. Add `measure 1 d/2026-09-12 t/waist v/81`, then
    `measure 1 d/2026-09-11 t/bodyfat v/18.4`.<br>
    Expected: Both commands record new entries. The card still shows weight 71.8 kg, with three records.

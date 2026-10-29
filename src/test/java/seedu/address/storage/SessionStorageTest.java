@@ -26,6 +26,7 @@ import seedu.address.model.person.Person;
 import seedu.address.model.session.NextSession;
 import seedu.address.testutil.PersonBuilder;
 
+// @@author gabriel-wan
 /**
  * Integrates command parsing, replacement, JSON save/reload, and backward-compatible session storage.
  */
@@ -107,3 +108,4 @@ public class SessionStorageTest {
         assertEquals(damaged, Files.readString(file));
     }
 }
+// @@author

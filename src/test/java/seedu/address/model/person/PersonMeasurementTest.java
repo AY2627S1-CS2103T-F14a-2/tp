@@ -9,6 +9,7 @@ import static seedu.address.testutil.TypicalGymPerformances.SQUAT;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -21,6 +22,23 @@ public class PersonMeasurementTest {
     private static final LocalDate DATE = LocalDate.of(2026, 9, 12);
     private static final Measurement WEIGHT = new Measurement(DATE, MeasurementType.WEIGHT,
             new BigDecimal("72.4"));
+
+    @Test
+    public void findMeasurement_matchesDateAndTypeAndReturnsStoredValue() {
+        Measurement waist = new Measurement(DATE, MeasurementType.WAIST, new BigDecimal("81"));
+        Measurement olderWeight = new Measurement(DATE.minusDays(1), MeasurementType.WEIGHT,
+                new BigDecimal("73"));
+        Person client = new PersonBuilder().withMeasurements(waist, olderWeight, WEIGHT).build();
+        Measurement correction = new Measurement(DATE, MeasurementType.WEIGHT, new BigDecimal("71"));
+
+        assertEquals(Optional.of(WEIGHT), client.findMeasurement(correction));
+        assertEquals(Optional.empty(), new PersonBuilder().build().findMeasurement(correction));
+        assertEquals(Optional.empty(), new PersonBuilder().withMeasurements(waist, olderWeight).build()
+                .findMeasurement(correction));
+        assertThrows(NullPointerException.class, () -> client.findMeasurement(null));
+        assertThrows(NullPointerException.class, () -> client.hasMeasurement(null));
+        assertEquals(List.of(waist, olderWeight, WEIGHT), client.getMeasurements());
+    }
 
     @Test
     public void withMeasurement_firstRecord_preservesClientDetails() {

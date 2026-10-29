@@ -18,6 +18,7 @@ import seedu.address.model.session.NextSession;
  * Exercises both session command forms, strict calendar/time boundaries, and malformed input.
  */
 public class SessionCommandParserTest {
+    // @@author gabriel-wan
     private final SessionCommandParser parser = new SessionCommandParser();
     private final String date = LocalDate.now().plusDays(1).toString();
     private final NextSession session = new NextSession(date + " 17:00");
@@ -61,6 +62,7 @@ public class SessionCommandParserTest {
         assertParseFailure(parser, " n/Sarah/Lim d/" + date + " t/1700", SessionCommand.MESSAGE_NAME_SLASH);
     }
 
+    // @@author
     @Test
     public void parse_invalidDateFormat_failure() {
         for (String malformed : List.of("", "2026-1-01", "0000-01-01", "+2028-01-01", "12028-01-01",
@@ -84,11 +86,25 @@ public class SessionCommandParserTest {
                 new SessionCommand(Index.fromOneBased(1), new NextSession(yesterday + " 17:00")));
     }
 
+    // @@author gabriel-wan
     @Test
     public void parse_invalidTime_failure() {
         for (String time : List.of("", "2400", "24:00", "2360", "23:60", "-100", "9:3", "17:00:00",
                 "17.00", "5pm", "17000", "17:00 trailing")) {
             assertParseFailure(parser, " 1 d/" + date + " t/" + time, ParserUtil.MESSAGE_INVALID_SESSION_TIME);
+        }
+    }
+
+    // @@author
+    @Test
+    public void parse_midnightAndSingleDigitHours_storesMinutePrecision() {
+        for (String time : List.of("000", "0000", "0:00", "00:00")) {
+            assertParseSuccess(parser, " 1 d/" + date + " t/" + time,
+                    new SessionCommand(Index.fromOneBased(1), new NextSession(date + " 00:00")));
+        }
+        for (String time : List.of("905", "0905", "9:05", "09:05")) {
+            assertParseSuccess(parser, " n/Sarah Lim d/" + date + " t/" + time,
+                    new SessionCommand("Sarah Lim", new NextSession(date + " 09:05")));
         }
     }
 
@@ -106,9 +122,11 @@ public class SessionCommandParserTest {
                 new SessionCommand(Index.fromOneBased(1), new NextSession(LocalDate.now() + " 00:00")));
     }
 
+    // @@author gabriel-wan
     @Test
     public void addressBookParser_dispatchesSession() throws Exception {
         assertEquals(new SessionCommand(Index.fromOneBased(1), session),
                 new AddressBookParser().parseCommand("session 1 d/" + date + " t/1700"));
     }
+    // @@author
 }
