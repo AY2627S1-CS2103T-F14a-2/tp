@@ -24,7 +24,7 @@ public class SessionCommand extends Command {
     // @@author gabriel-wan
     public static final String COMMAND_WORD = "session";
     public static final String MESSAGE_USAGE = "session INDEX d/DATE t/TIME or session n/NAME d/DATE t/TIME";
-    public static final String MESSAGE_INVALID_FORMAT = "Invalid command format! Use: " + MESSAGE_USAGE;
+    public static final String MESSAGE_INVALID_FORMAT = Messages.getInvalidFormatMessage(MESSAGE_USAGE);
     public static final String MESSAGE_INVALID_INDEX = Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
     public static final String MESSAGE_NO_SUCH_NAME = "No client with that name exists in Spotter.";
     public static final String MESSAGE_EMPTY_NAME = "Name cannot be empty.";

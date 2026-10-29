@@ -22,7 +22,7 @@ public class ViewCommand extends Command {
     public static final String COMMAND_WORD = "view";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + " INDEX";
-    public static final String MESSAGE_INVALID_FORMAT = Messages.withUsage("Invalid command format!", MESSAGE_USAGE);
+    public static final String MESSAGE_INVALID_FORMAT = Messages.getInvalidFormatMessage(MESSAGE_USAGE);
 
     public static final String MESSAGE_VIEW_SUCCESS = "Showing details and history of %1$s.";
 

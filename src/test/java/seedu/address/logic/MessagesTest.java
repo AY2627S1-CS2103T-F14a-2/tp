@@ -30,6 +30,14 @@ public class MessagesTest {
     }
 
     @Test
+    public void getInvalidFormatMessage_usage_putsUsageOnNewLine() {
+        assertEquals("Invalid command format!\nUse: sessions d/DATE",
+                Messages.getInvalidFormatMessage("sessions d/DATE"));
+        assertEquals(String.format(Messages.MESSAGE_INVALID_COMMAND_FORMAT, "x").split("\n")[0],
+                Messages.getInvalidFormatMessage("x").split("\n")[0]);
+    }
+
+    @Test
     public void getClientsListedMessage_usesSingularAndPluralForms() {
         assertEquals("No clients found.", Messages.getClientsListedMessage(0));
         assertEquals("Listed 1 client.", Messages.getClientsListedMessage(1));
