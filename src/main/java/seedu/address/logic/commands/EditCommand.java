@@ -86,11 +86,14 @@ public class EditCommand extends Command {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
         }
 
+        List<Person> shownBefore = List.copyOf(lastShownList);
         model.setPerson(personToEdit, editedPerson);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
         logger.info("Edited client at index " + index.getOneBased());
+        // A rename can re-sort the list, and clearing a filter can shift the clients that were shown.
         return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
-                + SharedPhoneWarning.forClient(model.getAddressBook(), editedPerson));
+                + SharedPhoneWarning.forClient(model.getAddressBook(), editedPerson)
+                + ClientOrderNote.forChange(shownBefore, personToEdit, editedPerson, model.getFilteredPersonList()));
     }
 
     /**
