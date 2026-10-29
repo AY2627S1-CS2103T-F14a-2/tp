@@ -23,7 +23,8 @@ import seedu.address.storage.Storage;
  * The main LogicManager of the app.
  */
 public class LogicManager implements Logic {
-    public static final String MESSAGE_SAVE_FAILURE = "Unable to save Spotter data.";
+    public static final String MESSAGE_SAVE_FAILURE = "Unable to save Spotter data. The change was not saved"
+            + " and has been undone. Check that the data folder is writable and the disk has free space, then retry.";
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 

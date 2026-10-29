@@ -4,9 +4,11 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Measurement;
@@ -20,8 +22,9 @@ public class DeleteMeasureCommand extends Command {
     public static final String COMMAND_WORD = "deletemeasure";
     public static final String MESSAGE_USAGE = COMMAND_WORD + " INDEX d/DATE t/TYPE";
     public static final String MESSAGE_INVALID_FORMAT = "Invalid command format. Use: " + MESSAGE_USAGE;
-    public static final String MESSAGE_INVALID_INDEX = "The client index provided is invalid.";
-    public static final String MESSAGE_RECORD_NOT_FOUND = "No measurement record for %s on %s was found for %s.";
+    public static final String MESSAGE_INVALID_INDEX = Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
+    public static final String MESSAGE_RECORD_NOT_FOUND = "No measurement record for %1$s on %2$s was found for %3$s."
+            + "\nUse \"view %4$d\" to check this client's measurement history.";
     public static final String MESSAGE_SUCCESS = "Deleted measurement for %s: %s.";
 
     private final Index index;
@@ -49,7 +52,8 @@ public class DeleteMeasureCommand extends Command {
         Measurement record = client.getMeasurements().stream()
                 .filter(measurement -> measurement.getDate().equals(date) && measurement.getType() == type)
                 .findFirst().orElseThrow(() -> new CommandException(
-                        String.format(MESSAGE_RECORD_NOT_FOUND, type, date, client.getName())));
+                        String.format(Locale.ROOT, MESSAGE_RECORD_NOT_FOUND,
+                                type, date, client.getName(), index.getOneBased())));
         model.setPerson(client, client.withoutMeasurement(date, type));
         return new CommandResult(String.format(MESSAGE_SUCCESS, client.getName(), record));
     }

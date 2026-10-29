@@ -54,13 +54,13 @@ Spotter is a **desktop application for freelance personal trainers to manage the
 * Command words are case-insensitive: `LIST` and `List` work like `list`. Prefixes such as `n/` must be in lowercase.
 
 * Words in `UPPER_CASE` are the parameters to be supplied by the user.<br>
-  For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
+  For example, in `add n/NAME`, replace `NAME` with a value such as `Alex Tan`.
 
 * Items in square brackets are optional.<br>
-  For example, `n/NAME [t/TAG]` can be used as `n/John Doe t/friend` or as `n/John Doe`.
+  For example, `n/NAME [t/TAG]` can be used as `n/Alex Tan t/rehab` or as `n/Alex Tan`.
 
 * Items followed by `...` can appear zero or more times.<br>
-  For example, `[t/TAG]... ` may be omitted, or written as `t/friend` or `t/friend t/family`.
+  For example, `[t/TAG]... ` may be omitted, or written as `t/rehab` or `t/rehab t/strength`.
 
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
@@ -183,7 +183,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [t/TAG]... `
 * Duplicate clients: the same name rules and shared-phone warnings as in [`add`](#adding-a-client-add) apply.
   The edited client is excluded from phone comparison, so their own number does not cause a warning.
   Changing another field can still warn if a different client shares the phone number.
-* Zero, negative or oversized numeric indexes show `The client index provided is invalid.`.
+* Zero, negative or oversized numeric indexes show `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.`.
   A missing or nonnumeric index shows `Invalid command format!` followed by the command usage.
 * After a successful edit, the full client list is shown again, even if a `find` or `filter` was active.
 
@@ -315,18 +315,19 @@ Common errors:
 | Input problem | Message |
 | --- | --- |
 | Missing, repeated or unsupported prefix (e.g. `w/`), missing or malformed index (e.g. `one`, `+1`, `1.5`) | `Invalid command format. Use: measure INDEX d/DATE t/TYPE v/VALUE` |
-| Zero, negative, overflowing or out-of-range index | `The client index provided is invalid.` |
+| Zero, negative, overflowing or out-of-range index | `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.` |
 | Date not in `yyyy-MM-dd` format, or year, month or day out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).` |
 | Date in the right format that does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.` |
 | Future date | `The measurement date cannot be in the future.` |
 | Unsupported type | `Measurement type must be weight, bodyfat, or waist.` |
-| Non-numeric value | `Measurement value must be numeric.` |
+| Non-numeric value | `Enter a plain decimal number, for example v/72.4. Use a full stop for decimals, without units, commas or scientific notation.` |
 | Too many decimal places | `Measurement values may have at most two decimal places.` |
 
 Out-of-range values produce a message stating the permitted range for that type.
 Parsing errors and invalid client indexes also show the expected command format.
 
-If saving fails, Spotter displays `Unable to save Spotter data` and restores the previous client records
+If saving fails, Spotter explains that the change was not saved and has been undone, suggests checking
+folder permissions and free disk space, and restores the previous client records
 and displayed list. The failed measurement is not retained in memory.
 
 <!-- AI assistance: OpenAI Codex helped draft the measurement command documentation. -->
@@ -359,19 +360,21 @@ For a client named Alex Tan, the deletion produces:
 Deleted measurement for Alex Tan: weight = 72.4 kg on 2026-09-12.
 ```
 
-Repeating the deletion produces `No measurement record for weight on 2026-09-12 was found for Alex Tan.`
-and leaves the data unchanged.
+Repeating the deletion leaves the data unchanged and produces
+`No measurement record for weight on 2026-09-12 was found for Alex Tan.`
+followed by `Use "view 1" to check this client's measurement history.` The suggested index matches the
+client's index in the currently displayed list.
 
 | Input problem | Message |
 | --- | --- |
 | Missing, repeated or unsupported prefix (e.g. `v/`), missing or non-numeric index | `Invalid command format. Use: deletemeasure INDEX d/DATE t/TYPE` |
-| Zero, negative, overflowing or out-of-range index | `The client index provided is invalid.` |
+| Zero, negative, overflowing or out-of-range index | `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.` |
 | Date not in `yyyy-MM-dd` format, or year, month or day out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).` |
 | Date in the right format that does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.` |
 | Unsupported or empty type | `Measurement type must be weight, bodyfat, or waist.` |
 
 Validation errors include the expected command format. A missing-record error does not include usage.
-Errors leave data unchanged. If saving fails, Spotter shows `Unable to save Spotter data.` and restores
+Errors leave data unchanged. If saving fails, Spotter shows `Unable to save Spotter data. The change was not saved and has been undone. Check that the data folder is writable and the disk has free space, then retry.` and restores
 the previous records and displayed list.
 
 ### Recording a gym performance: `performance`
@@ -410,7 +413,7 @@ If the command is not accepted, Spotter shows the reason followed by the expecte
 Problem | Message
 --------|--------
 A prefix is missing, repeated or not used by this command (e.g. `t/`), or `INDEX` is missing or not a number | `Invalid command format. Use: performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`
-`INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
+`INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.`
 `DATE` is not in `yyyy-MM-dd` format, or its year, month or day is out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`
 `DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
 `DATE` is in the future | `The performance date cannot be in the future.`
@@ -450,11 +453,11 @@ is found, the reason is followed by the expected format:
 Problem | Message
 --------|--------
 A prefix is missing, repeated or not used by this command (e.g. `s/`), or `INDEX` is missing or not a number | `Invalid command format. Use: deleteperformance INDEX d/DATE e/EXERCISE`
-`INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
+`INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.`
 `DATE` is not in `yyyy-MM-dd` format, or its year, month or day is out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`
 `DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
 `EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only English letters (A-Z), digits (0-9), spaces, hyphens, apostrophes, parentheses, and the symbols & + .`
-The client has no record for that exercise on that date | `No performance record for <exercise> on <date> was found for <client name>.`
+The client has no record for that exercise on that date | `No performance record for <exercise> on <date> was found for <client name>.`, followed by `Use "view INDEX" to check this client's performance history.` with the actual displayed index.
 
 ### Viewing a client's history: `view`
 
@@ -516,7 +519,7 @@ The history sections appear like this (with fictional example records):
 Problem | Message
 --------|--------
 `INDEX` is missing or not a whole number, or there is extra text after it | `Invalid command format!` followed by the expected format
-`INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
+`INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.`
 
 If a command fails, the panel keeps showing the client as they were before that command.
 
@@ -595,10 +598,10 @@ Invalid commands leave client data and list order unchanged. The relevant messag
 Error | Message
 ------|--------
 Missing/repeated/unknown prefix or both identifiers | `Invalid command format! Use: session INDEX d/DATE t/TIME or session n/NAME d/DATE t/TIME`
-Invalid index | `The client index provided is invalid.`
+Invalid index | `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.`
 Unknown name | `No client with that name exists in Spotter.`
 Empty name | `Name cannot be empty.`
-Name containing a slash | `Name must not contain '/'.`, or the format error above if part of the name is parsed as an unknown prefix (e.g. `s/` in `Raju s/o Kumar`); use the client index instead.
+Name containing a slash | `Names containing '/' cannot be used for session name lookup. Use the client's displayed index with session or cancelsession instead.`, or the format error above if part of the name is parsed as an unknown prefix (e.g. `s/` in `Raju s/o Kumar`); use the client index instead.
 Malformed date or component out of range | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`
 Impossible calendar date (e.g. `2026-02-30`) | `2026-02-30 is not a real date.`
 Invalid time | `Time must be a 24-hour time such as 930, 0930, 9:30 or 19:00.`
@@ -621,11 +624,11 @@ Format: `cancelsession INDEX` or `cancelsession n/NAME`
   If the cancelled client moves to a different index or disappears from the displayed list, the message adds
   `Displayed indices have changed. Check the client list before your next index-based command.`
 * A client with no recorded session is rejected with `No session is recorded for NAME.`
-  An invalid index shows `The client index provided is invalid.`
+  An invalid index shows `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.`
   Missing, non-numeric or mixed identifiers show
   `Invalid command format! Use: cancelsession INDEX or cancelsession n/NAME`.
   Unknown names show `No client with that name exists in Spotter.`; empty names and slashes use the booking errors above.
-* If saving fails, the original session and displayed list are restored and `Unable to save Spotter data.` is shown.
+* If saving fails, the original session and displayed list are restored and `Unable to save Spotter data. The change was not saved and has been undone. Check that the data folder is writable and the disk has free space, then retry.` is shown.
 
 <box type="tip" seamless>
 
@@ -678,7 +681,7 @@ The folder containing `spotter.jar` is Spotter's home folder. The same folder ho
 (window settings) and the rotating `spotter.log.*` files. Launching the JAR from a terminal in another folder
 still uses these files beside the JAR. The save-location footer shows the absolute data-file path.
 
-* If saving fails (e.g., the data file or folder is read-only), the change is undone and Spotter shows `Unable to save Spotter data.`
+* If saving fails (e.g., the data file or folder is read-only), the change is undone and Spotter shows `Unable to save Spotter data. The change was not saved and has been undone. Check that the data folder is writable and the disk has free space, then retry.`
 * If the data file is missing, Spotter starts with sample data.
 * If the data file is damaged, Spotter starts with no clients and shows `Unable to load saved Spotter data. The existing data file has not been modified.` The damaged file is left untouched until your next successful command that changes data, which overwrites it.
 
