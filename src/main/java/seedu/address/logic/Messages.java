@@ -12,6 +12,7 @@ import seedu.address.model.person.Person;
 /**
  * Container for user visible messages.
  * AI assistance: Helen used OpenAI Codex for issue #202's recovery guidance, related tests and UG/DG updates.
+ * The guide updates also include real JavaFX measurement screenshots and Spotter-specific example cleanup.
  */
 public class Messages {
 
