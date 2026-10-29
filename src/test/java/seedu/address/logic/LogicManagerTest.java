@@ -86,7 +86,7 @@ public class LogicManagerTest {
         String savedData = Files.readString(file);
         AddressBook before = new AddressBook(model.getAddressBook());
 
-        for (String argument : List.of("1", "all", "n/Alice")) {
+        for (String argument : List.of("1", "all", "n/Alice", "confirm now")) {
             assertThrows(ParseException.class, ClearCommand.MESSAGE_EXTRA_PARAMETERS, () -> {
                 logic.execute("clear " + argument);
             });
@@ -95,6 +95,35 @@ public class LogicManagerTest {
             assertEquals(ALICE, model.getViewedPerson().getValue());
             assertEquals(savedData, Files.readString(file));
         }
+    }
+
+    @Test
+    public void execute_clearWithoutConfirm_preservesClientsFilterViewedClientAndStoredData() throws Exception {
+        model.addPerson(ALICE);
+        model.addPerson(BENSON);
+        model.updateFilteredPersonList(person -> person.isSamePerson(BENSON));
+        model.setViewedPerson(ALICE);
+        Path file = temporaryFolder.resolve("addressBook.json");
+        new JsonAddressBookStorage(file).saveAddressBook(model.getAddressBook());
+        String savedData = Files.readString(file);
+        AddressBook before = new AddressBook(model.getAddressBook());
+
+        CommandResult result = logic.execute("clear");
+
+        assertEquals(ClearCommand.MESSAGE_CONFIRMATION_REQUIRED, result.getFeedbackToUser());
+        assertEquals(before, model.getAddressBook());
+        assertEquals(List.of(BENSON), model.getFilteredPersonList());
+        assertEquals(ALICE, model.getViewedPerson().getValue());
+        assertEquals(savedData, Files.readString(file));
+    }
+
+    @Test
+    public void execute_clearConfirm_clearsClientsAndSavesEmptyData() throws Exception {
+        model.addPerson(ALICE);
+        Path file = temporaryFolder.resolve("addressBook.json");
+
+        assertCommandSuccess("clear confirm", ClearCommand.MESSAGE_SUCCESS, new ModelManager());
+        assertEquals(new AddressBook(), new JsonAddressBookStorage(file).readAddressBook().orElseThrow());
     }
 
     @Test
@@ -170,7 +199,8 @@ public class LogicManagerTest {
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         logic = new LogicManager(model, createStorageThrowing(DUMMY_IO_EXCEPTION));
 
-        assertCommandFailure("clear", CommandException.class, LogicManager.MESSAGE_SAVE_FAILURE, expectedModel);
+        assertCommandFailure("clear confirm", CommandException.class, LogicManager.MESSAGE_SAVE_FAILURE,
+                expectedModel);
     }
 
     @Test
