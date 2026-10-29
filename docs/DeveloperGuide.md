@@ -384,6 +384,10 @@ order means the record entered last is treated as the latest when several share 
 
 ### Recording body measurements
 
+`MeasurementLiveHistoryTest` executes commands with a real `LogicManager`, `ModelManager`, history panel
+and client list. It checks replacement, deletion of the latest and final records, and visible rollback
+after failed saves without reopening `view`. It also checks that the saved data agrees with the final state.
+
 `measure INDEX d/DATE t/TYPE v/VALUE` records weight, body-fat percentage or waist circumference.
 `MeasureCommandParser` validates the displayed index, real non-future date, type and decimal value.
 `Measurement` enforces the type's range and at most two decimal places using `BigDecimal`.
@@ -603,6 +607,14 @@ literal command delimiters. The design should preserve original spellings while 
 normalization, duplicate detection and name lookup across add/edit, search, sessions and JSON storage.
 It must also retain compatibility with saved Latin-script names and provide tests for the newly supported scripts.
 This proposal does not change the supported input formats in v1.5 or promise a delivery date.
+
+### \[Proposed\] Latest measurement summary
+
+A future enhancement is to show the latest weight, body fat and waist together above the full history in
+`view`. Each value should include its own measurement date, with an explicit empty state for a type that
+has no records. The summary should be derived from the existing records and refresh after recording,
+replacement, deletion and failed-save rollback. This would avoid scanning frequent weight entries to find
+less frequent waist or body-fat records. It is not implemented in the current release.
 
 ### \[Proposed\] Data archiving
 
