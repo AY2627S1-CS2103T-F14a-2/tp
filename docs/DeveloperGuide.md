@@ -18,30 +18,8 @@
 * Spotter uses [JavaFX](https://openjfx.io/) for its GUI, [Jackson](https://github.com/FasterXML/jackson) to read
   and write its JSON data file, and [JUnit 5](https://junit.org/junit5/) for its tests.
 
-* Helen (He Jingqi) used OpenAI Codex to assist with implementing, testing and documenting
-  the v1.4 measurement deletion feature for issue #84, including its model operation, command, parser,
-  persistence tests and sequence diagram.
-
-* Helen used OpenAI Codex for issue #202's guide updates, including the real JavaFX measurement
-  screenshots, Spotter-specific example cleanup and corrected deletion sequence diagram.
-
-* Gabriel Wan used [OpenAI Codex](https://openai.com/codex/) to assist with implementing, testing,
-  and documenting the v1.3 next-session feature, including parsing, client integration, JSON storage, sorting,
-  and the client card row, and the v1.4 session cancellation/date-filter commands, tests, documentation,
-  and release preparation. For v1.5, Gabriel used Codex for cancellation by full name, rescheduling feedback,
-  refreshing session order after commands, exact-time clash warnings, and the related tests and documentation.
-* Gabriel Wan used OpenAI Codex to assist with the v1.5 UI polish: adaptive feedback sizing, card spacing and
-  styling, separate history sections, GUI tests, documentation, screenshots and alpha-test fixes.
-* Gabriel Wan used OpenAI Codex to fix application file locations for issue #98, including JAR-home detection,
-  logging fallback, packaged-JVM regression tests and the related documentation.
-* AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #64 changes (the `list` command messages, undoing changes when saving fails, the damaged data file warning, the client card phone and email rows, and the related tests and User Guide wording) on 2026-10-15. The changes were reviewed and tested by the author.
-* AI assistance: Luke Chin used Claude Code (Anthropic) to draft parts of the issue #79 changes (the tests for data files with invalid values, the `view` sequence diagram and "View client history" section, and the related manual testing steps) on 2026-10-22. The changes were reviewed and tested by the author.
-* Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the client `add`/`delete` changes for v1.3 (removing address, optional email, name and phone limits, Spotter messages). All generated code was reviewed and tested before committing.
-* Vincent Ong (v1-nce) used Claude Code (Anthropic) to help implement, test and document the v1.5 split-screen window
-  (the Upcoming sessions panel and cards, showing a viewed client's history in its place, keeping both in sync in
-  `ModelManager` and `LogicManager`, the related tests, the User Guide "The Spotter window" and `view` sections, and the
-  "Upcoming sessions panel" and "View client history" sections of this guide). All generated code was reviewed and
-  tested before committing.
+* OpenAI Codex and Claude Code assisted the team with implementation, testing, documentation and PR reviews
+  across most Spotter features.
 * The GUI tests use [TestFX](https://github.com/TestFX/TestFX) to run JavaFX UI parts in tests.
 
 --------------------------------------------------------------------------------------------------------------------
@@ -52,7 +30,6 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
 --------------------------------------------------------------------------------------------------------------------
 
-<!-- AI assistance: Helen used OpenAI Codex to retarget implementation source links for issue #127. -->
 
 ## **Design**
 
@@ -158,7 +135,6 @@ How the parsing works:
 ### Model component
 **API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-F14a-2/tp/blob/master/src/main/java/seedu/address/model/Model.java)
 
-<!-- AI assistance: Helen used OpenAI Codex to update the Model and Storage diagrams and their explanations for issue #160. -->
 <puml src="diagrams/ModelClassDiagram.puml" width="900" alt="Spotter Model component and client training records" />
 
 Each `Person` holds contact details, tags, an optional `NextSession`, an immutable list of `Measurement`
@@ -177,7 +153,6 @@ The `Model` component,
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
 
-<!-- AI assistance: Helen used OpenAI Codex to remove the obsolete AB3 alternative model diagram. -->
 
 
 ### Storage component
@@ -408,7 +383,6 @@ Design notes:
   * Cons: An edited client cannot be matched reliably, e.g. after its name changes, and the logic would be in
     GUI code that is hard to test.
 
-<!-- AI assistance: Claude Code helped draft this section and its sequence diagrams. -->
 
 ### Recording and deleting gym performances
 
@@ -490,7 +464,6 @@ decimal places. Entering the same date/type corrects the value rather than addin
 The immutable copy keeps a failed change recoverable without a separate measurement cache. The same
 date/type pair identifies a record regardless of its value, so correcting a value does not increase the count.
 
-<!-- AI assistance: Helen used OpenAI Codex to document measurement recording and its sequence diagram for issue #187. -->
 
 ### Measurement replacement feedback
 
@@ -510,7 +483,6 @@ The storage format and replacement rules are unchanged.
 The same calendar parser validates session bookings and date filters, so all date-taking commands share
 format and impossible-date messages while retaining command-specific usage guidance.
 
-<!-- AI assistance: Helen used OpenAI Codex to update shared date-validation documentation for issue #164. -->
 
 `DeleteMeasureCommand` looks up the client through `Model#getFilteredPersonList()` and finds the record
 by date and type. A missing record raises a `CommandException` before any state changes and suggests
@@ -607,7 +579,6 @@ and performance history, and replaces the original through `Model#setPerson`.
 The alternative, an `Optional<Email>` field that is null when unchanged, made `getEmail()` return
 `Optional<Optional<Email>>`, which reviewers found hard to read.
 
-<!-- AI assistance: Claude Code helped draft this section and its sequence diagram. -->
 
 ### \[Proposed\] Broader client-name support
 
@@ -662,7 +633,6 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 The first table describes implemented behaviour. Deferred stories are retained separately below and are
 not promises about the current release.
 
-<!-- AI assistance: Helen used OpenAI Codex to align requirements and the glossary with implemented commands for issue #187. -->
 
 | Priority | As a … | I can … | So that … |
 |----------|--------|---------|-----------|
@@ -748,9 +718,6 @@ not promises about the current release.
 
 **Use case: UC02 - Find a client**
 
-<!-- AI assistance: Helen used OpenAI Codex to correct UC02's name-matching description for issue #124. -->
-<!-- AI assistance: v1-nce used AI assistance for issue #173's substring-search implementation, regression tests,
-User Guide find section, UC02 and manual testing instructions. -->
 
 **MSS**
 
@@ -1212,7 +1179,7 @@ pass/fail results with the release test evidence. Functional tests alone do not 
 
 4. **Data integrity:** Commands rejected because of invalid input must leave existing client details, next-session information and progress records unchanged.
 
-5. **Storage failure handling:** If Spotter cannot save a change, it must display an error indicating that the change has not been saved. If an existing client-data file is malformed, Spotter starts with no clients and shows a warning. Startup and read-only commands leave that file unchanged. The next successful command that changes client data replaces it with the current records, so the trainer must repair the file or restore a valid backup before making changes if the old records are to be recovered. <!-- AI assistance: Helen used OpenAI Codex to align this requirement with the implemented recovery behaviour. -->
+5. **Storage failure handling:** If Spotter cannot save a change, it must display an error indicating that the change has not been saved. If an existing client-data file is malformed, Spotter starts with no clients and shows a warning. Startup and read-only commands leave that file unchanged. The next successful command that changes client data replaces it with the current records, so the trainer must repair the file or restore a valid backup before making changes if the old records are to be recovered.
 
 6. **Offline operation:** After downloading the release JAR, all core workflows must operate without an internet connection. Spotter must not transmit client records to external services.
 
@@ -1564,7 +1531,6 @@ assume the computer date is later than 12 September 2026; card dates include the
 1. Resize the window and check long card rows.<br>
    Expected: The measurement row remains readable and does not overlap neighbouring cards.
 
-<!-- AI assistance: OpenAI Codex helped draft measurement acceptance tests. -->
 
 ### Deleting body measurements
 
@@ -1660,7 +1626,6 @@ run `list` and substitute that client's displayed index for `1` below. `NAME` is
    1. Enter `exit` and relaunch Spotter.<br>
       Expected: The card still shows `Latest performance: -`, while the session and measurement remain.
 
-<!-- AI assistance: Claude (Anthropic) helped draft these gym-performance manual tests. -->
 
 ### UI readability and feedback sizing
 
@@ -1742,7 +1707,6 @@ Preserve a backup before testing corrupted data. The damaged file is retained on
 command changes client data; that command overwrites it with the current records.
 </box>
 
-<!-- AI assistance: OpenAI Codex helped draft storage persistence and recovery acceptance tests. -->
 
 ### Launching from another directory
 

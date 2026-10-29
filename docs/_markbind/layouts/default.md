@@ -1,4 +1,3 @@
-<!-- AI assistance: Helen used OpenAI Codex to correct the Command Summary link for issue #128. -->
 <head-bottom>
   <link rel="stylesheet" href="{{baseUrl}}/stylesheets/main.css">
 </head-bottom>

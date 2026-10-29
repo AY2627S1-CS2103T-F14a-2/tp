@@ -250,7 +250,6 @@ Examples:
 | An empty tag, e.g. `filter t/` or `filter t/rehab t/` | `Tags to filter by cannot be empty.`, then `Use: filter t/TAG [t/MORE_TAGS]...` |
 | A tag that is not alphanumeric, e.g. `filter t/re-hab`, `filter t/best friends`, or extra text after a tag such as `filter t/rehab extra` | `Tags can contain only letters and digits, e.g. t/rehab.`, then `Use: filter t/TAG [t/MORE_TAGS]...` |
 
-<!-- AI assistance: Helen used OpenAI Codex to draft the filter documentation and update UG terminology and the command summary. -->
 
 ### Deleting a client: `delete`
 
@@ -312,8 +311,6 @@ Recorded measurement for Alex Tan: weight = 72.4 kg on 2026-09-12.
 Updated measurement for Alex Tan: weight on 2026-09-12: 72.4 → 71.8 kg.
 ```
 
-<!-- AI assistance: Helen used OpenAI Codex to clarify measurement index errors for issue #166. -->
-<!-- AI assistance: Helen used OpenAI Codex to align date-error examples for issue #164. -->
 
 Common errors:
 
@@ -335,7 +332,6 @@ If saving fails, Spotter explains that the change was not saved and has been und
 folder permissions and free disk space, and restores the previous client records
 and displayed list. The failed measurement is not retained in memory.
 
-<!-- AI assistance: OpenAI Codex helped draft the measurement command documentation. -->
 
 ### Deleting a body measurement: `deletemeasure`
 
@@ -532,7 +528,6 @@ Problem | Message
 
 If a command fails, the panel keeps showing the client as they were before that command.
 
-<!-- AI assistance: Claude Code helped draft the view command documentation. -->
 
 ### Clearing all entries: `clear`
 
