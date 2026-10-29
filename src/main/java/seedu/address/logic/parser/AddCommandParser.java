@@ -30,6 +30,10 @@ public class AddCommandParser implements Parser<AddCommand> {
      * @throws ParseException if the user input does not conform to the expected format
      */
     public AddCommand parse(String args) throws ParseException {
+        // Otherwise an unknown prefix, e.g. x/ in "n/Alice x/1", is saved as part of the previous value
+        ParserUtil.rejectUnsupportedClientPrefixes(args,
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE),
+                PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_TAG);
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_TAG);
 

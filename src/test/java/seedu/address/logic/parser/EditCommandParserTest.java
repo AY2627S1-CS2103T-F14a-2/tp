@@ -173,6 +173,24 @@ public class EditCommandParserTest {
     }
 
     @Test
+    public void parse_nameConnector_success() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName("Raju s/o Kumar").build();
+        assertParseSuccess(parser, "1 n/Raju s/o Kumar", new EditCommand(INDEX_FIRST_PERSON, descriptor));
+
+        descriptor = new EditPersonDescriptorBuilder().withName("Kumar a/l Rajan").build();
+        assertParseSuccess(parser, "1 n/Kumar a/l Rajan", new EditCommand(INDEX_FIRST_PERSON, descriptor));
+    }
+
+    @Test
+    public void parse_unknownPrefix_failure() {
+        // inside the name, which would otherwise be saved as "Alice x/1"
+        assertParseFailure(parser, "1 n/Alice x/1", MESSAGE_INVALID_FORMAT);
+
+        // after the last value, which would otherwise be reported as an invalid email
+        assertParseFailure(parser, "1 e/alice@example.com a/x", MESSAGE_INVALID_FORMAT);
+    }
+
+    @Test
     public void parse_multipleRepeatedFields_failure() {
         // More extensive testing of duplicate parameter detections is done in
         // AddCommandParserTest#parse_repeatedNonTagValue_failure()
