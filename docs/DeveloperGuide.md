@@ -20,8 +20,6 @@
 
 * OpenAI Codex and Claude Code assisted the team with implementation, testing, documentation and PR reviews
   across most Spotter features.
-* Helen used OpenAI Codex for issue #222's tag validation, case-insensitive identity, persistence regression
-  tests, and the matching UG/DG updates.
 * The GUI tests use [TestFX](https://github.com/TestFX/TestFX) to run JavaFX UI parts in tests.
 
 --------------------------------------------------------------------------------------------------------------------
@@ -1241,21 +1239,6 @@ pass/fail results with the release test evidence. Functional tests alone do not 
 
 ## **Appendix: Instructions for manual testing**
 
-### Tag rules and persistence
-
-Use a disposable data folder. Run `add n/Tag Probe p/91234567 t/Lower-Back t/lower-back t/Rehab t/rehab`.
-Expect two tags, `Lower-Back` and `Rehab`; `filter t/LOWER-BACK` finds the client.
-Run `edit 1 t/Strength t/strength`, then restart: expect one `Strength` tag. A case-only edit to
-`edit 1 t/STRENGTH` must also survive restart. `edit 1 t/` clears all tags.
-
-An empty `t/` on `add` explains that tags cannot be empty and may be omitted. A 50-character alphanumeric
-tag is accepted; 51 characters, `lower--back`, `-rehab` and `rehab-` are rejected by add/edit/filter without
-changing clients, the current filter, viewed history or saved data.
-
-Close Spotter, back up the JSON file and add a case variant next to an existing tag in one client's tag array.
-Restart: expect one tag retaining the first spelling and all contact, session and progress data preserved.
-Invalid stored tags trigger the existing load warning; repair the file before making any data-changing command.
-
 Given below are instructions to test the app manually. They cover every command, grouped by feature.
 
 <box type="info" seamless>
@@ -1416,6 +1399,30 @@ Use a separate disposable test dataset. Run `clear`, then add these fictional tr
    Expected: Only `Bea Lim` is listed, but the right side still shows `Alex Tan`'s history.
 1. Enter `list`.<br>
    Expected: All clients are shown again, and Upcoming sessions replaces the history.
+
+#### Tag rules and persistence
+
+Use a separate disposable dataset containing only the client added below.
+
+1. Enter `add n/Tag Probe p/94567890 t/Lower-Back t/lower-back t/Rehab t/rehab`, then `view 1`.<br>
+   Expected: Two tags, `Lower-Back` and `Rehab`, retaining the first spelling of each case-insensitive tag.
+1. Enter `filter t/LOWER-BACK`.<br>
+   Expected: The client is found, ignoring case and accepting the internal hyphen.
+1. Enter `edit 1 t/Strength t/strength`, then close and restart Spotter.<br>
+   Expected: One `Strength` tag. Enter `edit 1 t/STRENGTH` and restart again: the changed spelling persists.
+1. Enter `edit 1 t/rehab t/`, then `edit 1 t/ t/rehab`.<br>
+   Expected: `An empty t/ clears all tags, so it cannot be combined with other tags.` The client and saved
+   data are unchanged. Enter `edit 1 t/`: all tags are cleared and remain cleared after restart.
+1. Enter `add n/Empty Tag Probe p/95678901 t/`.<br>
+   Expected: `Tag names cannot be empty. Omit t/ to add a client without tags.` No client is added.
+1. Enter `edit 1 t/TAG`, replacing `TAG` with 50 letter `a` characters; filter using that same tag.<br>
+   Expected: The edit succeeds and the filter finds the client. Repeat add/edit/filter with a 51-character tag,
+   `lower--back`, `-rehab` and `rehab-`: each is rejected without changing clients, the filter, viewed history
+   or saved data.
+1. Close Spotter, back up the JSON file and add a case variant next to an existing tag in the client's tag array.
+   Restart, make a valid data-changing command and restart again.<br>
+   Expected: One tag retaining the first spelling; all contact, session and progress data are preserved.
+   Invalid stored tags instead trigger the existing load warning. Repair the file before making any data-changing command.
 
 ### Deleting a client
 

@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.parser.EditCommandParser.MESSAGE_MIXED_EMPTY_TAG;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.nio.file.Files;
@@ -77,6 +78,13 @@ public class TagManagementTest {
             assertEquals(saved, Files.readString(storage.getAddressBookFilePath()));
         }
         assertThrows(ParseException.class, Tag.MESSAGE_EMPTY, () -> logic.execute("add n/Other Probe p/92345678 t/"));
+        for (String tags : List.of("t/rehab t/", "t/ t/rehab", "t/ t/")) {
+            assertThrows(ParseException.class, MESSAGE_MIXED_EMPTY_TAG, () -> logic.execute("edit 1 " + tags));
+            assertEquals(before, model.getAddressBook());
+            assertEquals(before.getPersonList().getFirst(), model.getViewedPerson().getValue());
+            assertEquals(1, model.getFilteredPersonList().size());
+            assertEquals(saved, Files.readString(storage.getAddressBookFilePath()));
+        }
     }
 
     @Test

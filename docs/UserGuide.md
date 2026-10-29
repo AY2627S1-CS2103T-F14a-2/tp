@@ -189,7 +189,8 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [t/TAG]... `
 * To remove all of a client's tags, enter `t/` without a tag after it.
 * Non-empty tags follow the same rules as [`add`](#adding-a-client-add), including the 50-character limit,
   single internal hyphens and case-insensitive duplicates. The first spelling supplied in this edit is retained.
-  An empty `t/` cannot be combined with non-empty tags in the same command.
+  An empty `t/` cannot be combined with other tags in the same command; this shows
+  `An empty t/ clears all tags, so it cannot be combined with other tags.`
 * To remove a client's email, enter `e/` without an email after it.
 * `NAME` and `PHONE` follow the same rules as in [`add`](#adding-a-client-add), including prefix restrictions.
   For example, `edit 1 p/8743 8807` stores `87438807`, while `edit 1 p/+65 8743 8807 (HP)` keeps its formatting.
