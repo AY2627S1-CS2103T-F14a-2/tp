@@ -13,6 +13,11 @@
 
 ## **Acknowledgements**
 
+* Spotter is based on [AddressBook-Level3](https://se-education.org/addressbook-level3/) (AB3), the sample project
+  of the [SE-EDU initiative](https://se-education.org).
+* Spotter uses [JavaFX](https://openjfx.io/) for its GUI, [Jackson](https://github.com/FasterXML/jackson) to read
+  and write its JSON data file, and [JUnit 5](https://junit.org/junit5/) for its tests.
+
 * OpenAI Codex and Claude Code assisted the team with implementation, testing, documentation and PR reviews
   across most Spotter features.
 * The GUI tests use [TestFX](https://github.com/TestFX/TestFX) to run JavaFX UI parts in tests.
@@ -115,7 +120,7 @@ How the `Logic` component works:
 
 1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
 1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
-1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
+1. The command can communicate with the `Model` when it is executed (e.g. to delete a client).<br>
    Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
 1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
 
@@ -140,9 +145,9 @@ no session or progress records. The diagram shows the current model; there is no
 
 The `Model` component,
 
-* stores Spotter client data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
+* stores all Spotter client data, i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
-* stores the clients with an upcoming session, soonest first, in a separate list built from the whole address book (so `find` and `filter` do not affect it). It is exposed as an unmodifiable `ObservableList<Person>` for the UI's Upcoming sessions panel.
+* stores the clients with an upcoming session, soonest first, in a separate list built from all clients (so `find` and `filter` do not affect it). It is exposed as an unmodifiable `ObservableList<Person>` for the UI's Upcoming sessions panel.
 * stores the client shown by `view` (or none) and exposes it as an `ObservableValue<Person>`, so that the UI's detail panel can follow that client.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
@@ -250,7 +255,7 @@ future work.
 The right side of the window shows the clients with an upcoming session, soonest first, so that a trainer can
 see who is next and prepare. It adds no new session logic. Instead, it reuses what the client list already has:
 
-* `ModelManager` keeps a `SortedList` over a `FilteredList` of the whole address book. The filter keeps clients
+* `ModelManager` keeps a `SortedList` over a `FilteredList` of all clients. The filter keeps clients
   whose `NextSession` is not before "now", which is the same rule that the client card uses to show
   `- (none upcoming)`. The sort is the existing `PersonSessionComparator`, so the panel and the client list
   order sessions in the same way.
@@ -276,6 +281,52 @@ see who is next and prepare. It adds no new session logic. Instead, it reuses wh
 `MainWindow` shows either this panel or the `ClientDetailPanel` in the same place, by binding each panel's
 visibility to whether `Logic#getViewedPerson()` holds a client (see [View client history](#view-client-history)).
 
+### Listing and filtering clients
+
+`list` shows every client, and `filter t/TAG [t/MORE_TAGS]...` shows only clients with at least one of the given
+tags. Neither changes client data, so `LogicManager` does not save after them.
+
+**The displayed list.** `ModelManager` shows clients through a `SortedList` (ordered by `PersonSessionComparator`)
+over a `FilteredList` of all clients. Both commands only replace the filter's predicate through
+`Model#updateFilteredPersonList(Predicate)`, which also re-sorts the list. `list` uses `PREDICATE_SHOW_ALL_PERSONS`
+and also stops viewing a client, so the Upcoming sessions panel shows again. The Upcoming sessions panel is built
+from all clients, so a filter never hides a booking there.
+
+**Parsing.** `AddressBookParser` rejects any text after `list` with `ListCommand.MESSAGE_EXTRA_PARAMETERS`.
+`FilterCommandParser` requires at least one `t/` and no text before it, rejects an empty tag, and rejects a tag that
+`Tag#isValidTagName` would not accept, since such a tag could never match a stored client. Each error is shown with
+the `filter` usage. It trims each tag, drops a tag that repeats an earlier one ignoring case (keeping the first
+spelling), and creates a `TagContainsKeywordsPredicate`.
+
+<puml src="diagrams/FilterSequenceDiagram.puml" alt="Interactions Inside the Logic and Model Components for the `filter t/rehab` Command" />
+
+**Matching.** `TagContainsKeywordsPredicate` matches a client if any of their tags equals any keyword, ignoring case.
+It compares whole tag names, so `REHAB` matches `rehab` but `reh` does not, and several tags give an `OR` search.
+
+**Result messages.** Each command chooses its message from the number of displayed clients.
+`ListCommand#getResultMessage` uses `Messages#getClientsListedMessage` (shared with `find`): `Listed N clients.` or
+`Listed 1 client.`, or `You have no clients yet. Use "add" to add your first client.` when there are no clients.
+`FilterCommand#getResultMessage` names the tags as typed, joined as `rehab`, `rehab or knee` or
+`rehab, knee or strength`: `Listed N clients tagged TAGS.`, `Listed 1 client tagged TAGS.`, or, for an empty result,
+`No clients tagged TAGS. Use "list" to show all clients.` Counts are formatted with `Locale.ROOT`, so they use ASCII
+digits on every system.
+
+**Scrolling and indices.** `list` and `filter` both return a `CommandResult` with `scrollToTop` set, and `MainWindow`
+then scrolls the client list to the first client. Index-based commands resolve `INDEX` against `Model#getFilteredPersonList()`, so an
+index refers to a position in the list as currently displayed. After `list` or `filter`, the same client can have a
+different index, which is why the User Guide asks trainers to check the list before an index-based command.
+
+**Aspect: how `filter` interacts with the current list**
+
+* **Alternative 1 (current choice):** `filter` replaces any previous `find`, `filter` or `sessions` predicate.
+  * Pros: Only one filter is ever active, so the displayed list is easy to predict, and `list` always resets it.
+    Every command resolves indices against the same displayed list.
+  * Cons: Filters cannot be combined, e.g. clients named Alex who also have the `rehab` tag.
+* **Alternative 2:** `filter` narrows the current list, combining its predicate with the previous one.
+  * Pros: Lets a trainer narrow a long list step by step.
+  * Cons: The active filter becomes hidden state that the trainer must remember, a `filter` with no results may be
+    caused by an earlier command, and every filtering command would need a way to clear only part of the filter.
+
 ### View client history
 
 `view INDEX` shows one client's details followed by their full measurement and gym-performance history in the
@@ -285,7 +336,7 @@ parses the index, and `ViewCommand` looks the client up in `Model#getFilteredPer
 
 <puml src="diagrams/ViewSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `view 1` Command" />
 
-`view` is read-only. As `LogicManager` only saves when a command changes the address book, executing `view`
+`view` is read-only. As `LogicManager` only saves when a command changes client data, executing `view`
 never writes the data file.
 
 **Keeping the panel up to date.** `ModelManager` holds the viewed client in an `ObservableValue<Person>`, which
@@ -298,7 +349,7 @@ instead, so the panel follows the client without any command knowing about the p
 
 In the same way, `Model#deletePerson` and `Model#setAddressBook` (used by `clear`) stop viewing a client that
 no longer exists, and `ListCommand` stops viewing any client. The Upcoming sessions panel then shows again.
-If saving fails, `LogicManager` restores the viewed client together with the address book and the filter, so
+If saving fails, `LogicManager` restores the viewed client together with the client data and the filter, so
 the panel matches the restored data.
 
 Design notes:
@@ -306,7 +357,7 @@ Design notes:
 * **Non-UI formatter:** `ClientHistoryFormatter` is a plain class in `logic.commands` with no JavaFX dependency,
   so the panel's text can be checked in unit tests without starting the GUI. Its detail and record formatting
   methods supply separate labels in `ClientDetailPanel`. Measurements and performance have styled headings with
-  counts and a newest-first hint; the formatting and ordering rules are shared with the plain-text formatter.
+  counts and a newest-first hint, and the client card uses the same placeholders for a missing email or session.
 * **"Now" at drawing time:** whether the next session has passed is decided when the panel is drawn, as on the
   client card. `MainWindow` also redraws the panel after every successful command, so a session that passes
   while the panel is open is shown the same way as on the card.
@@ -369,7 +420,7 @@ another prefix. `PerformanceCommand` calls
 `Person#withGymPerformance`, which replaces any record for the same exercise and date. `DeletePerformanceCommand`
 finds the record through `PerformanceHistory#find` and calls `Person#withoutGymPerformance`; a missing record raises a
 `CommandException` before any state changes. Either way, the command replaces the client through `Model#setPerson`,
-and `LogicManager` saves the address book.
+and `LogicManager` saves the client data.
 
 The sequence diagram below shows a successful `deleteperformance` command. Saving, and restoring the previous state
 if saving fails, is the same as for `deletemeasure`.
@@ -462,8 +513,8 @@ the client's history. This screenshot shows the missing-record recovery guidance
 
 <puml src="diagrams/DeleteMeasureSequenceDiagram.puml" alt="Measurement deletion sequence" />
 
-`LogicManager` saves the changed address book using the existing storage format. If saving fails,
-it restores the previous address book and filter and reports `Unable to save Spotter data. The change was not saved and has been undone. Check that the data folder is writable and the disk has free space, then retry.`
+`LogicManager` saves the changed client data using the existing storage format. If saving fails,
+it restores the previous client data and filter and reports `Unable to save Spotter data. The change was not saved and has been undone. Check that the data folder is writable and the disk has free space, then retry.`
 No storage schema change or separate cached record count is needed. Keeping counts derived from the
 measurement list avoids stale summary data after deletion.
 
@@ -472,7 +523,7 @@ measurement list avoids stale summary data after deletion.
 `session` distinguishes first bookings, rescheduling and an unchanged booking in its feedback. A replacement
 includes both old and new timestamps, so the trainer can verify the overwritten slot. Successful bookings
 restore the full client list and scroll to the top, including after an unchanged booking.
-Before replacing the booking, the command checks the whole address book for other clients at the same
+Before replacing the booking, the command checks all clients for others booked at the same
 timestamp, excluding the target client. The feedback names these clients alphabetically and keeps both
 bookings. The check uses exact timestamps: the model has no duration with which to infer an overlapping range.
 
@@ -506,7 +557,7 @@ refresh sorting. A session-date predicate no longer matches the cancelled client
 search/tag filters remain active. The observable list updates the UI and `CommandResult` requests scrolling to the top.
 
 `LogicManager` handles saving. If storage throws an `IOException`, its existing transaction restores both the original
-address book and the predicate captured before cancellation. This restores the booking and the date-filtered view.
+client data and the predicate captured before cancellation. This restores the booking and the date-filtered view.
 No constructor, JSON schema or UI-specific cancellation path is needed.
 
 `sessions d/DATE` uses `SessionsCommandParser` and `ParserUtil#parseCalendarDate` to validate one real calendar date.
@@ -897,7 +948,10 @@ not promises about the current release.
 1.  Trainer requests to list all clients.
 2.  Spotter shows the list of clients.
 3.  Trainer requests to view the progress history of a specific client in the list.
-4.  Spotter shows the client's gym performance and body measurement records, sorted by date.
+4.  Spotter shows the client's details, gym performance and body measurement records, newest first, in place of the
+    upcoming sessions.
+
+    The history stays up to date when the client's records change, until the trainer lists all clients again.
 
     Use case ends.
 
@@ -905,7 +959,7 @@ not promises about the current release.
 
 * 1a. Trainer wants to narrow down the list.
 
-    * 1a1. Trainer finds the client (UC02).
+    * 1a1. Trainer finds the client (UC02) or filters clients by tag (UC12).
 
       If matching clients are found, use case resumes at step 3; otherwise, the trainer retries the search or the use case ends.
 
@@ -1056,6 +1110,66 @@ not promises about the current release.
 
       Use case resumes at step 2.
 
+
+**Use case: UC11 - List all clients**
+
+**MSS**
+
+1.  Trainer requests to list all clients.
+2.  Spotter shows all clients, scrolled to the first client, and how many clients there are.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. Trainer types extra text after the command.
+
+    * 1a1. Spotter shows an error message stating that the command takes no parameters.
+
+      Use case resumes at step 1.
+
+* 2a. Spotter has no clients.
+
+    * 2a1. Spotter shows an empty list and suggests adding a client.
+
+      Use case ends.
+
+* 2b. A client's history was being viewed.
+
+    * 2b1. Spotter shows the upcoming sessions again in place of the history.
+
+      Use case ends.
+
+**Use case: UC12 - Filter clients by tag**
+
+**MSS**
+
+1.  Trainer requests to show clients that have any of one or more tags.
+    Matching is case-insensitive and compares whole tag names.
+2.  Spotter shows the matching clients, scrolled to the first one, and how many have the given tags.
+
+    Use case ends.
+
+**Extensions**
+
+* 1a. No tag is given, a tag is empty, or there is text before the first tag.
+
+    * 1a1. Spotter shows an error message and the expected format.
+
+      Use case resumes at step 1.
+
+* 1b. A tag contains characters other than letters and digits.
+
+    * 1b1. Spotter shows an error message and the expected format.
+
+      Use case resumes at step 1.
+
+* 2a. No client has any of the tags.
+
+    * 2a1. Spotter shows an empty list, informs the trainer that no client has the given tags, and suggests listing
+      all clients.
+
+      Use case ends.
 
 ### Non-Functional Requirements
 
@@ -1268,13 +1382,22 @@ Use a separate disposable test dataset. Run `clear`, then add these fictional tr
 1. Enter `find`.<br>
    Expected: `Invalid command format!` followed by the `find` usage. The displayed list does not change.
 1. Enter `filter t/strength`, then `filter t/REHAB t/weightloss`.<br>
-   Expected: Two clients each time: first `Alex Tan` and `Chris Goh`, then `Alex Tan` and `Bea Lim`.
-   The success message names the requested tags, and matching ignores tag case.
+   Expected: `Listed 2 clients tagged strength.`, showing `Alex Tan` and `Chris Goh`, then
+   `Listed 2 clients tagged REHAB or weightloss.`, showing `Alex Tan` and `Bea Lim`. Tags match
+   ignoring case, and the message names them as typed.
+1. Enter `filter t/strength t/weightloss`, then `filter t/strength t/STRENGTH`.<br>
+   Expected: `Listed 3 clients tagged strength or weightloss.`, showing `Alex Tan`, `Bea Lim` and
+   `Chris Goh`, then `Listed 2 clients tagged strength.`, as a repeated tag is named once.
+1. Enter `filter t/cardio`.<br>
+   Expected: `No clients tagged cardio. Use "list" to show all clients.` with an empty list.
 1. Enter `filter t/re-hab`, `filter t/` and `filter strength`.<br>
    Expected: `Tags can contain only letters and digits, e.g. t/rehab.`, `Tags to filter by cannot be empty.` and
-   `Invalid command format!`, each followed by the `filter` usage. The displayed list does not change.
+   `Invalid command format!`, each followed by `Use: filter t/TAG [t/MORE_TAGS]...`; the last also shows
+   `Example: filter t/rehab t/strength`. The displayed list does not change.
+1. Enter `list`, `view 1`, then `filter t/weightloss`.<br>
+   Expected: Only `Bea Lim` is listed, but the right side still shows `Alex Tan`'s history.
 1. Enter `list`.<br>
-   Expected: All clients are shown again.
+   Expected: All clients are shown again, and Upcoming sessions replaces the history.
 
 ### Deleting a client
 
@@ -1297,6 +1420,8 @@ Use the disposable dataset from [Finding and filtering clients](#finding-and-fil
    Expected: Each input reports that `clear` takes no parameters. Clients, the active filter, the history panel
    and the data file are unchanged, including after restarting.
 3. Enter `clear` without parameters. Expected: All clients and their records are removed and remain absent after restart.
+4. Enter `list`. Expected: `You have no clients yet. Use "add" to add your first client.`
+5. Enter `add n/Test Client p/91234567`, then `list`. Expected: `Listed 1 client.`
 
 ### Booking, cancelling and listing sessions
 
