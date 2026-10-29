@@ -41,7 +41,7 @@ Spotter is a **desktop application for freelance personal trainers to manage the
 
    * `delete 3` : Deletes the 3rd client shown in the current list.
 
-   * `clear` : Deletes all clients.
+   * `clear confirm` : Deletes all clients.
 
    * `exit` : Exits the app.
 
@@ -69,7 +69,7 @@ Spotter is a **desktop application for freelance personal trainers to manage the
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Extraneous parameters for `help` and `exit` are ignored. `clear` rejects extra parameters.<br>
+* Extraneous parameters for `help` and `exit` are ignored. `clear` accepts only `confirm` (see [`clear`](#clearing-all-entries-clear)).<br>
   For example, `help 123` is interpreted as `help`. `list` does not accept any extra text (see [`list`](#listing-all-clients-list)).
 
 * Tabs pasted into the command box become spaces, preserving separators in commands copied from tabular notes.
@@ -538,13 +538,22 @@ If a command fails, the panel keeps showing the client as they were before that 
 
 ### Clearing all entries: `clear`
 
-Clears all clients from Spotter.
+Clears all clients from Spotter, together with their sessions, measurements and performance records.
 
-Format: `clear`
+Format: `clear confirm`
 
-`clear` takes no parameters. Inputs such as `clear 1` or `clear all` are rejected without changing clients,
-their records, the current view or the saved data. To remove one client, use `delete INDEX`.
-`clear` currently deletes everything without a confirmation step; requiring confirmation is a future enhancement.
+* `clear` on its own deletes nothing. It explains what `clear confirm` deletes, so one mistyped command cannot
+  remove every client.
+* `confirm` is case-insensitive, so `clear CONFIRM` also works.
+* Any other text after `clear`, such as `clear 1`, `clear all` or `clear confrim`, is rejected without changing
+  clients, their records, the current view or the saved data.
+* To remove one client, use `delete INDEX`.
+
+<box type="warning" seamless>
+
+**Caution:** `clear confirm` cannot be undone. To keep a copy of your data, back up the data file first
+(see [How do I back up my clients' data?](#faq)).
+</box>
 
 ### Exiting the program: `exit`
 
@@ -790,7 +799,7 @@ You do not need to delete `preferences.json` after disconnecting a monitor.
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add**    | `add n/NAME p/PHONE [e/EMAIL] [t/TAG]...` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com t/rehab`
-**Clear**  | `clear`
+**Clear**  | `clear confirm`
 **Exit**   | `exit`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`

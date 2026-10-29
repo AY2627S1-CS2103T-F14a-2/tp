@@ -182,7 +182,7 @@ public class DeletePerformanceCommandTest {
         assertFalse(command.equals(null));
 
         // different types -> returns false
-        assertFalse(command.equals(new ClearCommand()));
+        assertFalse(command.equals(new ClearCommand(true)));
 
         // different index, date or exercise -> returns false
         assertFalse(command.equals(
