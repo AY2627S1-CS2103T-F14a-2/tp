@@ -51,6 +51,8 @@ Spotter is a **desktop application for freelance personal trainers to manage the
 
 **Notes about the command format:**<br>
 
+* Command words are case-insensitive: `LIST` and `List` work like `list`. Prefixes such as `n/` must be in lowercase.
+
 * Words in `UPPER_CASE` are the parameters to be supplied by the user.<br>
   For example, in `add n/NAME`, replace `NAME` with a value such as `Alex Tan`.
 
@@ -93,7 +95,7 @@ latest measurement and performance, so that you can prepare for the session at a
 
 ### Viewing help: `help`
 
-Shows a message explaining how to access the help page.
+Opens a window with a link to the Spotter user guide.
 
 ![help message](images/helpMessage.png)
 
@@ -293,13 +295,15 @@ Run `list` first and use the displayed index of your intended client. These exam
 * `measure 1 d/2026-09-12 t/bodyfat v/18.4` adds a separate body fat record.
 
 Success messages begin with `Recorded measurement for` or `Updated measurement for`,
-followed by the client's name, measurement and date. Invalid input is rejected without changing records.
+followed by the client's name, measurement and date. Replacement messages show the old value → new value
+with the measurement unit, so you can check the correction. Entering the same value again shows equal old
+and new values and keeps the record count unchanged. Invalid input is rejected without changing records.
 
 For a client named Alex Tan, the first two examples produce:
 
 ```text
 Recorded measurement for Alex Tan: weight = 72.4 kg on 2026-09-12.
-Updated measurement for Alex Tan: weight = 71.8 kg on 2026-09-12.
+Updated measurement for Alex Tan: weight on 2026-09-12: 72.4 → 71.8 kg.
 ```
 
 <!-- AI assistance: Helen used OpenAI Codex to clarify measurement index errors for issue #166. -->
@@ -309,7 +313,7 @@ Common errors:
 
 | Input problem | Message |
 | --- | --- |
-| Missing or repeated prefix, missing or malformed index (e.g. `one`, `+1`, `1.5`) | `Invalid command format. Use: measure INDEX d/DATE t/TYPE v/VALUE` |
+| Missing, repeated or unsupported prefix (e.g. `w/`), missing or malformed index (e.g. `one`, `+1`, `1.5`) | `Invalid command format. Use: measure INDEX d/DATE t/TYPE v/VALUE` |
 | Zero, negative, overflowing or out-of-range index | `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.` |
 | Date not in `yyyy-MM-dd` format, or year, month or day out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).` |
 | Date in the right format that does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.` |
@@ -362,7 +366,7 @@ client's index in the currently displayed list.
 
 | Input problem | Message |
 | --- | --- |
-| Missing or repeated prefix, missing or non-numeric index | `Invalid command format. Use: deletemeasure INDEX d/DATE t/TYPE` |
+| Missing, repeated or unsupported prefix (e.g. `v/`), missing or non-numeric index | `Invalid command format. Use: deletemeasure INDEX d/DATE t/TYPE` |
 | Zero, negative, overflowing or out-of-range index | `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.` |
 | Date not in `yyyy-MM-dd` format, or year, month or day out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).` |
 | Date in the right format that does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.` |
@@ -407,7 +411,7 @@ If the command is not accepted, Spotter shows the reason followed by the expecte
 
 Problem | Message
 --------|--------
-A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invalid command format. Use: performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`
+A prefix is missing, repeated or not used by this command (e.g. `t/`), or `INDEX` is missing or not a number | `Invalid command format. Use: performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`
 `INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.`
 `DATE` is not in `yyyy-MM-dd` format, or its year, month or day is out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`
 `DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
@@ -447,7 +451,7 @@ is found, the reason is followed by the expected format:
 
 Problem | Message
 --------|--------
-A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invalid command format. Use: deleteperformance INDEX d/DATE e/EXERCISE`
+A prefix is missing, repeated or not used by this command (e.g. `s/`), or `INDEX` is missing or not a number | `Invalid command format. Use: deleteperformance INDEX d/DATE e/EXERCISE`
 `INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.`
 `DATE` is not in `yyyy-MM-dd` format, or its year, month or day is out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`
 `DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
@@ -614,8 +618,8 @@ Format: `cancelsession INDEX` or `cancelsession n/NAME`
 * The current filter stays active. A cancelled client disappears from a `sessions` date view, but remains in Spotter.
   In the full list, their card shows `Next session: - (none booked)` and moves to the unbooked group.
 * Indices may change after cancellation. Check the displayed list before entering the next index-based command.
-  If the cancelled client disappears from the displayed list, the message adds
-  `NAME is no longer shown here; clients below have moved up one place.`
+  If the cancelled client moves to a different index or disappears from the displayed list, the message adds
+  `Displayed indices have changed. Check the client list before your next index-based command.`
 * A client with no recorded session is rejected with `No session is recorded for NAME.`
   An invalid index shows `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.`
   Missing, non-numeric or mixed identifiers show
@@ -633,7 +637,8 @@ Example: `cancelsession 1` cancels the first displayed client's session.
 Alternatively, `cancelsession n/Sarah Lim` cancels Sarah's booking without relying on a changing list index.
 Success: `Cancelled session on 2026-12-15 09:00 for Sarah Lim.` (when that is her recorded booking).
 The confirmation includes the removed booking's date and 24-hour time, including for expired bookings.
-In a `sessions` date view, it continues: `Sarah Lim is no longer shown here; clients below have moved up one place.`
+If displayed indices change, it continues:
+`Displayed indices have changed. Check the client list before your next index-based command.`
 
 ### Listing sessions on a date: `sessions`
 
@@ -750,9 +755,8 @@ You do not need to delete `preferences.json` after disconnecting a monitor.
 
 ## Known issues
 
-1. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
-2. **Unrecognized prefixes are not reported**: text such as `a/x` that uses a prefix Spotter doesn't support is treated as part of the field before it. For example, `add n/John Tan p/91234567 a/x` reports an invalid phone number. The remedy is to remove the unsupported prefix.
-3. **Warnings when launching from a terminal**: on some Java setups, such as JDKs that bundle JavaFX (e.g. Zulu FX), `java -jar spotter.jar` prints `WARNING` lines about a restricted method and enabling native access. These come from JavaFX loading its native libraries. They are harmless, and Spotter works normally.
+1. **Unrecognized prefixes are not reported**: text such as `a/x` that uses a prefix Spotter doesn't support is treated as part of the field before it. For example, `add n/John Tan p/91234567 a/x` reports an invalid phone number. The remedy is to remove the unsupported prefix. The session, measurement and performance commands already report such a prefix as an invalid command format.
+2. **Warnings when launching from a terminal**: on some Java setups, such as JDKs that bundle JavaFX (e.g. Zulu FX), `java -jar spotter.jar` prints `WARNING` lines about a restricted method and enabling native access. These come from JavaFX loading its native libraries. They are harmless, and Spotter works normally.
 
 --------------------------------------------------------------------------------------------------------------------
 

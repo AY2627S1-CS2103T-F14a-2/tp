@@ -24,9 +24,11 @@ public class MeasureCommandParser implements Parser<MeasureCommand> {
 
     @Override
     public MeasureCommand parse(String args) throws ParseException {
-        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args,
-                PREFIX_DATE, PREFIX_MEASUREMENT_TYPE, PREFIX_MEASUREMENT_VALUE);
-        for (Prefix prefix : new Prefix[] {PREFIX_DATE, PREFIX_MEASUREMENT_TYPE, PREFIX_MEASUREMENT_VALUE}) {
+        Prefix[] prefixes = {PREFIX_DATE, PREFIX_MEASUREMENT_TYPE, PREFIX_MEASUREMENT_VALUE};
+        // Otherwise an unknown prefix, e.g. w/ in "v/72.5 w/60", is read as part of the previous value
+        ParserUtil.rejectUnsupportedPrefixes(args, MeasureCommand.MESSAGE_INVALID_FORMAT, prefixes);
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, prefixes);
+        for (Prefix prefix : prefixes) {
             if (arguments.getAllValues(prefix).size() != 1) {
                 throw new ParseException(MeasureCommand.MESSAGE_INVALID_FORMAT);
             }

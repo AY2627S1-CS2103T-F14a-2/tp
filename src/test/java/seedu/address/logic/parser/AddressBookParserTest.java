@@ -130,6 +130,21 @@ public class AddressBookParserTest {
     }
 
     @Test
+    public void parseCommand_mixedCaseCommandWord_parsesCommand() throws Exception {
+        assertTrue(parser.parseCommand("LIST") instanceof ListCommand);
+        assertTrue(parser.parseCommand("Exit") instanceof ExitCommand);
+        assertEquals(new DeleteCommand(INDEX_FIRST_PERSON),
+                parser.parseCommand("DeLeTe " + INDEX_FIRST_PERSON.getOneBased()));
+
+        // Only the command word ignores case: argument case is kept and prefixes stay lowercase
+        Person person = new PersonBuilder().build();
+        String addArguments = PersonUtil.getAddCommand(person).substring(AddCommand.COMMAND_WORD.length());
+        assertEquals(new AddCommand(person), parser.parseCommand("ADD" + addArguments));
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE);
+        assertThrows(ParseException.class, expectedMessage, () -> parser.parseCommand("add N/Bob Tan p/91234567"));
+    }
+
+    @Test
     public void parseCommand_listWithParameters_throwsParseException() {
         String expectedMessage = "\"list\" does not take any parameters.\nExample: list";
         assertThrows(ParseException.class, expectedMessage, () -> parser.parseCommand("list 3"));

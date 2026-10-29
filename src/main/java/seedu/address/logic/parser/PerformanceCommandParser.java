@@ -21,7 +21,7 @@ import seedu.address.model.progress.Load;
 /**
  * Parses input arguments and creates a new {@code PerformanceCommand} object.
  *
- * <p>A missing, repeated or non-numeric part of the command gives the invalid-format message.
+ * <p>A missing, repeated, unknown or non-numeric part of the command gives the invalid-format message.
  * Any other invalid value gives its specific message, followed by the expected command format.
  *
  * <p>AI assistance: Claude (Anthropic) helped implement this parser and its tests.
@@ -39,6 +39,8 @@ public class PerformanceCommandParser implements Parser<PerformanceCommand> {
     @Override
     public PerformanceCommand parse(String args) throws ParseException {
         requireNonNull(args);
+        // Otherwise an unknown prefix, e.g. t/ in "w/60 t/x", is read as part of the previous value
+        ParserUtil.rejectUnsupportedPrefixes(args, PerformanceCommand.MESSAGE_INVALID_FORMAT, PREFIXES);
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIXES);
 
         String preamble = argMultimap.getPreamble();
