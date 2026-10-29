@@ -13,6 +13,7 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.Messages;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -31,8 +32,7 @@ public class ListCommandTest {
     public void setUp() {
         model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
-        expectedManyMessage = String.format(ListCommand.MESSAGE_SUCCESS,
-                model.getAddressBook().getPersonList().size());
+        expectedManyMessage = Messages.getClientsListedMessage(model.getAddressBook().getPersonList().size());
     }
 
     @Test
@@ -61,21 +61,14 @@ public class ListCommandTest {
 
     @Test
     public void execute_oneClient_showsSingularMessage() {
-        AddressBook addressBook = new AddressBook();
-        addressBook.addPerson(ALICE);
-        Model oneClientModel = new ModelManager(addressBook, new UserPrefs());
-        Model expectedOneClientModel = new ModelManager(addressBook, new UserPrefs());
-        assertListSuccess(oneClientModel, "Listed 1 client.", expectedOneClientModel);
+        assertListSuccess(oneClientModel(), Messages.MESSAGE_ONE_CLIENT_LISTED, oneClientModel());
     }
 
     @Test
     public void execute_oneClientFilteredOut_showsSingularMessage() {
-        AddressBook addressBook = new AddressBook();
-        addressBook.addPerson(ALICE);
-        Model oneClientModel = new ModelManager(addressBook, new UserPrefs());
-        oneClientModel.updateFilteredPersonList(person -> false);
-        Model expectedOneClientModel = new ModelManager(addressBook, new UserPrefs());
-        assertListSuccess(oneClientModel, "Listed 1 client.", expectedOneClientModel);
+        Model filteredModel = oneClientModel();
+        filteredModel.updateFilteredPersonList(client -> false);
+        assertListSuccess(filteredModel, Messages.MESSAGE_ONE_CLIENT_LISTED, oneClientModel());
     }
 
     @Test
@@ -101,6 +94,15 @@ public class ListCommandTest {
     @Test
     public void getResultMessage_negativeCount_throwsAssertionError() {
         assertThrows(AssertionError.class, () -> ListCommand.getResultMessage(-1));
+    }
+
+    /**
+     * Returns a model holding only {@code ALICE}.
+     */
+    private static Model oneClientModel() {
+        AddressBook addressBook = new AddressBook();
+        addressBook.addPerson(ALICE);
+        return new ModelManager(addressBook, new UserPrefs());
     }
 
     /**

@@ -222,9 +222,13 @@ Format: `filter t/TAG [t/MORE_TAGS]...`
   symbols are not allowed, e.g. `t/re-hab` is rejected.
 * Matching is case-insensitive and requires the whole tag name: `REHAB` matches `rehab`, but `reh` does not.
 * Multiple tags use an `OR` search. `filter t/rehab t/strength` shows clients with either tag or both.
+  A tag repeated in a different case, e.g. `t/rehab t/REHAB`, counts once.
 * The command searches all clients and replaces any previous `find`, `filter` or `sessions` results.
   Clients without tags do not match. If no clients match, the displayed list is empty.
-* Like `find`, Spotter shows `Listed N clients.`, `Listed 1 client.`, or `No clients found.` when no client matches.
+* Spotter names the tags you searched for, as you typed them: `Listed N clients tagged rehab or knee.`,
+  `Listed 1 client tagged rehab.`, or `No clients tagged rehab or knee. Use "list" to show all clients.` when no
+  client matches. Three or more tags are listed as `rehab, knee or strength`.
+* The client list scrolls back to the top, so the first match is visible.
 * Filtering does not change client data. Use the indices in the filtered list for subsequent commands,
   and run `list` to show all clients again.
 
@@ -234,9 +238,9 @@ Examples:
 
 | Input problem | Message |
 | --- | --- |
-| No `t/` prefix, or text before the first prefix, e.g. `filter rehab` | `Invalid command format!` followed by the expected format |
-| An empty tag, e.g. `filter t/` or `filter t/rehab t/` | `Tags to filter by cannot be empty.` followed by the expected format |
-| A tag that is not alphanumeric, e.g. `filter t/re-hab` or `filter t/best friends` | `Tag names should be alphanumeric` followed by the expected format |
+| No `t/` prefix, or text before the first prefix, e.g. `filter rehab` | `Invalid command format!`, then `Use: filter t/TAG [t/MORE_TAGS]...` and `Example: filter t/rehab t/strength` |
+| An empty tag, e.g. `filter t/` or `filter t/rehab t/` | `Tags to filter by cannot be empty.`, then `Use: filter t/TAG [t/MORE_TAGS]...` |
+| A tag that is not alphanumeric, e.g. `filter t/re-hab`, `filter t/best friends`, or extra text after a tag such as `filter t/rehab extra` | `Tags can contain only letters and digits, e.g. t/rehab.`, then `Use: filter t/TAG [t/MORE_TAGS]...` |
 
 <!-- AI assistance: Helen used OpenAI Codex to draft the filter documentation and update UG terminology and the command summary. -->
 
@@ -257,6 +261,8 @@ Examples:
 ### Recording body measurements: `measure`
 
 Records a client's weight, body fat percentage or waist measurement.
+
+Only these three measurement types are supported in this version.
 
 Format: `measure INDEX d/DATE t/TYPE v/VALUE`
 
@@ -382,7 +388,7 @@ Parameter | Accepted values
 ----------|----------------
 `INDEX` | A positive integer from the displayed client list, e.g. `1`.
 `DATE` | A real date in `yyyy-MM-dd` format, e.g. `2026-09-18`. It can be today or in the past, but not in the future.
-`EXERCISE` | 1 to 50 characters: English letters (A–Z), digits (0–9), spaces, hyphens (`-`), apostrophes (`'` or `’`) and parentheses (`(` and `)`), for example `Row (Cable)`. Accented and non-English letters, such as `é`, are not accepted. Parentheses do not need to be paired. It must contain at least one letter or digit. Extra spaces are ignored, and letter case and the apostrophe style do not matter when checking for an existing record, so `bench press` and `Bench Press` are the same exercise, and so are `Farmer's Walk` and `Farmer’s Walk`. The same rules apply when deleting a record or loading stored exercise names.
+`EXERCISE` | 1 to 50 characters: English letters (A–Z), digits (0–9), spaces, hyphens (`-`), apostrophes (`'` or `’`), parentheses (`(` and `)`), ampersands (`&`), plus signs (`+`) and full stops (`.`), for example `Row (Cable)`, `Clean & Jerk` or `1.5 Rep Squat`. Slashes (`/`) are not accepted, because Spotter would read text such as ` w/` as another prefix. Accented and non-English letters, such as `é`, are not accepted. Parentheses do not need to be paired. It must contain at least one letter or digit. Extra spaces are ignored, and letter case and the apostrophe style do not matter when checking for an existing record, so `bench press` and `Bench Press` are the same exercise, and so are `Farmer's Walk` and `Farmer’s Walk`. The same rules apply when deleting a record or loading stored exercise names.
 `SETS` | A whole number from 1 to 100.
 `REPS` | The repetitions per set, as a whole number from 1 to 1000.
 `LOAD` | The load in kg, from 0 to 1000, with at most two decimal places. Use `0` for bodyweight exercises. Do not type the unit.
@@ -406,7 +412,7 @@ A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invali
 `DATE` is not in `yyyy-MM-dd` format, or its year, month or day is out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`
 `DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
 `DATE` is in the future | `The performance date cannot be in the future.`
-`EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only English letters (A-Z), digits (0-9), spaces, hyphens, apostrophes, and parentheses.`
+`EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only English letters (A-Z), digits (0-9), spaces, hyphens, apostrophes, parentheses, and the symbols & + .`
 `SETS` is invalid | `The number of sets must be a whole number between 1 and 100.`
 `REPS` is invalid | `The number of repetitions must be a whole number between 1 and 1000.`
 `LOAD` is not a number | `Exercise load must be numeric.`
@@ -445,7 +451,7 @@ A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invali
 `INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
 `DATE` is not in `yyyy-MM-dd` format, or its year, month or day is out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`
 `DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
-`EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only English letters (A-Z), digits (0-9), spaces, hyphens, apostrophes, and parentheses.`
+`EXERCISE` is invalid | `Exercise names must be 1 to 50 characters and may contain only English letters (A-Z), digits (0-9), spaces, hyphens, apostrophes, parentheses, and the symbols & + .`
 The client has no record for that exercise on that date | `No performance record for <exercise> on <date> was found for <client name>.`
 
 ### Viewing a client's history: `view`
@@ -697,6 +703,24 @@ _Details coming soon ..._
 
 **Q**: How do I transfer my data to another computer?<br>
 **A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous Spotter home folder.
+
+**Q**: How do I back up my clients' data?<br>
+**A**: Close Spotter and copy `[JAR file location]/data/spotter.json` to a safe place. To restore it, close Spotter and copy the backup back to the same location. See [Saving the data](#saving-the-data).
+
+**Q**: Spotter started with no clients after I edited the data file. Is my data lost?<br>
+**A**: Not yet. Spotter could not read the edited file, so it left the file unchanged. Close Spotter **before** running any command that changes data, as that would overwrite the file. Then fix your edit or restore your backup. See [Editing the data file](#editing-the-data-file).
+
+**Q**: I recorded a gym performance with the wrong numbers. How do I fix it?<br>
+**A**: Record it again for the same client, date and exercise. The new sets, repetitions and load replace the old record, and Spotter shows `Updated performance for ...`. To remove the record instead, use [`deleteperformance`](#deleting-a-gym-performance-deleteperformance).
+
+**Q**: Why are `bench press` and `Bench Press` the same exercise, but `Clean & Jerk` and `Clean and Jerk` are not?<br>
+**A**: Spotter ignores letter case, extra spaces and the apostrophe style, but otherwise compares exercise names as typed. Use the same wording each time so that a client's records for one exercise stay together.
+
+**Q**: Why can't I record a measurement or performance for a future date?<br>
+**A**: Measurements and performances record results a client has already achieved, so `measure` and `performance` accept only today or past dates. To plan a future session, use [`session`](#recording-a-client-s-next-session-session).
+
+**Q**: The Upcoming sessions panel has been replaced by one client's history. How do I get it back?<br>
+**A**: Use [`list`](#listing-all-clients-list). [`view INDEX`](#viewing-a-client-s-history-view) is what shows a client's history in place of Upcoming sessions.
 
 --------------------------------------------------------------------------------------------------------------------
 

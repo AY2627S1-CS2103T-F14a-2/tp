@@ -1,7 +1,14 @@
 package seedu.address.ui;
 
-import static seedu.address.logic.commands.ClientHistoryFormatter.NO_EMAIL;
-import static seedu.address.logic.commands.ClientHistoryFormatter.NO_SESSION;
+import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.commands.ClientHistoryFormatter.EMAIL_LABEL;
+import static seedu.address.logic.commands.ClientHistoryFormatter.MEASUREMENTS_NEWEST_FIRST;
+import static seedu.address.logic.commands.ClientHistoryFormatter.NEXT_SESSION_LABEL;
+import static seedu.address.logic.commands.ClientHistoryFormatter.PHONE_LABEL;
+import static seedu.address.logic.commands.ClientHistoryFormatter.formatEmail;
+import static seedu.address.logic.commands.ClientHistoryFormatter.formatMeasurementValue;
+import static seedu.address.logic.commands.ClientHistoryFormatter.formatNextSession;
+import static seedu.address.logic.commands.ClientHistoryFormatter.formatRecordCount;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,15 +28,12 @@ import seedu.address.model.person.Person;
 import seedu.address.model.progress.PerformanceHistory;
 
 /**
- * A UI component that displays information of a {@code Person}.
+ * A UI component that displays a client's details and latest records in the client list.
  */
 public class PersonCard extends UiPart<Region> {
 
-    // Shared with UpcomingSessionCard.
-    static final String PHONE_LABEL = "Phone: ";
 
     private static final String FXML = "PersonListCard.fxml";
-    private static final String EMAIL_LABEL = "Email: ";
     private static final String PERFORMANCE_ROW_PREFIX = "Latest performance: ";
 
     // Shared by the measurement and performance rows. An English locale keeps month names,
@@ -68,7 +72,7 @@ public class PersonCard extends UiPart<Region> {
     private Label latestPerformance;
 
     /**
-     * Creates a {@code PersonCard} with the given {@code Person} and index to display.
+     * Creates a {@code PersonCard} for {@code person}, a client, shown at {@code displayedIndex}.
      */
     public PersonCard(Person person, int displayedIndex) {
         super(FXML);
@@ -76,9 +80,8 @@ public class PersonCard extends UiPart<Region> {
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
         phone.setText(PHONE_LABEL + PhoneDisplayFormatter.format(person.getPhone().value));
-        email.setText(EMAIL_LABEL + getEmailDisplay(person));
-        nextSession.setText("Next session: " + person.getNextSession()
-                .map(session -> session.toDisplayString(LocalDateTime.now())).orElse(NO_SESSION));
+        email.setText(EMAIL_LABEL + formatEmail(person));
+        nextSession.setText(NEXT_SESSION_LABEL + formatNextSession(person, LocalDateTime.now()));
         LocalDate today = LocalDate.now();
         latestMeasurement.setText(formatLatestMeasurement(person.getMeasurements(), today));
         person.getTags().stream()
@@ -105,10 +108,11 @@ public class PersonCard extends UiPart<Region> {
      * @param today The current date. The record's year is shown only if it differs from this year.
      */
     static String formatLatestPerformance(PerformanceHistory history, LocalDate today) {
+        requireNonNull(history);
+        requireNonNull(today);
         return history.getLatest()
                 .map(latest -> PERFORMANCE_ROW_PREFIX + formatCardDate(latest.getDate(), today)
-                        + " - " + latest.getSummary() + " (" + history.size()
-                        + (history.size() == 1 ? " record)" : " records)"))
+                        + " - " + latest.getSummary() + " (" + formatRecordCount(history.size()) + ")")
                 .orElse(PERFORMANCE_ROW_PREFIX + "-");
     }
 
@@ -119,21 +123,13 @@ public class PersonCard extends UiPart<Region> {
      * @param today The current date. The record's year is shown only if it differs from this year.
      */
     static String formatLatestMeasurement(List<Measurement> measurements, LocalDate today) {
+        requireNonNull(measurements);
+        requireNonNull(today);
         if (measurements.isEmpty()) {
             return "Latest measurement: -";
         }
-        Measurement latest = measurements.stream().min(Comparator.comparing(Measurement::getDate).reversed()
-                .thenComparing(Measurement::getType)).orElseThrow();
-        int count = measurements.size();
+        Measurement latest = measurements.stream().min(MEASUREMENTS_NEWEST_FIRST).orElseThrow();
         return "Latest measurement: " + formatCardDate(latest.getDate(), today)
-                + " - " + latest.getType() + " " + latest.getValue().toPlainString()
-                + " " + latest.getType().getUnit() + " (" + count + (count == 1 ? " record)" : " records)");
-    }
-
-    /**
-     * Returns the text shown after the email label, or "-" if the client has no email.
-     */
-    private static String getEmailDisplay(Person person) {
-        return person.getEmail().map(e -> e.value).orElse(NO_EMAIL);
+                + " - " + formatMeasurementValue(latest) + " (" + formatRecordCount(measurements.size()) + ")";
     }
 }

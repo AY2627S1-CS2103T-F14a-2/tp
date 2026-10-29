@@ -31,6 +31,13 @@ public class JsonAdaptedGymPerformanceTest {
     }
 
     @Test
+    public void toModelType_exerciseWithSymbols_keepsName() throws Exception {
+        JsonAdaptedGymPerformance performance = new JsonAdaptedGymPerformance(VALID_DATE, "Clean & Jerk",
+                VALID_SETS, VALID_REPS, VALID_LOAD);
+        assertEquals("Clean & Jerk", performance.toModelType().getExerciseName().value);
+    }
+
+    @Test
     public void toModelType_futureDate_returnsGymPerformance() throws Exception {
         // Stored records must stay loadable, so the future-date rule only applies to new input
         JsonAdaptedGymPerformance performance = new JsonAdaptedGymPerformance("2999-01-01", VALID_EXERCISE,
@@ -99,24 +106,16 @@ public class JsonAdaptedGymPerformanceTest {
     }
 
     @Test
-    public void toModelType_nonNumericLoad_throwsIllegalValueException() {
-        JsonAdaptedGymPerformance performance = new JsonAdaptedGymPerformance(VALID_DATE, VALID_EXERCISE,
-                VALID_SETS, VALID_REPS, "sixty");
-        assertThrows(IllegalValueException.class, Load.MESSAGE_NOT_NUMERIC, performance::toModelType);
+    public void toModelType_invalidLoad_throwsIllegalValueExceptionWithLoadMessage() {
+        assertInvalidLoad("sixty", Load.MESSAGE_NOT_NUMERIC);
+        assertInvalidLoad("1000.01", Load.MESSAGE_RANGE_CONSTRAINTS);
+        assertInvalidLoad("60.555", Load.MESSAGE_DECIMAL_PLACES_CONSTRAINTS);
     }
 
-    @Test
-    public void toModelType_loadOutOfRange_throwsIllegalValueException() {
+    private static void assertInvalidLoad(String load, String expectedMessage) {
         JsonAdaptedGymPerformance performance = new JsonAdaptedGymPerformance(VALID_DATE, VALID_EXERCISE,
-                VALID_SETS, VALID_REPS, "1000.01");
-        assertThrows(IllegalValueException.class, Load.MESSAGE_RANGE_CONSTRAINTS, performance::toModelType);
-    }
-
-    @Test
-    public void toModelType_loadWithTooManyDecimalPlaces_throwsIllegalValueException() {
-        JsonAdaptedGymPerformance performance = new JsonAdaptedGymPerformance(VALID_DATE, VALID_EXERCISE,
-                VALID_SETS, VALID_REPS, "60.555");
-        assertThrows(IllegalValueException.class, Load.MESSAGE_DECIMAL_PLACES_CONSTRAINTS, performance::toModelType);
+                VALID_SETS, VALID_REPS, load);
+        assertThrows(IllegalValueException.class, expectedMessage, performance::toModelType);
     }
 
     @Test

@@ -63,6 +63,13 @@ public class ArgumentMultimap {
     }
 
     /**
+     * Returns true if each of the given prefixes appeared exactly once among the arguments.
+     */
+    public boolean hasEachPrefixOnce(Prefix... prefixes) {
+        return Stream.of(prefixes).allMatch(prefix -> getAllValues(prefix).size() == 1);
+    }
+
+    /**
      * Throws a {@code ParseException} if any of the prefixes given in {@code prefixes} appeared more than
      * once among the arguments.
      */

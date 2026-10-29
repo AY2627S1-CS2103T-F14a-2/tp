@@ -3,8 +3,7 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
-import java.util.Locale;
-
+import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 
 /**
@@ -14,8 +13,6 @@ public class ListCommand extends Command {
 
     public static final String COMMAND_WORD = "list";
 
-    public static final String MESSAGE_SUCCESS = "Listed %1$d clients.";
-    public static final String MESSAGE_SUCCESS_ONE_CLIENT = "Listed 1 client.";
     public static final String MESSAGE_NO_CLIENTS =
             "You have no clients yet. Use \"add\" to add your first client.";
     public static final String MESSAGE_EXTRA_PARAMETERS =
@@ -34,12 +31,7 @@ public class ListCommand extends Command {
      */
     public static String getResultMessage(int clientCount) {
         assert clientCount >= 0;
-        if (clientCount == 0) {
-            return MESSAGE_NO_CLIENTS;
-        }
-        if (clientCount == 1) {
-            return MESSAGE_SUCCESS_ONE_CLIENT;
-        }
-        return String.format(Locale.ROOT, MESSAGE_SUCCESS, clientCount);
+        // Same wording as find for one or more clients; only the empty case invites the trainer to add one
+        return clientCount == 0 ? MESSAGE_NO_CLIENTS : Messages.getClientsListedMessage(clientCount);
     }
 }
