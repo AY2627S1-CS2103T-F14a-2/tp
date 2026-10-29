@@ -57,6 +57,16 @@ public class MeasureCommandParserTest {
         }
     }
 
+    @Test
+    public void parse_unknownPrefix_rejectsFormat() {
+        // without the check, each would be reported as an invalid value, type or date instead
+        for (String args : new String[] {"1 d/2026-09-12 t/weight v/72 w/60", "1 d/2026-09-12 t/weight x/1 v/72",
+            "1 d/2026-09-12 e/Squat t/weight v/72"}) {
+            assertEquals(MeasureCommand.MESSAGE_INVALID_FORMAT,
+                    assertThrows(ParseException.class, () -> parser.parse(args)).getMessage());
+        }
+    }
+
     // AI assistance: Helen used OpenAI Codex to add index-classification regressions for issue #166.
     @Test
     public void parse_malformedIndex_rejectsFormat() {

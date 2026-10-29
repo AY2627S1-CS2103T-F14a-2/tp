@@ -313,7 +313,7 @@ Common errors:
 
 | Input problem | Message |
 | --- | --- |
-| Missing or repeated prefix, missing or malformed index (e.g. `one`, `+1`, `1.5`) | `Invalid command format. Use: measure INDEX d/DATE t/TYPE v/VALUE` |
+| Missing, repeated or unsupported prefix (e.g. `w/`), missing or malformed index (e.g. `one`, `+1`, `1.5`) | `Invalid command format. Use: measure INDEX d/DATE t/TYPE v/VALUE` |
 | Zero, negative, overflowing or out-of-range index | `The client index provided is invalid.` |
 | Date not in `yyyy-MM-dd` format, or year, month or day out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).` |
 | Date in the right format that does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.` |
@@ -363,7 +363,7 @@ and leaves the data unchanged.
 
 | Input problem | Message |
 | --- | --- |
-| Missing or repeated prefix, missing or non-numeric index | `Invalid command format. Use: deletemeasure INDEX d/DATE t/TYPE` |
+| Missing, repeated or unsupported prefix (e.g. `v/`), missing or non-numeric index | `Invalid command format. Use: deletemeasure INDEX d/DATE t/TYPE` |
 | Zero, negative, overflowing or out-of-range index | `The client index provided is invalid.` |
 | Date not in `yyyy-MM-dd` format, or year, month or day out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).` |
 | Date in the right format that does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.` |
@@ -408,7 +408,7 @@ If the command is not accepted, Spotter shows the reason followed by the expecte
 
 Problem | Message
 --------|--------
-A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invalid command format. Use: performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`
+A prefix is missing, repeated or not used by this command (e.g. `t/`), or `INDEX` is missing or not a number | `Invalid command format. Use: performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`
 `INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
 `DATE` is not in `yyyy-MM-dd` format, or its year, month or day is out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`
 `DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
@@ -448,7 +448,7 @@ is found, the reason is followed by the expected format:
 
 Problem | Message
 --------|--------
-A prefix is missing or repeated, or `INDEX` is missing or not a number | `Invalid command format. Use: deleteperformance INDEX d/DATE e/EXERCISE`
+A prefix is missing, repeated or not used by this command (e.g. `s/`), or `INDEX` is missing or not a number | `Invalid command format. Use: deleteperformance INDEX d/DATE e/EXERCISE`
 `INDEX` is 0, negative, or larger than the displayed list | `The client index provided is invalid.`
 `DATE` is not in `yyyy-MM-dd` format, or its year, month or day is out of range, e.g. `2026-13-01` | `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`
 `DATE` is in the right format but does not exist, e.g. `2026-02-30` | `2026-02-30 is not a real date.`
@@ -752,9 +752,8 @@ You do not need to delete `preferences.json` after disconnecting a monitor.
 
 ## Known issues
 
-1. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
-2. **Unrecognized prefixes are not reported**: text such as `a/x` that uses a prefix Spotter doesn't support is treated as part of the field before it. For example, `add n/John Tan p/91234567 a/x` reports an invalid phone number. The remedy is to remove the unsupported prefix.
-3. **Warnings when launching from a terminal**: on some Java setups, such as JDKs that bundle JavaFX (e.g. Zulu FX), `java -jar spotter.jar` prints `WARNING` lines about a restricted method and enabling native access. These come from JavaFX loading its native libraries. They are harmless, and Spotter works normally.
+1. **Unrecognized prefixes are not reported**: text such as `a/x` that uses a prefix Spotter doesn't support is treated as part of the field before it. For example, `add n/John Tan p/91234567 a/x` reports an invalid phone number. The remedy is to remove the unsupported prefix. The session, measurement and performance commands already report such a prefix as an invalid command format.
+2. **Warnings when launching from a terminal**: on some Java setups, such as JDKs that bundle JavaFX (e.g. Zulu FX), `java -jar spotter.jar` prints `WARNING` lines about a restricted method and enabling native access. These come from JavaFX loading its native libraries. They are harmless, and Spotter works normally.
 
 --------------------------------------------------------------------------------------------------------------------
 
