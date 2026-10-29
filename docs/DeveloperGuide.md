@@ -341,7 +341,7 @@ instead, so the panel follows the client without any command knowing about the p
 
 <puml src="diagrams/ViewedClientSyncSequenceDiagram.puml" alt="How the detail panel follows the viewed client after `measure`" />
 
-In the same way, `Model#deletePerson` and `Model#setAddressBook` (used by `clear`) stop viewing a client that
+In the same way, `Model#deletePerson` and `Model#setAddressBook` (used by `clear confirm`) stop viewing a client that
 no longer exists, and `ListCommand` stops viewing any client. The Upcoming sessions panel then shows again.
 If saving fails, `LogicManager` restores the viewed client together with the client data and the filter, so
 the panel matches the restored data.
@@ -1362,7 +1362,7 @@ replace `INDEX` below with that number. Do not assume insertion order is the dis
 
 ### Finding and filtering clients
 
-Use a separate disposable test dataset. Run `clear`, then add these fictional training clients:
+Use a separate disposable test dataset. Run `clear confirm`, then add these fictional training clients:
 `add n/Alex Tan p/91234567 e/alex@example.com t/strength t/rehab`,
 `add n/Bea Lim p/92345678 t/weightloss`, and `add n/Chris Goh p/93456789 t/strength`.
 
@@ -1410,12 +1410,15 @@ Use the disposable dataset from [Finding and filtering clients](#finding-and-fil
 ### Clearing all clients
 
 1. In a disposable dataset with at least two clients and a saved data file, filter to one client and view their history.
-2. Enter `clear 1`, `clear all`, then `clear n/Alex Tan`.
-   Expected: Each input reports that `clear` takes no parameters. Clients, the active filter, the history panel
+2. Enter `clear 1`, `clear all`, `clear confrim`, then `clear n/Alex Tan`.
+   Expected: Each input reports that `clear` only accepts `confirm`. Clients, the active filter, the history panel
    and the data file are unchanged, including after restarting.
-3. Enter `clear` without parameters. Expected: All clients and their records are removed and remain absent after restart.
-4. Enter `list`. Expected: `You have no clients yet. Use "add" to add your first client.`
-5. Enter `add n/Test Client p/91234567`, then `list`. Expected: `Listed 1 client.`
+3. Enter `clear` without parameters.
+   Expected: The result explains that `clear` permanently deletes all clients and asks for `clear confirm`.
+   Clients, the active filter, the history panel and the data file are unchanged, including after restarting.
+4. Enter `clear CONFIRM`. Expected: All clients and their records are removed and remain absent after restart.
+5. Enter `list`. Expected: `You have no clients yet. Use "add" to add your first client.`
+6. Enter `add n/Test Client p/91234567`, then `list`. Expected: `Listed 1 client.`
 
 ### Booking, cancelling and listing sessions
 
