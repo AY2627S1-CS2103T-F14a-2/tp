@@ -56,6 +56,7 @@
         "client-name-and-phone-formats": "Client name and phone formats",
         "duplicate-detection": "Duplicate detection",
         "upcoming-sessions-panel": "Upcoming sessions panel",
+        "listing-and-filtering-clients": "Listing and filtering clients",
         "view-client-history": "View client history",
         "recording-and-deleting-gym-performances": "Recording and deleting gym performances",
         "recording-body-measurements": "Recording body measurements",
@@ -174,10 +175,11 @@
       "headingKeywords": {}
     },
     {
-      "src": "team/johndoe.md",
-      "title": "John Doe's Project Portfolio Page",
+      "src": "team/ekulnich.md",
+      "title": "Luke Chin's Project Portfolio Page",
       "headings": {
-        "project-addressbook-level-3": "Project: AddressBook Level 3"
+        "project-spotter": "Project: Spotter",
+        "summary-of-contributions": "Summary of Contributions"
       },
       "headingKeywords": {}
     }
