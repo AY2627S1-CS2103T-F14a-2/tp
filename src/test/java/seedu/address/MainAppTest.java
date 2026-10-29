@@ -138,6 +138,44 @@ public class MainAppTest {
         assertLoadsBothClients(validClientWith("2026-10-01", LocalDate.now().plusDays(1).toString()));
     }
 
+    // A hand-edited null must be reported as damaged data, not as a NullPointerException that stops startup (#193).
+    // AI assistance: Vincent used Claude Code to write these null-entry tests and their fixes (#193).
+
+    @Test
+    public void initModelManager_nullClientEntry_startsEmptyWithWarningAndKeepsFile() throws Exception {
+        assertInvalidClientStartsEmpty("null");
+    }
+
+    @Test
+    public void initModelManager_nullTagEntry_startsEmptyWithWarningAndKeepsFile() throws Exception {
+        assertInvalidClientStartsEmpty(validClientWith("\"email\": \"bob@example.com\", ",
+                "\"email\": \"bob@example.com\", \"tags\": [ null ], "));
+    }
+
+    @Test
+    public void initModelManager_nullFile_startsEmptyWithWarningAndKeepsFile() throws Exception {
+        assertStartsEmptyWithWarningAndKeepsFile("null");
+    }
+
+    @Test
+    public void initPrefs_nullFile_returnsDefaultPrefs() throws Exception {
+        assertInitPrefsReturnsDefaultPrefs("null");
+    }
+
+    @Test
+    public void initPrefs_nullGuiSettings_returnsDefaultPrefs() throws Exception {
+        assertInitPrefsReturnsDefaultPrefs("{ \"guiSettings\": null }");
+    }
+
+    private void assertInitPrefsReturnsDefaultPrefs(String content) throws Exception {
+        Path prefsFile = temporaryFolder.resolve("preferences.json");
+        Files.writeString(prefsFile, content);
+
+        UserPrefs prefs = new MainApp().initPrefs(new JsonUserPrefsStorage(prefsFile));
+
+        assertEquals(new UserPrefs(), prefs);
+    }
+
     private static String createDataFile(String secondClientJson) {
         return "{ \"persons\": [ "
                 + "{ \"name\": \"Alice Lim\", \"phone\": \"98765432\", \"tags\": [ \"beginner\" ] }, "
