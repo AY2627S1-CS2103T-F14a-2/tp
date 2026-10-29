@@ -81,7 +81,7 @@ Model --> FilterCommand : clients
 deactivate Model
 
 create CommandResult
-FilterCommand -> CommandResult : clients listed message
+FilterCommand -> CommandResult : message naming the tags
 activate CommandResult
 
 CommandResult --> FilterCommand

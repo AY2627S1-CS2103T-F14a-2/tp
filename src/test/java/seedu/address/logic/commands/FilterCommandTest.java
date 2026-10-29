@@ -10,7 +10,6 @@ import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.DANIEL;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -18,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Person;
 import seedu.address.model.person.TagContainsKeywordsPredicate;
 
 /**
@@ -52,39 +52,47 @@ public class FilterCommandTest {
     }
 
     @Test
-    public void execute_noMatchingTag_noPersonFound() {
-        String expectedMessage = "No clients found.";
-        TagContainsKeywordsPredicate predicate = new TagContainsKeywordsPredicate(List.of("rehab"));
-        FilterCommand command = new FilterCommand(predicate);
-        expectedModel.updateFilteredPersonList(predicate);
-        assertCommandSuccess(command, model, expectedMessage, expectedModel);
-        assertEquals(Collections.emptyList(), model.getFilteredPersonList());
+    public void execute_noMatchingTag_noClientFound() {
+        assertFilterSuccess(List.of("rehab"), List.of());
     }
 
     @Test
-    public void execute_singleTagDifferentCase_multiplePersonsFound() {
-        String expectedMessage = "Listed 3 clients.";
-        TagContainsKeywordsPredicate predicate = new TagContainsKeywordsPredicate(List.of("FRIENDS"));
-        FilterCommand command = new FilterCommand(predicate);
-        expectedModel.updateFilteredPersonList(predicate);
-        assertCommandSuccess(command, model, expectedMessage, expectedModel);
-        assertEquals(List.of(ALICE, BENSON, DANIEL), model.getFilteredPersonList());
+    public void execute_singleTagDifferentCase_multipleClientsFound() {
+        assertFilterSuccess(List.of("FRIENDS"), List.of(ALICE, BENSON, DANIEL));
     }
 
     @Test
-    public void execute_multipleTags_personsWithAnyTagFound() {
-        String expectedMessage = "Listed 1 client.";
-        TagContainsKeywordsPredicate predicate = new TagContainsKeywordsPredicate(List.of("owesMoney", "rehab"));
-        FilterCommand command = new FilterCommand(predicate);
-        expectedModel.updateFilteredPersonList(predicate);
-        assertCommandSuccess(command, model, expectedMessage, expectedModel);
-        assertEquals(List.of(BENSON), model.getFilteredPersonList());
+    public void execute_multipleTags_clientsWithAnyTagFound() {
+        assertFilterSuccess(List.of("owesMoney", "rehab"), List.of(BENSON));
+    }
+
+    @Test
+    public void execute_threeTags_clientsWithAnyTagFound() {
+        assertFilterSuccess(List.of("friends", "owesMoney", "rehab"), List.of(ALICE, BENSON, DANIEL));
+    }
+
+    @Test
+    public void getResultMessage_exactWording() {
+        assertEquals("No clients tagged rehab. Use \"list\" to show all clients.",
+                FilterCommand.getResultMessage(0, List.of("rehab")));
+        assertEquals("Listed 1 client tagged owesMoney or rehab.",
+                FilterCommand.getResultMessage(1, List.of("owesMoney", "rehab")));
+        assertEquals("Listed 3 clients tagged friends, owesMoney or rehab.",
+                FilterCommand.getResultMessage(3, List.of("friends", "owesMoney", "rehab")));
+    }
+
+    @Test
+    public void joinTags() {
+        assertEquals("rehab", FilterCommand.joinTags(List.of("rehab")));
+        assertEquals("rehab or knee", FilterCommand.joinTags(List.of("rehab", "knee")));
+        assertEquals("rehab, knee or strength", FilterCommand.joinTags(List.of("rehab", "knee", "strength")));
     }
 
     @Test
     public void execute_arabicFormatLocale_usesLatinDigits() {
         FilterCommand command = new FilterCommand(new TagContainsKeywordsPredicate(List.of("friends")));
-        assertEquals("Listed 3 clients.", getInArabicFormatLocale(() -> command.execute(model).getFeedbackToUser()));
+        assertEquals("Listed 3 clients tagged friends.",
+                getInArabicFormatLocale(() -> command.execute(model).getFeedbackToUser()));
     }
 
     @Test
@@ -93,5 +101,18 @@ public class FilterCommandTest {
         FilterCommand filterCommand = new FilterCommand(predicate);
         String expected = FilterCommand.class.getCanonicalName() + "{predicate=" + predicate + "}";
         assertEquals(expected, filterCommand.toString());
+    }
+
+    /**
+     * Filters the typical clients by {@code tags} and confirms that exactly {@code expectedClients} are shown,
+     * with the message naming the tags and the list scrolled to the top.
+     */
+    private void assertFilterSuccess(List<String> tags, List<Person> expectedClients) {
+        TagContainsKeywordsPredicate predicate = new TagContainsKeywordsPredicate(tags);
+        expectedModel.updateFilteredPersonList(predicate);
+        CommandResult expectedResult = new CommandResult(
+                FilterCommand.getResultMessage(expectedClients.size(), tags), false, false, true);
+        assertCommandSuccess(new FilterCommand(predicate), model, expectedResult, expectedModel);
+        assertEquals(expectedClients, model.getFilteredPersonList());
     }
 }

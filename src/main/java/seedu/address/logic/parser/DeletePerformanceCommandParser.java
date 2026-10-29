@@ -5,7 +5,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_DATE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EXERCISE;
 
 import java.time.LocalDate;
-import java.util.stream.Stream;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
@@ -37,15 +36,13 @@ public class DeletePerformanceCommandParser implements Parser<DeletePerformanceC
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIXES);
 
         String preamble = argMultimap.getPreamble();
-        boolean hasEachPrefixOnce = Stream.of(PREFIXES)
-                .allMatch(prefix -> argMultimap.getAllValues(prefix).size() == 1);
-        if (!hasEachPrefixOnce || !preamble.matches(ParserUtil.INTEGER_REGEX)) {
+        if (!argMultimap.hasEachPrefixOnce(PREFIXES) || !preamble.matches(ParserUtil.INTEGER_REGEX)) {
             throw new ParseException(DeletePerformanceCommand.MESSAGE_INVALID_FORMAT);
         }
 
         try {
             Index index = ParserUtil.parseClientIndex(preamble);
-            LocalDate date = ParserUtil.parseExistingRecordDate(argMultimap.getValue(PREFIX_DATE).get());
+            LocalDate date = ParserUtil.parseCalendarDate(argMultimap.getValue(PREFIX_DATE).get());
             ExerciseName exerciseName = ParserUtil.parseExerciseName(argMultimap.getValue(PREFIX_EXERCISE).get());
             return new DeletePerformanceCommand(index, date, exerciseName);
         } catch (ParseException pe) {

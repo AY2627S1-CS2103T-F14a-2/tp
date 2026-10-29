@@ -1,6 +1,7 @@
 package seedu.address.storage;
 
 import java.time.LocalDate;
+import java.util.function.Predicate;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -74,37 +75,37 @@ class JsonAdaptedGymPerformance {
         }
         final ExerciseName modelExercise = new ExerciseName(exercise);
 
-        if (sets == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, "sets"));
-        }
-        if (!GymPerformance.isValidSets(sets)) {
-            throw new IllegalValueException(GymPerformance.MESSAGE_SETS_CONSTRAINTS);
-        }
-        final int modelSets = Integer.parseInt(sets);
-
-        if (reps == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, "reps"));
-        }
-        if (!GymPerformance.isValidReps(reps)) {
-            throw new IllegalValueException(GymPerformance.MESSAGE_REPS_CONSTRAINTS);
-        }
-        final int modelReps = Integer.parseInt(reps);
+        final int modelSets = toCount(sets, "sets", GymPerformance::isValidSets,
+                GymPerformance.MESSAGE_SETS_CONSTRAINTS);
+        final int modelReps = toCount(reps, "reps", GymPerformance::isValidReps,
+                GymPerformance.MESSAGE_REPS_CONSTRAINTS);
 
         if (load == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, "load"));
         }
-        if (!Load.isNumeric(load)) {
-            throw new IllegalValueException(Load.MESSAGE_NOT_NUMERIC);
+        final Load modelLoad;
+        try {
+            // Load reports whether the value is not numeric, out of range or too precise
+            modelLoad = new Load(load);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalValueException(e.getMessage());
         }
-        if (!Load.isNumberWithinRange(load)) {
-            throw new IllegalValueException(Load.MESSAGE_RANGE_CONSTRAINTS);
-        }
-        if (!Load.hasValidDecimalPlaces(load)) {
-            throw new IllegalValueException(Load.MESSAGE_DECIMAL_PLACES_CONSTRAINTS);
-        }
-        final Load modelLoad = new Load(load);
 
         return new GymPerformance(modelDate, modelExercise, modelSets, modelReps, modelLoad);
+    }
+
+    /**
+     * Converts a stored whole-number count, such as the number of sets, after checking it with {@code isValid}.
+     */
+    private static int toCount(String count, String fieldName, Predicate<String> isValid, String constraintsMessage)
+            throws IllegalValueException {
+        if (count == null) {
+            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, fieldName));
+        }
+        if (!isValid.test(count)) {
+            throw new IllegalValueException(constraintsMessage);
+        }
+        return Integer.parseInt(count);
     }
 
 }
