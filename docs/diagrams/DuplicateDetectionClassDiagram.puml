@@ -23,6 +23,6 @@ Class SharedPhoneWarning {
 Person *--> Name
 Person *--> Phone
 
-UniquePersonList ..> Person : isSamePerson
+UniquePersonList --> "~* all" Person
 SharedPhoneWarning ..> Phone : getDigits
 @enduml
