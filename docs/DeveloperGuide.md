@@ -1787,3 +1787,11 @@ When a fix is merged, its item will be removed from this list.
    `This will delete all N clients and their records. Enter "clear confirm" to delete them.`
    Entering `clear confirm` will then delete all clients and show the existing message
    `All clients have been cleared.` `clear` followed by any other text will still be rejected.
+
+2. **Warn when `session` or `edit` changes client indices.**
+   Currently, the client list is ordered by next session, so `session` and `edit` can move a client to a different
+   position, and the next index-based command, such as `delete 1`, can act on a different client than intended.
+   Only `cancelsession` warns about this. We plan to add the note
+   `Displayed indices have changed. Check the client list before your next index-based command.`
+   to the success message of `session` and `edit` whenever the command moves the client to a different position
+   in the displayed list, as `cancelsession` already does. The exact wording may change when the fix is made.
