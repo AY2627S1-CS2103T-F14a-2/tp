@@ -12,6 +12,7 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.testutil.PersonBuilder;
 
+// @@author gabriel-wan
 /**
  * Checks chronological priority, name ties, expired/unbooked rows, and stable stored order.
  */
@@ -61,3 +62,4 @@ public class PersonSessionComparatorTest {
         assertEquals(List.of(amy, zed), model.getFilteredPersonList());
     }
 }
+// @@author

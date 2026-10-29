@@ -51,10 +51,28 @@ public class CancelSessionCommandTest {
         assertEquals(List.of(booked, other), model.getFilteredPersonList());
         CommandResult result = new CancelSessionCommand(Index.fromOneBased(1)).execute(model);
         Person cancelled = new PersonBuilder(booked).withNextSession(null).build();
-        assertEquals(new CommandResult("Cancelled session on " + date + " 09:00 for Zoe Review.",
+        assertEquals(new CommandResult("Cancelled session on " + date + " 09:00 for Zoe Review."
+                + " Displayed indices have changed. Check the client list before your next index-based command.",
                 false, false, true), result);
         assertEquals(List.of(other, cancelled), model.getFilteredPersonList());
         assertEquals(List.of(other, cancelled), model.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void execute_lastClientInDateView_warnsWithoutClaimingOtherClientsMoved() throws Exception {
+        model.updateFilteredPersonList(new SessionOnDatePredicate(date));
+        CommandResult result = new CancelSessionCommand("Ada Review").execute(model);
+        assertTrue(result.getFeedbackToUser().endsWith(
+                " Displayed indices have changed. Check the client list before your next index-based command."));
+        assertFalse(result.getFeedbackToUser().contains("clients below"));
+        assertEquals(List.of(booked), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_lastClientInFullList_keepsIndicesWithoutWarning() throws Exception {
+        CommandResult result = new CancelSessionCommand(Index.fromOneBased(2)).execute(model);
+        assertEquals("Cancelled session on " + date + " 17:00 for Ada Review.", result.getFeedbackToUser());
+        assertEquals(List.of(booked, other.withNextSession(null)), model.getFilteredPersonList());
     }
 
     @Test
@@ -102,14 +120,17 @@ public class CancelSessionCommandTest {
     public void execute_dateFilteredIndex_notesThatClientsShifted() throws Exception {
         model.updateFilteredPersonList(new SessionOnDatePredicate(date));
         CommandResult result = new CancelSessionCommand(Index.fromOneBased(1)).execute(model);
-        assertEquals("Cancelled session on " + date + " 09:00 for Zoe Review. Zoe Review is no longer shown "
-                + "here; clients below have moved up one place.", result.getFeedbackToUser());
+        assertEquals("Cancelled session on " + date + " 09:00 for Zoe Review."
+                + " Displayed indices have changed. Check the client list before your next index-based command.",
+                result.getFeedbackToUser());
     }
 
     @Test
-    public void execute_name_cancelsWithoutNoteInFullList() throws Exception {
+    public void execute_normalizedNameInFullList_warnsWhenClientMoves() throws Exception {
         CommandResult result = new CancelSessionCommand("  zoe   REVIEW ").execute(model);
-        assertEquals("Cancelled session on " + date + " 09:00 for Zoe Review.", result.getFeedbackToUser());
+        assertEquals("Cancelled session on " + date + " 09:00 for Zoe Review."
+                + " Displayed indices have changed. Check the client list before your next index-based command.",
+                result.getFeedbackToUser());
         assertEquals(booked.withNextSession(null), model.getAddressBook().getPersonList().get(1));
         assertEquals(other, model.getAddressBook().getPersonList().getFirst());
     }
@@ -138,7 +159,7 @@ public class CancelSessionCommandTest {
 
         CommandResult result = new CancelSessionCommand("Alice Ong").execute(sameDay);
         assertTrue(result.getFeedbackToUser().endsWith(
-                " Alice Ong is no longer shown here; clients below have moved up one place."));
+                " Displayed indices have changed. Check the client list before your next index-based command."));
         assertCommandFailure(new CancelSessionCommand("Alice Ong"), sameDay, "No session is recorded for Alice Ong.");
         assertEquals(List.of(bob, carl), sameDay.getFilteredPersonList());
     }

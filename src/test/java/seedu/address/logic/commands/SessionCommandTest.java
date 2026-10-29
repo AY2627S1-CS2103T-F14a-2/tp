@@ -31,6 +31,7 @@ public class SessionCommandTest {
             Clock.fixed(NOW.atZone(ZoneId.systemDefault()).toInstant(), ZoneId.systemDefault());
     private static final String NORMAL_MESSAGE = "Recorded next session for Sarah Lim on %s at %s";
     private static final String PAST_NOTE = "\n" + SessionCommand.MESSAGE_PAST_SESSION;
+    // @@author gabriel-wan
     private final Person sarah = new PersonBuilder().withName("Sarah Lim").build();
     private final Person alex = new PersonBuilder().withName("Alex Tan").build();
     private final NextSession session = new NextSession(LocalDate.now().plusDays(1) + " 17:00");
@@ -132,6 +133,7 @@ public class SessionCommandTest {
         assertFalse(result.getFeedbackToUser().contains("Warning:"));
     }
 
+    // @@author
     @Test
     public void execute_earlierCalendarDate_recordsWithPastNote() throws Exception {
         // #117: a valid past date is recorded, not rejected, so a trainer can log a session late
@@ -182,6 +184,7 @@ public class SessionCommandTest {
                 result.getFeedbackToUser());
     }
 
+    // @@author gabriel-wan
     @Test
     public void execute_missingIndexOrName_keepsDataAndFilter() {
         model.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of("Sarah")));
@@ -202,6 +205,7 @@ public class SessionCommandTest {
         assertEquals(List.of(alex), model.getAddressBook().getPersonList());
     }
 
+    // @@author
     /**
      * Books Sarah, the second displayed client, at {@code dateTime} with the clock fixed at {@code NOW}, and
      * returns the feedback message. The clients are reset first, as booking re-sorts the list.
@@ -212,6 +216,7 @@ public class SessionCommandTest {
                 .getFeedbackToUser();
     }
 
+    // @@author gabriel-wan
     @Test
     public void equals_identifierAndSessionParticipate() {
         SessionCommand command = new SessionCommand("Sarah Lim", session);
@@ -224,4 +229,5 @@ public class SessionCommandTest {
         assertTrue(new SessionCommand(Index.fromOneBased(1), session)
                 .equals(new SessionCommand(Index.fromOneBased(1), session)));
     }
+    // @@author
 }

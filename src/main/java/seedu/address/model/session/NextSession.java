@@ -26,6 +26,10 @@ public class NextSession {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(FORMAT_PATTERN)
             .withResolverStyle(ResolverStyle.STRICT);
+    private static final DateTimeFormatter CARD_FORMATTER =
+            DateTimeFormatter.ofPattern("EEE d MMM, h:mm", Locale.ENGLISH);
+    private static final DateTimeFormatter CARD_WITH_YEAR_FORMATTER =
+            DateTimeFormatter.ofPattern("EEE d MMM uuuu, h:mm", Locale.ENGLISH);
 
     public final LocalDateTime value;
 
@@ -56,6 +60,7 @@ public class NextSession {
         }
     }
 
+    // @@author gabriel-wan
     /**
      * Formats the card row in English, retaining the distinction between expired and unbooked sessions.
      */
@@ -64,9 +69,10 @@ public class NextSession {
         if (value.isBefore(now)) {
             return "- (none upcoming)";
         }
+        // @@author
         // The year is shown only when it differs from now, so a booking next year isn't read as this year's.
-        String pattern = value.getYear() == now.getYear() ? "EEE d MMM, h:mm" : "EEE d MMM uuuu, h:mm";
-        return value.format(DateTimeFormatter.ofPattern(pattern, Locale.ENGLISH))
+        DateTimeFormatter formatter = value.getYear() == now.getYear() ? CARD_FORMATTER : CARD_WITH_YEAR_FORMATTER;
+        return value.format(formatter)
                 + (value.getHour() < 12 ? "am" : "pm");
     }
 
