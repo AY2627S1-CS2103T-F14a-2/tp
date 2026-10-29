@@ -1809,3 +1809,8 @@ When a fix is merged, its item will be removed from this list.
    `Tag names should be alphanumeric`. We plan to also allow single hyphens between letters or digits, so that
    `t/lower-back` is accepted while `t/-back`, `t/lower-` and `t/lower--back` are still rejected, with the error
    `Tags may contain only letters, digits and single hyphens between them, e.g. lower-back.`
+
+5. **Treat tags that differ only in letter case as the same tag.**
+   Currently, `t/Rehab t/rehab` stores two separate tags on the client, and a data file with both spellings is
+   loaded the same way. We plan to compare tags ignoring letter case, so that `t/Rehab t/rehab` stores one tag,
+   keeping the spelling entered first, and a data file with both spellings is loaded with one of them.
