@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "AB-3 docs",
   "scripts": {
+    "test": "node --test scripts/sync-diagram-previews.test.cjs",
     "init": "markbind init",
     "build": "markbind build",
     "postbuild": "node scripts/sync-diagram-previews.cjs",

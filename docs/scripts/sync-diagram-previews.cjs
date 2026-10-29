@@ -2,6 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
+const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const docsRoot = path.resolve(__dirname, '..');
 const guide = fs.readFileSync(path.join(docsRoot, 'DeveloperGuide.md'), 'utf8');
 const components = [...guide.matchAll(/<puml\b[^>]*\bsrc="([^"]+)"[^>]*\/>/g)];
@@ -11,8 +12,7 @@ if (components.length === 0 || components.length !== (guide.match(/<puml\b/g) ||
 }
 
 /** Avoids unnecessary file changes when the generated image has not changed. */
-function copyIfChanged(source, destination) {
-  const image = fs.readFileSync(source);
+function writeIfChanged(image, destination) {
   if (fs.existsSync(destination) && image.equals(fs.readFileSync(destination))) {
     return;
   }
@@ -20,7 +20,8 @@ function copyIfChanged(source, destination) {
   fs.writeFileSync(destination, image);
 }
 
-for (const [, source] of components) {
+// Check all outputs first so a missing file or JVM error cannot partially update the fallback set.
+const previews = components.map(([, source]) => {
   // Keep all generated and committed paths inside their respective diagram folders.
   const filename = /^diagrams\/([A-Za-z0-9_-]+)\.puml$/.exec(source)?.[1];
   if (!filename) {
@@ -28,9 +29,17 @@ for (const [, source] of components) {
   }
   const imageName = `${filename}.png`;
   const generated = path.join(docsRoot, '_site', 'diagrams', imageName);
-  copyIfChanged(generated, path.join(docsRoot, 'images', 'diagrams', imageName));
+  const image = fs.readFileSync(generated);
+  if (!image.subarray(0, PNG_SIGNATURE.length).equals(PNG_SIGNATURE)) {
+    throw new Error(`MarkBind did not generate a valid PNG: ${generated}`);
+  }
+  return { imageName, image };
+});
+
+for (const { imageName, image } of previews) {
+  writeIfChanged(image, path.join(docsRoot, 'images', 'diagrams', imageName));
   // MarkBind copies static assets before postbuild; refresh this build's assets too.
-  copyIfChanged(generated, path.join(docsRoot, '_site', 'images', 'diagrams', imageName));
+  writeIfChanged(image, path.join(docsRoot, '_site', 'images', 'diagrams', imageName));
 }
 
 console.log(`Refreshed ${components.length} DG diagram previews.`);
