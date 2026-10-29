@@ -9,6 +9,11 @@ mark {
   padding-left: 20px;
 }
 
+/* Plain Markdown previews use these images; MarkBind renders the adjacent puml component. */
+.diagram-preview-fallback {
+  display: none;
+}
+
 .theme-card img {
   width: 100%;
 }

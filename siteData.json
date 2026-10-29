@@ -96,7 +96,8 @@
       "src": "Documentation.md",
       "title": "Documentation guide",
       "headings": {
-        "documentation-guide": "Documentation Guide"
+        "documentation-guide": "Documentation Guide",
+        "local-preview-and-diagram-updates": "Local preview and diagram updates"
       },
       "headingKeywords": {}
     },
