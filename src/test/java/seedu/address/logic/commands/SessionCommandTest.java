@@ -117,6 +117,15 @@ public class SessionCommandTest {
     }
 
     @Test
+    public void execute_accentedClashNames_usesSameEnglishOrderAsClientList() throws Exception {
+        model.addPerson(new PersonBuilder().withName("Zoe").withNextSession(session.toString()).build());
+        model.addPerson(new PersonBuilder().withName("Émile").withNextSession(session.toString()).build());
+        CommandResult result = new SessionCommand("Sarah Lim", session).execute(model);
+        assertTrue(result.getFeedbackToUser().endsWith(
+                "\nWarning: This time is also booked for Émile, Zoe. All bookings are kept."));
+    }
+
+    @Test
     public void execute_differentTimesOrOwnOldBooking_doesNotWarn() throws Exception {
         model.setPerson(alex, alex.withNextSession(new NextSession(session.value.toLocalDate() + " 17:01")));
         model.setPerson(sarah, sarah.withNextSession(session));

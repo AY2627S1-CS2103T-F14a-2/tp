@@ -21,7 +21,7 @@ public class PersonSessionComparator implements Comparator<Person> {
                 .thenComparing(person -> person.getNextSession().map(session -> session.value)
                         .orElse(LocalDateTime.MAX))
                 .thenComparing(person -> Name.normalizeSpaces(person.getName().fullName),
-                        String.CASE_INSENSITIVE_ORDER);
+                        Name.alphabeticalComparator());
     }
 
     @Override

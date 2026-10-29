@@ -133,13 +133,13 @@ public class DeletePerformanceCommandTest {
         LocalDate otherDate = LocalDate.of(2026, 9, 17);
         assertCommandFailure(new DeletePerformanceCommand(INDEX_FIRST_PERSON, otherDate, BENCH_PRESS_NAME), model,
                 String.format(DeletePerformanceCommand.MESSAGE_RECORD_NOT_FOUND, "Bench Press",
-                        "2026-09-17", client.getName()));
+                        "2026-09-17", client.getName(), INDEX_FIRST_PERSON.getOneBased()));
 
         // another exercise was recorded on that date
         assertCommandFailure(new DeletePerformanceCommand(INDEX_FIRST_PERSON, BENCH_PRESS.getDate(),
                 new ExerciseName("Deadlift")), model,
                 String.format(DeletePerformanceCommand.MESSAGE_RECORD_NOT_FOUND, "Deadlift",
-                        "2026-09-18", client.getName()));
+                        "2026-09-18", client.getName(), INDEX_FIRST_PERSON.getOneBased()));
     }
 
     @Test
@@ -147,7 +147,7 @@ public class DeletePerformanceCommandTest {
         Person client = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         assertCommandFailure(new DeletePerformanceCommand(INDEX_FIRST_PERSON, BENCH_PRESS.getDate(),
                 BENCH_PRESS_NAME), model, String.format(DeletePerformanceCommand.MESSAGE_RECORD_NOT_FOUND,
-                "Bench Press", "2026-09-18", client.getName()));
+                "Bench Press", "2026-09-18", client.getName(), INDEX_FIRST_PERSON.getOneBased()));
     }
 
     @Test

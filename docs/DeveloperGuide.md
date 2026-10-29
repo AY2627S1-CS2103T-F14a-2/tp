@@ -4,7 +4,7 @@
   pageNav: 3
 ---
 
-# AB-3 Developer Guide
+# Spotter Developer Guide
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -140,7 +140,7 @@ no session or progress records. The diagram shows the current model; there is no
 
 The `Model` component,
 
-* stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
+* stores Spotter client data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores the clients with an upcoming session, soonest first, in a separate list built from the whole address book (so `find` and `filter` do not affect it). It is exposed as an unmodifiable `ObservableList<Person>` for the UI's Upcoming sessions panel.
 * stores the client shown by `view` (or none) and exposes it as an `ObservableValue<Person>`, so that the UI's detail panel can follow that client.
@@ -169,7 +169,7 @@ validated and converted into the corresponding client fields and records; older 
 collections load with empty histories.
 
 The `Storage` component,
-* can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
+* can save both client data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
@@ -403,6 +403,17 @@ panel. Counts and the latest measurement are derived from the records rather tha
 The command reports `Recorded` or `Updated`; `LogicManager` saves the result, restoring the previous
 records, filter and viewed client if saving fails.
 
+**UI example:** With Alex Tan open using `view 1`, enter
+`measure 1 d/2026-10-28 t/weight v/72.4`. The feedback confirms the new record, the card shows three
+measurements, and the open history shows weight, body fat and waist with their dates and units.
+The two earlier records in this fictional dataset were entered on 20 October 2026.
+
+![Spotter after recording a weight measurement for Alex Tan](images/MeasurementRecording.png)
+
+Supported types are `weight` (1–500 kg), `bodyfat` (greater than 0 and at most 100%) and
+`waist` (1–300 cm). No other measurement types are currently supported. Values accept at most two
+decimal places. Entering the same date/type corrects the value rather than adding another record.
+
 <puml src="diagrams/MeasureSequenceDiagram.puml" alt="Recording or replacing a body measurement" />
 
 The immutable copy keeps a failed change recoverable without a separate measurement cache. The same
@@ -429,17 +440,30 @@ format and impossible-date messages while retaining command-specific usage guida
 
 
 `DeleteMeasureCommand` looks up the client through `Model#getFilteredPersonList()` and finds the record
-by date and type. A missing record raises a `CommandException` before any state changes.
+by date and type. A missing record raises a `CommandException` before any state changes and suggests
+`view` with the actual displayed index to check the client's measurement history. Missing performance
+records provide the equivalent guidance for performance history.
 `Person#withoutMeasurement` creates an immutable copy with that record removed, preserving all contact,
 session and performance data. `Model#setPerson` replaces the original client without changing the filter.
 The card derives its latest measurement and count from the updated list, including same-date type ties
 and the empty state. An open client-history panel receives the updated client and refreshes automatically;
 the trainer does not need to run `view` again after deletion.
 
+**UI example:** Continue from the recording example with
+`deletemeasure 1 d/2026-10-28 t/weight`. The weight entry disappears from the open history, both counts
+fall from three to two, and the card falls back to body fat. Body fat wins the same-date tie with waist.
+
+![Spotter after deleting the latest weight record while history stays open](images/MeasurementDeletion.png)
+
+Repeating the same deletion leaves both remaining records unchanged and suggests `view 1` to inspect
+the client's history. This screenshot shows the missing-record recovery guidance introduced by issue #202.
+
+![Spotter explaining a missing measurement and suggesting the history command](images/MeasurementMissingRecord.png)
+
 <puml src="diagrams/DeleteMeasureSequenceDiagram.puml" alt="Measurement deletion sequence" />
 
 `LogicManager` saves the changed address book using the existing storage format. If saving fails,
-it restores the previous address book and filter and reports `Unable to save Spotter data.`
+it restores the previous address book and filter and reports `Unable to save Spotter data. The change was not saved and has been undone. Check that the data folder is writable and the disk has free space, then retry.`
 No storage schema change or separate cached record count is needed. Keeping counts derived from the
 measurement list avoids stale summary data after deletion.
 
@@ -511,95 +535,6 @@ The alternative, an `Optional<Email>` field that is null when unchanged, made `g
 `Optional<Optional<Email>>`, which reviewers found hard to read.
 
 
-### \[Proposed\] Undo/redo feature
-
-#### Proposed Implementation
-
-The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
-
-* `VersionedAddressBook#commit()` -- Saves the current address book state in its history.
-* `VersionedAddressBook#undo()` -- Restores the previous address book state from its history.
-* `VersionedAddressBook#redo()` -- Restores a previously undone address book state from its history.
-
-These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
-
-Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
-
-Step 1. The user launches the application for the first time. The `VersionedAddressBook` will be initialized with the initial address book state, and the `currentStatePointer` pointing to that single address book state.
-
-<puml src="diagrams/UndoRedoState0.puml" alt="UndoRedoState0" />
-
-Step 2. The user executes `delete 5` command to delete the 5th person in the address book. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
-
-<puml src="diagrams/UndoRedoState1.puml" alt="UndoRedoState1" />
-
-Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
-
-<puml src="diagrams/UndoRedoState2.puml" alt="UndoRedoState2" />
-
-<box type="info" seamless>
-
-**Note:** If a command fails its execution, it will not call `Model#commitAddressBook()`, so the address book state will not be saved into the `addressBookStateList`.
-</box>
-
-Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
-
-<puml src="diagrams/UndoRedoState3.puml" alt="UndoRedoState3" />
-
-
-<box type="info" seamless>
-
-**Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather
-than attempting to perform the undo.
-</box>
-
-The following sequence diagram shows how an undo operation goes through the `Logic` component:
-
-<puml src="diagrams/UndoSequenceDiagram-Logic.puml" alt="UndoSequenceDiagram-Logic" />
-
-<box type="info" seamless>
-
-**Note:** The lifeline for `UndoCommand` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
-</box>
-
-Similarly, how an undo operation goes through the `Model` component is shown below:
-
-<puml src="diagrams/UndoSequenceDiagram-Model.puml" alt="UndoSequenceDiagram-Model" />
-
-The `redo` command does the opposite — it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
-
-<box type="info" seamless>
-
-**Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone AddressBook states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
-</box>
-
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the address book, such as `list`, will usually not call `Model#commitAddressBook()`, `Model#undoAddressBook()` or `Model#redoAddressBook()`. Thus, the `addressBookStateList` remains unchanged.
-
-<puml src="diagrams/UndoRedoState4.puml" alt="UndoRedoState4" />
-
-Step 6. The user executes `clear`, which calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …` command. This is the behavior that most modern desktop applications follow.
-
-<puml src="diagrams/UndoRedoState5.puml" alt="UndoRedoState5" />
-
-The following activity diagram summarizes what happens when a user executes a new command:
-
-<puml src="diagrams/CommitActivityDiagram.puml" width="250" />
-
-#### Design considerations:
-
-**Aspect: How undo & redo execute:**
-
-* **Alternative 1 (current choice):** Saves the entire address book.
-  * Pros: Easy to implement.
-  * Cons: May have performance issues in terms of memory usage.
-
-* **Alternative 2:** Individual command knows how to undo/redo by
-  itself.
-  * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
-  * Cons: We must ensure that the implementation of each individual command is correct.
-
-_{more aspects and alternatives to be added}_
-
 ### \[Proposed\] Broader client-name support
 
 A future enhancement is to support client names in additional scripts and provide an unambiguous way to enter
@@ -615,10 +550,6 @@ A future enhancement is to show the latest weight, body fat and waist together a
 has no records. The summary should be derived from the existing records and refresh after recording,
 replacement, deletion and failed-save rollback. This would avoid scanning frequent weight entries to find
 less frequent waist or body-fat records. It is not implemented in the current release.
-
-### \[Proposed\] Data archiving
-
-_{Explain here how the data archiving feature will be implemented}_
 
 
 --------------------------------------------------------------------------------------------------------------------
@@ -679,7 +610,7 @@ not promises about the current release.
 | `* * *` | user | record a client's gym performance | I can track changes in their performance over time |
 | `* *` | user | delete a wrongly recorded gym performance | a client's progress history stays accurate |
 | `* *` | user | view a client's progress history | I can assess how their measurements and performance have changed over time |
-| `* *` | user | edit or delete a progress entry | I can correct mistakes in recorded data |
+| `* *` | user | replace or delete a measurement identified by its date and type | I can correct mistakes without affecting other progress records |
 | `* *` | user | tag clients with labels such as rehab or weightloss | I can group similar clients together |
 | `* *` | user | filter clients by tag | I can focus on one group at a time |
 | `* *` | user | see clients automatically ordered by upcoming session and then name | I can prepare for the next appointment quickly |
@@ -883,7 +814,7 @@ not promises about the current release.
 
 * 3c. The given date is invalid or in the future.
 
-    * 3c1. Spotter shows an error message stating that the date is invalid or in the future, and the expected date format.
+    * 3c1. Spotter explains the date problem and shows the command usage. A malformed date also shows the required date format.
 
       Use case resumes at step 3.
 
@@ -936,7 +867,7 @@ not promises about the current release.
 
 * 3c. The given date is invalid or in the future.
 
-    * 3c1. Spotter shows an error message stating that the date is invalid or in the future, and the expected date format.
+    * 3c1. Spotter explains the date problem and shows the command usage. A malformed date also shows the required date format.
 
       Use case resumes at step 3.
 
@@ -1215,7 +1146,7 @@ Unless a section says otherwise:
 1. Initial launch
 
    1. Open a terminal in the test folder and run `java -jar spotter.jar`.<br>
-      Expected: The Spotter window opens with six sample clients, starting with `Alex Yeoh`. The right side shows
+      Expected: The Spotter window opens with six fictional sample clients. The right side shows
       `Upcoming sessions` with `No upcoming sessions.` The window size may not be optimal.
 
 1. Saving window preferences
@@ -1272,16 +1203,16 @@ Start from the sample data.
 1. Enter `add n/Sarah Lim p/9123 4567 e/sarah@example.com t/rehab`.<br>
    Expected: `New client added: Sarah Lim; Phone: 9123 4567; Email: sarah@example.com`. Her card shows the
    `rehab` tag and `Phone: 9123 4567`.
-1. Enter `add n/John Tan p/88776655`.<br>
-   Expected: `New client added: John Tan; Phone: 8877 6655`. His card shows `Email: -`.
+1. Enter `add n/Marcus Tan p/88776655`.<br>
+   Expected: `New client added: Marcus Tan; Phone: 8877 6655`. His card shows `Email: -`.
 1. Enter `add n/sarah  lim p/99998888`.<br>
-   Expected: `This client already exists in Spotter.` Names are compared ignoring case and extra spaces.
+   Expected: `Another client already has this name. Names are compared ignoring letter case and extra spaces. Use "find NAME" to check the existing client.`
 1. Enter `add n/Kim Lee p/12`, then `add n/Kim Lee`.<br>
    Expected: An error explaining the phone-number rules, then `Invalid command format!` followed by the `add`
    usage. No client is added.
 1. Enter `add n/Kim Lee p/8877 6655`.<br>
    Expected: `New client added: Kim Lee; Phone: 8877 6655`, followed by
-   `Warning: John Tan also has this phone number.` The warning does not block the command, so Kim Lee is added.
+   `Warning: Marcus Tan also has this phone number.` The warning does not block the command, so Kim Lee is added.
 1. Enter `list`.<br>
    Expected: `Listed 9 clients.`
 1. Enter `list all`.<br>
@@ -1296,8 +1227,8 @@ Continue from the previous section.
    After a successful edit, the list shows all clients again.
 1. Enter `find sarah`, then `edit 1 e/`.<br>
    Expected: `Edited client: Sarah Lim; Phone: 9876 5432`. Her card shows `Email: -`.
-1. Enter `find sarah`, then `edit 1` and `edit 1 n/John Tan`.<br>
-   Expected: `At least one field to edit must be provided.`, then `This client already exists in Spotter.`
+1. Enter `find sarah`, then `edit 1` and `edit 1 n/Marcus Tan`.<br>
+   Expected: `At least one field to edit must be provided.`, then `Another client already has this name. Names are compared ignoring letter case and extra spaces. Use "find NAME" to check the existing client.`
    Sarah's details are unchanged.
 
 ### Client name and phone formats
@@ -1311,7 +1242,7 @@ replace `INDEX` below with that number. Do not assume insertion order is the dis
 1. Run `add n/José Tan p/91234567`, then try the same name encoded as `Jose` followed by U+0301 and ` Tan`.<br>
    Expected: The second add is rejected as an existing client. `find José` finds the client, but a keyword using the
    decomposed encoding does not yet match. `Jose` without an accent is not the same name.
-1. Run `add n/-Bob p/91234567`, `add n/王明 p/91234567` and `add n/Phone Probe p/12`.<br>
+1. Run `add n/-Alex p/91234567`, `add n/王明 p/91234567` and `add n/Phone Probe p/12`.<br>
    Expected: Validation feedback explains the supported name or phone characters/digit requirement; no client is added.
 1. For Raju, run `session INDEX d/2026-12-15 t/1900`, check the displayed list again, then run
    `cancelsession INDEX` with his current index.<br>
@@ -1323,35 +1254,37 @@ replace `INDEX` below with that number. Do not assume insertion order is the dis
 
 ### Finding and filtering clients
 
-Start from the sample data, or continue from [Editing a client](#editing-a-client).
+Use a separate disposable test dataset. Run `clear`, then add these fictional training clients:
+`add n/Alex Tan p/91234567 e/alex@example.com t/strength t/rehab`,
+`add n/Bea Lim p/92345678 t/weightloss`, and `add n/Chris Goh p/93456789 t/strength`.
 
-1. Enter `find alex david`.<br>
-   Expected: `Listed 2 clients.` The list shows `Alex Yeoh` and `David Li`.
-1. Enter `find ALEX`, `find ale`, then `find iveir`.<br>
-   Expected: `Listed 1 client.` each time: first `Alex Yeoh` twice, then `Charlotte Oliveiro`. A keyword can match
+1. Enter `find alex bea`.<br>
+   Expected: `Listed 2 clients.` The list shows `Alex Tan` and `Bea Lim`.
+1. Enter `find ALEX`, `find ale`, then `find Goh`.<br>
+   Expected: `Listed 1 client.` each time: first `Alex Tan` twice, then `Chris Goh`. A keyword can match
    any part of a name, ignoring case.
-1. Enter `find 8743`, `find example`, then `find friends`.<br>
+1. Enter `find 9123`, `find example`, then `find strength`.<br>
    Expected: `No clients found.` with an empty list each time, as phone numbers, emails and tags are not searched.
 1. Enter `find`.<br>
    Expected: `Invalid command format!` followed by the `find` usage. The displayed list does not change.
-1. Enter `filter t/friends`, then `filter t/FAMILY t/neighbours`.<br>
-   Expected: `Listed 2 clients.` each time: first `Alex Yeoh` and `Bernice Yu`, then `Charlotte Oliveiro` and
-   `David Li`.
-1. Enter `filter t/re-hab`, `filter t/` and `filter friends`.<br>
-   Expected: `Tag names should be alphanumeric`, `Tags to filter by cannot be empty.` and
+1. Enter `filter t/strength`, then `filter t/REHAB t/weightloss`.<br>
+   Expected: Two clients each time: first `Alex Tan` and `Chris Goh`, then `Alex Tan` and `Bea Lim`.
+   The success message names the requested tags, and matching ignores tag case.
+1. Enter `filter t/re-hab`, `filter t/` and `filter strength`.<br>
+   Expected: `Tags can contain only letters and digits, e.g. t/rehab.`, `Tags to filter by cannot be empty.` and
    `Invalid command format!`, each followed by the `filter` usage. The displayed list does not change.
 1. Enter `list`.<br>
    Expected: All clients are shown again.
 
 ### Deleting a client
 
-Start from the sample data.
+Use the disposable dataset from [Finding and filtering clients](#finding-and-filtering-clients).
 
-1. Enter `find irfan david`, then `delete 2`.<br>
-   Expected: `Deleted client: Irfan Ibrahim; Phone: 9249 2021; Email: irfan@example.com`. The search stays active,
-   so the list now shows only `David Li`.
+1. Enter `find alex bea`, then `delete 2`.<br>
+   Expected: `Deleted client: Bea Lim; Phone: 9234 5678`. The search stays active,
+   so the list now shows only `Alex Tan`.
 1. Enter `delete 0`, `delete 99` and `delete`.<br>
-   Expected: `The client index provided is invalid.` twice, then `Invalid command format!` followed by the
+   Expected: `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.` twice, then `Invalid command format!` followed by the
    `delete` usage. No client is deleted.
 1. Deleting a client also removes their session and records. Step 8 of
    [Upcoming sessions and viewing a client's history](#upcoming-sessions-and-viewing-a-client-s-history) checks this
@@ -1360,7 +1293,7 @@ Start from the sample data.
 ### Clearing all clients
 
 1. In a disposable dataset with at least two clients and a saved data file, filter to one client and view their history.
-2. Enter `clear 1`, `clear all`, then `clear n/Alice`.
+2. Enter `clear 1`, `clear all`, then `clear n/Alex Tan`.
    Expected: Each input reports that `clear` takes no parameters. Clients, the active filter, the history panel
    and the data file are unchanged, including after restarting.
 3. Enter `clear` without parameters. Expected: All clients and their records are removed and remain absent after restart.
@@ -1397,7 +1330,7 @@ replace `DATE` in every command below, and `TODAY` with today's date. Add unique
 1. For a save-failure test, first book Ada again and display `sessions d/DATE`.
    While Spotter is running, move `data/spotter.json` to a backup and create a directory named `data/spotter.json`.
    Cancel Ada's current displayed index.<br>
-   Expected: `Unable to save Spotter data.` The booking and date-filtered list are restored with all progress intact.
+   Expected: `Unable to save Spotter data. The change was not saved and has been undone. Check that the data folder is writable and the disk has free space, then retry.` The booking and date-filtered list are restored with all progress intact.
    Close Spotter, remove the empty blocking directory and restore the backup file before further testing.
 1. Book Ada at `session n/SessionCancelAda d/DATE t/0900`, then change it to
    `session n/SessionCancelAda d/DATE t/1000`.<br>
@@ -1441,7 +1374,7 @@ list, so the indices below follow the list as it changes.
 1. Enter `view 1`, then `delete 1`.<br>
    Expected: Upcoming sessions is back and shows `No upcoming sessions.`
 1. Enter `view 0`.<br>
-   Expected: `The client index provided is invalid.` The right side does not change.
+   Expected: `The client index provided is invalid. Use a positive index from the displayed client list. Use "list" to show all clients, then check their indexes again.` The right side does not change.
 
 ### Recording body measurements
 
@@ -1542,7 +1475,8 @@ run `list` and substitute that client's displayed index for `1` below. `NAME` is
 1. Rejected deletions
 
    1. Enter `deleteperformance 1 d/2026-09-18 e/Squat`, then `deleteperformance 1 d/2026-09-14 e/Squat`.<br>
-      Expected: `No performance record for Squat on 2026-09-18 was found for NAME.`, then the same message for
+      Expected: `No performance record for Squat on 2026-09-18 was found for NAME.`, followed by
+      `Use "view 1" to check this client's performance history.`, then the same missing-record message for
       2026-09-14. The expected command format is not shown, and the card is unchanged.
    1. Enter `deleteperformance 1 d/15-09-2026 e/Squat`, then `deleteperformance 1 d/2026-02-30 e/Squat`.<br>
       Expected: `Date must use YYYY-MM-DD format (year 0001-9999, month 01-12, day 01-31).`,
@@ -1561,7 +1495,7 @@ run `list` and substitute that client's displayed index for `1` below. `NAME` is
    1. Enter `exit`. Make `data/spotter.json` read-only (on Windows, tick *Read-only* in the file's *Properties*;
       on macOS or Linux, run `chmod 444 data/spotter.json`), then relaunch Spotter.
    1. Enter `deleteperformance 1 d/2026-09-15 e/Squat`.<br>
-      Expected: `Unable to save Spotter data.` The card still shows the 15 Sep squat with `(1 record)`.
+      Expected: `Unable to save Spotter data. The change was not saved and has been undone. Check that the data folder is writable and the disk has free space, then retry.` The card still shows the 15 Sep squat with `(1 record)`.
    1. Enter `exit`, make the data file writable again, and relaunch Spotter.<br>
       Expected: The squat record is still present.
 

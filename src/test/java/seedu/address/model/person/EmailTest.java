@@ -67,6 +67,22 @@ public class EmailTest {
     }
 
     @Test
+    public void isValidEmail_hyphenatedDomainLabels_acceptsAlphanumericEndpoints() {
+        assertTrue(Email.isValidEmail("a@b.c-d"));
+        assertTrue(Email.isValidEmail("a@x--y.com"));
+        assertTrue(Email.isValidEmail("a@xn--bcher-kva.de"));
+        assertTrue(Email.isValidEmail("a@b.12"));
+    }
+
+    @Test
+    public void isValidEmail_malformedDomainLabels_rejectsInvalidEndpointsAndEmptyLabels() {
+        for (String email : new String[] {"a@b.-cd", "a@b.cd-", "a@b.c", "a@b..cd", "a@b.c_d",
+            "a@b.-", "a@b.c-"}) {
+            assertFalse(Email.isValidEmail(email), email);
+        }
+    }
+
+    @Test
     public void equals() {
         Email email = new Email("valid@email");
 

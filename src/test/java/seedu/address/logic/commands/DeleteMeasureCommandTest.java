@@ -52,7 +52,8 @@ public class DeleteMeasureCommandTest {
             LocalDate date = records.equals(List.of(WEIGHT)) ? DATE.minusDays(1) : DATE;
             DeleteMeasureCommand missing = new DeleteMeasureCommand(Index.fromOneBased(1), date,
                     MeasurementType.WEIGHT);
-            assertEquals("No measurement record for weight on " + date + " was found for Amy Bee.",
+            assertEquals("No measurement record for weight on " + date + " was found for Amy Bee."
+                            + "\nUse \"view 1\" to check this client's measurement history.",
                     assertThrows(CommandException.class, () -> missing.execute(model)).getMessage());
             assertEquals(before, model.getAddressBook());
         }

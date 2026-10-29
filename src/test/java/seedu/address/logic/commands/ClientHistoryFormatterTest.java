@@ -48,6 +48,13 @@ public class ClientHistoryFormatterTest {
     }
 
     @Test
+    public void formatDetails_mixedCaseTags_sortsAlphabeticallyWithDeterministicCaseTies() {
+        Person person = new PersonBuilder().withTags("Zebra", "apple", "Apple", "banana").build();
+        String details = ClientHistoryFormatter.formatDetails(person, NOW);
+        assertEquals("Tags: Apple, apple, banana, Zebra", details.substring(details.lastIndexOf("Tags: ")));
+    }
+
+    @Test
     public void formatDetails_noEmailNoTagsNoSession_showsPlaceholders() {
         Person person = new PersonBuilder().withName("Bea Lim").withPhone("911").withoutEmail().build();
 

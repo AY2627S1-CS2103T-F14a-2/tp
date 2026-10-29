@@ -3,7 +3,10 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.text.Collator;
 import java.text.Normalizer;
+import java.util.Comparator;
+import java.util.Locale;
 
 /**
  * Represents a Person's name in the address book.
@@ -79,6 +82,18 @@ public class Name {
      */
     public static String normalizeSpaces(String name) {
         return requireNonNull(name).trim().replaceAll("\\s+", " ");
+    }
+
+    /**
+     * Creates an English alphabetical comparator for canonical client names, ignoring case.
+     * Each caller owns its collator so mutable locale state is not shared between independent sorts.
+     * A character comparison breaks collation ties between distinct names without changing client identity.
+     */
+    public static Comparator<String> alphabeticalComparator() {
+        Collator collator = Collator.getInstance(Locale.ENGLISH);
+        collator.setStrength(Collator.SECONDARY);
+        Comparator<String> alphabetical = collator::compare;
+        return alphabetical.thenComparing(String.CASE_INSENSITIVE_ORDER);
     }
 
     @Override
