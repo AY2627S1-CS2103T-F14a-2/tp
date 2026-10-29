@@ -1,5 +1,4 @@
 @startuml
-' AI assistance: Helen used OpenAI Codex to update the progress-record adapters for issue #160.
 !include style.puml
 skinparam arrowThickness 1.1
 skinparam arrowColor STORAGE_COLOR
