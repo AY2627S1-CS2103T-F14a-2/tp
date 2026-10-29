@@ -403,6 +403,15 @@ date/type pair identifies a record regardless of its value, so correcting a valu
 
 <!-- AI assistance: Helen used OpenAI Codex to document measurement recording and its sequence diagram for issue #187. -->
 
+### Measurement replacement feedback
+
+Before updating the client, `MeasureCommand` calls `Person#findMeasurement` to find the existing measurement
+with the same date and type. `Person#hasMeasurement` delegates to the same lookup.
+It retains that immutable record to format the old value → new value after `Model#setPerson` succeeds.
+Other dates and types are not used for this comparison. A repeated identical value is still reported as an
+update, with equal old and new values; recording a new date/type pair keeps the existing recorded message.
+The storage format and replacement rules are unchanged.
+
 ### Deleting body measurements
 
 `deletemeasure INDEX d/DATE t/TYPE` removes one measurement from the client at the displayed index.
@@ -931,7 +940,8 @@ User Guide find section, UC02 and manual testing instructions. -->
 
 * 3f. A measurement of the same type on the same date already exists for the client.
 
-    * 3f1. Spotter replaces the existing value with the new value, and shows the updated measurement.
+    * 3f1. Spotter replaces the existing value and shows the client, measurement type, date, old value,
+      new value and unit. The record count is unchanged.
 
       Use case ends.
 
@@ -1436,8 +1446,11 @@ assume the computer date is later than 12 September 2026; card dates include the
    The card shows `Latest measurement: 12 Sep - weight 72.4 kg (1 record)` in 2026.
    The open history panel shows the record without another `view` command.
 1. Enter `measure 1 d/2026-09-12 t/weight v/71.8`.<br>
-   Expected: `Updated measurement for NAME: weight = 71.8 kg on 2026-09-12.`
+   Expected: `Updated measurement for NAME: weight on 2026-09-12: 72.4 → 71.8 kg.`
    The card and open history value change to 71.8 and their counts stay at one.
+1. Repeat `measure 1 d/2026-09-12 t/weight v/71.8`.<br>
+   Expected: `Updated measurement for NAME: weight on 2026-09-12: 71.8 → 71.8 kg.`
+   The value and record count remain unchanged.
 1. Add `measure 1 d/2026-09-12 t/waist v/81`, then
    `measure 1 d/2026-09-11 t/bodyfat v/18.4`.<br>
    Expected: Both commands record new entries. The card still shows weight 71.8 kg, with three records.
