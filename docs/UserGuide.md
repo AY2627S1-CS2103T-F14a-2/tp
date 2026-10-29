@@ -305,7 +305,6 @@ Updated measurement for Alex Tan: weight on 2026-09-12: 72.4 → 71.8 kg.
 ```
 
 <!-- AI assistance: Helen used OpenAI Codex to clarify measurement index errors for issue #166. -->
-<!-- AI assistance: Helen used OpenAI Codex to document replacement feedback for issue #191. -->
 <!-- AI assistance: Helen used OpenAI Codex to align date-error examples for issue #164. -->
 
 Common errors:

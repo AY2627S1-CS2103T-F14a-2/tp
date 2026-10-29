@@ -90,8 +90,16 @@ public class Person {
      * Checks for a record with the same date and type, so callers can distinguish an update from an addition.
      */
     public boolean hasMeasurement(Measurement measurement) {
+        return findMeasurement(measurement).isPresent();
+    }
+
+    /**
+     * Returns the stored record with the same date and type, regardless of its value.
+     * AI assistance: Helen used OpenAI Codex for this lookup and its tests for issue #191.
+     */
+    public Optional<Measurement> findMeasurement(Measurement measurement) {
         requireAllNonNull(measurement);
-        return measurements.stream().anyMatch(record -> record.isSameMeasurement(measurement));
+        return measurements.stream().filter(record -> record.isSameMeasurement(measurement)).findFirst();
     }
 
     /**

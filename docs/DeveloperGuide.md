@@ -16,8 +16,6 @@
 * Helen (He Jingqi) used OpenAI Codex to assist with implementing, testing and documenting
   the v1.4 measurement deletion feature for issue #84, including its model operation, command, parser,
   persistence tests and sequence diagram.
-* Helen used OpenAI Codex to implement and test old/new measurement replacement feedback for issue #191
-  and update its User Guide examples, use case and manual-testing instructions.
 
 * Gabriel Wan used [OpenAI Codex](https://openai.com/codex/) to assist with implementing, testing,
   and documenting the v1.3 next-session feature, including parsing, client integration, JSON storage, sorting,
@@ -407,7 +405,8 @@ date/type pair identifies a record regardless of its value, so correcting a valu
 
 ### Measurement replacement feedback
 
-Before updating the client, `MeasureCommand` finds the existing measurement with the same date and type.
+Before updating the client, `MeasureCommand` calls `Person#findMeasurement` to find the existing measurement
+with the same date and type. `Person#hasMeasurement` delegates to the same lookup.
 It retains that immutable record to format the old value → new value after `Model#setPerson` succeeds.
 Other dates and types are not used for this comparison. A repeated identical value is still reported as an
 update, with equal old and new values; recording a new date/type pair keeps the existing recorded message.

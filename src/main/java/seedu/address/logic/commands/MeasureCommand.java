@@ -17,6 +17,7 @@ import seedu.address.model.person.Person;
  * AI assistance: OpenAI Codex helped implement this command, parser and tests.
  * Helen used OpenAI Codex to rename replacement booleans here and in MeasurePersistenceTest for issue #179.
  * Helen used OpenAI Codex for old/new replacement feedback and regression tests for issue #191.
+ * This assistance also covered the related UG example and DG implementation, use case and manual tests.
  */
 public class MeasureCommand extends Command {
     public static final String COMMAND_WORD = "measure";
@@ -46,9 +47,7 @@ public class MeasureCommand extends Command {
             throw new CommandException(MESSAGE_INVALID_INDEX + "\nUse: " + MESSAGE_USAGE);
         }
         Person client = displayedClients.get(index.getZeroBased());
-        Optional<Measurement> previous = client.getMeasurements().stream()
-                .filter(record -> record.isSameMeasurement(measurement))
-                .findFirst();
+        Optional<Measurement> previous = client.findMeasurement(measurement);
         model.setPerson(client, client.withMeasurement(measurement));
         String feedback = previous.map(record -> String.format(MESSAGE_UPDATED, client.getName(),
                 measurement.getType(), measurement.getDate(), record.getValue().toPlainString(),
