@@ -95,6 +95,24 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void test_equivalentAccentEncodings_returnsTrue() {
+        String composed = "José";
+        String decomposed = "José";
+        Person storedComposed = new PersonBuilder().withName(composed + " Tan").build();
+        Person storedFromDecomposed = new PersonBuilder().withName(decomposed + " Tan").build();
+
+        assertTrue(new NameContainsKeywordsPredicate(List.of(decomposed)).test(storedComposed));
+        assertTrue(new NameContainsKeywordsPredicate(List.of(composed)).test(storedFromDecomposed));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("JOSÉ")).test(storedComposed));
+    }
+
+    @Test
+    public void test_keywordWithoutAccent_returnsFalse() {
+        Person person = new PersonBuilder().withName("José Tan").build();
+        assertFalse(new NameContainsKeywordsPredicate(List.of("jose")).test(person));
+    }
+
+    @Test
     public void test_keywordMatchesOnlyOtherFields_returnsFalse() {
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("123", "email", "friend"));
         assertFalse(predicate.test(new PersonBuilder().withName("Hans Gruber").withPhone("12345")

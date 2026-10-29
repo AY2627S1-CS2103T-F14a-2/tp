@@ -208,7 +208,7 @@ and the punctuation listed in the User Guide, rather than claiming support for e
 
 `Name.normalize` first normalizes whitespace, then applies Unicode NFC. This gives composed and decomposed versions
 of the same accented name one stored representation and one length check. Name identity and full-name lookup ignore
-case and extra whitespace after normalization; search keywords do not yet fold equivalent accent encodings. Accents remain significant:
+case and extra whitespace after normalization, and `find` normalizes its keywords the same way. Accents remain significant:
 `José Tan` and `Jose Tan` are different names. The 100-character limit uses Java string length after normalization,
 not a count of visually rendered glyphs. No transliteration or compatibility folding is performed.
 
@@ -729,7 +729,7 @@ not promises about the current release.
 
     Use case ends.
 
-*Note:* search matches the stored NFC-composed spelling, so equivalent accent encodings are not yet folded in search keywords. This is a planned future enhancement; duplicate detection already treats the two forms as the same client.
+*Note:* search keywords are normalized to NFC like stored names, so equivalent accent encodings match, as they do in duplicate detection.
 
 **Extensions**
 
@@ -1348,8 +1348,8 @@ replace `INDEX` below with that number. Do not assume insertion order is the dis
    `add n/Mary-Jane O'Brien p/1234 5678 (HP) 1111-3333 (Office)`.<br>
    Expected: Both clients are added and the formatted phone values are retained.
 1. Run `add n/José Tan p/91234567`, then try the same name encoded as `Jose` followed by U+0301 and ` Tan`.<br>
-   Expected: The second add is rejected as an existing client. `find José` finds the client, but a keyword using the
-   decomposed encoding does not yet match. `Jose` without an accent is not the same name.
+   Expected: The second add is rejected as an existing client. `find José` finds the client, and so does a keyword using the
+   decomposed encoding. `Jose` without an accent is not the same name, and `find Jose` does not find it.
 1. Run `add n/-Alex p/91234567`, `add n/王明 p/91234567` and `add n/Phone Probe p/12`.<br>
    Expected: Validation feedback explains the supported name or phone characters/digit requirement; no client is added.
 1. For Raju, run `session INDEX d/2026-12-15 t/1900`, check the displayed list again, then run

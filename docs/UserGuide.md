@@ -206,8 +206,8 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
 * The search considers only names.
-* Search matches the stored spelling of accented names, so equivalent accent encodings (an `e` plus a combining
-  mark versus a precomposed `é`) are not yet matched to one another. This is a planned future enhancement.
+* Equivalent accent encodings match each other, so a keyword typed as an `e` plus a combining mark finds a name
+  stored with a precomposed `é`. Accents still matter: `jose` does not find `José`.
 * Partial names match anywhere in a name; for example, `han`, `HAN` and `ans` all match `Hans`.
 * Clients matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
 * Spotter shows how many clients were found: `Listed N clients.`, `Listed 1 client.`, or `No clients found.` when
