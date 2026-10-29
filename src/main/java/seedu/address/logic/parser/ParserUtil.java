@@ -47,6 +47,9 @@ public class ParserUtil {
     private static final Pattern TIME_PATTERN = Pattern.compile("(\\d{1,2}):?(\\d{2})");
 
     private static final Pattern PREFIX_PATTERN = Pattern.compile("(?:^|\\s)([^\\s/]+/)");
+    // A whole word "s/o" (son of) or "d/o" (daughter of), in any letter case
+    private static final Pattern NAME_CONNECTOR_PATTERN = Pattern.compile("(?<=\\s)[sd]/o(?=\\s|$)",
+            Pattern.CASE_INSENSITIVE);
 
     /** Rejects prefix-shaped arguments outside the command's accepted fields. */
     public static void rejectUnsupportedPrefixes(String arguments, String message, Prefix... allowed)
@@ -61,6 +64,17 @@ public class ParserUtil {
                 throw new ParseException(message);
             }
         }
+    }
+
+    /**
+     * Rejects prefix-shaped arguments outside the client fields of {@code add} and {@code edit}, like
+     * {@link #rejectUnsupportedPrefixes}, except that the name connectors {@code s/o} and {@code d/o}
+     * (as in "Raju s/o Kumar") are part of a name rather than prefixes.
+     */
+    public static void rejectUnsupportedClientPrefixes(String arguments, String message, Prefix... allowed)
+            throws ParseException {
+        String withoutConnectors = NAME_CONNECTOR_PATTERN.matcher(arguments).replaceAll("");
+        rejectUnsupportedPrefixes(withoutConnectors, message, allowed);
     }
 
     /** Normalizes and validates the full-name identifier shared by session commands. */

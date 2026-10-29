@@ -31,6 +31,10 @@ public class EditCommandParser implements Parser<EditCommand> {
      */
     public EditCommand parse(String args) throws ParseException {
         requireNonNull(args);
+        // As in add, an unknown prefix would otherwise be saved as part of the previous value
+        ParserUtil.rejectUnsupportedClientPrefixes(args,
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE),
+                PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_TAG);
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_TAG);
 

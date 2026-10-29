@@ -154,6 +154,11 @@ Here are the other classes in `Logic` (omitted from the class diagram above) tha
 How the parsing works:
 * When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
+* AB3's `ArgumentTokenizer` reads an unknown prefix such as ` x/1` as part of the previous value, so the session,
+  measurement and performance parsers first call `ParserUtil#rejectUnsupportedPrefixes`, which reports any prefix-shaped word the
+  command does not use as an invalid command format. `add` and `edit` call `ParserUtil#rejectUnsupportedClientPrefixes`
+  instead, which treats the name connectors `s/o` and `d/o` (as in `Raju s/o Kumar`) as part of a name.
+  `filter` does not check yet, so an unknown prefix there is reported as an invalid tag.
 
 ### Model component
 **API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-F14a-2/tp/blob/master/src/main/java/seedu/address/model/Model.java)

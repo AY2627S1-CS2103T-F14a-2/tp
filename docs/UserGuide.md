@@ -121,8 +121,10 @@ Format: `add n/NAME p/PHONE [e/EMAIL] [t/TAG]...`
   merged, and equivalent accent encodings are stored consistently. Accents are not removed: `José` and `Jose`
   are different names. Non-Latin scripts (for example, Chinese or Tamil letters) and emoji are not supported.
 * Names must not contain a space followed by a prefix used by the command, such as ` p/` or ` t/`, because that
-  starts another field. For names containing `/`, use the client's index with `session` and `cancelsession`,
-  rather than their `n/NAME` forms.
+  starts another field. Any other word ending in `/`, such as ` x/1` or ` d/2026-09-12`, is rejected with
+  `Invalid command format!` followed by the command usage. The exceptions are `s/o` and `d/o` (in any letter case),
+  which are accepted as part of a name, e.g. `Raju s/o Kumar`. For names containing `/`, use the client's index with
+  `session` and `cancelsession`, rather than their `n/NAME` forms.
 * `PHONE` must contain at least 3 digits and at most 50 characters after normalization. Digits, spaces,
   English letters `A–Z`/`a–z` (for labels), `+`, `-`, `(`, `)` and `.` are accepted; `/` is not.
   Plain digits and spaces are stored as digits only: `9927 2758` becomes `99272758`. Otherwise, punctuation and
@@ -771,7 +773,7 @@ You do not need to delete `preferences.json` after disconnecting a monitor.
 
 ## Known issues
 
-1. **Unrecognized prefixes are not reported**: text such as `a/x` that uses a prefix Spotter doesn't support is treated as part of the field before it. For example, `add n/John Tan p/91234567 a/x` reports an invalid phone number. The remedy is to remove the unsupported prefix. The session, measurement and performance commands already report such a prefix as an invalid command format.
+1. **Unrecognized prefixes in `filter` are not reported**: text such as `x/1` that uses a prefix Spotter doesn't support is treated as part of the tag before it. For example, `filter t/rehab x/1` reports an invalid tag. The remedy is to remove the unsupported prefix. The other commands that take prefixes already report such a prefix as an invalid command format.
 2. **Warnings when launching from a terminal**: on some Java setups, such as JDKs that bundle JavaFX (e.g. Zulu FX), `java -jar spotter.jar` prints `WARNING` lines about a restricted method and enabling native access. These come from JavaFX loading its native libraries. They are harmless, and Spotter works normally.
 
 --------------------------------------------------------------------------------------------------------------------
