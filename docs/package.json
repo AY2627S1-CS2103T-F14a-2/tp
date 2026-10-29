@@ -5,6 +5,7 @@
   "scripts": {
     "init": "markbind init",
     "build": "markbind build",
+    "postbuild": "node scripts/sync-diagram-previews.cjs",
     "serve": "markbind serve",
     "deploy": "markbind deploy"
   },
