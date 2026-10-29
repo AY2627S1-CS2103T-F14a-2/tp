@@ -1,0 +1,53 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as Logic LOGIC_COLOR
+participant ":AddressBookParser" as Parser LOGIC_COLOR
+participant ":DeletePerformanceCommandParser" as DeleteParser LOGIC_COLOR
+participant "d:DeletePerformanceCommand" as Command LOGIC_COLOR
+end box
+box Model MODEL_COLOR_T1
+participant "m:Model" as Model MODEL_COLOR
+participant "client:Person" as Client MODEL_COLOR
+participant "history:PerformanceHistory" as History MODEL_COLOR
+participant "updated:Person" as Updated MODEL_COLOR
+end box
+
+[-> Logic : execute("deleteperformance 1 d/2026-09-18 e/Bench Press")
+activate Logic
+Logic -> Parser : parseCommand(...)
+activate Parser
+Parser -> DeleteParser : parse(arguments)
+activate DeleteParser
+create Command
+DeleteParser -> Command : new(index, date, exerciseName)
+DeleteParser --> Parser : d
+deactivate DeleteParser
+Parser --> Logic : d
+deactivate Parser
+Logic -> Command : execute(m)
+activate Command
+Command -> Model : getFilteredPersonList()
+Model --> Command : displayedClients
+Command -> Client : getPerformanceHistory()
+Client --> Command : history
+Command -> History : find(date, exerciseName)
+History --> Command : record
+note right of Command : An empty result fails\nbefore any state changes
+Command -> Client : withoutGymPerformance(record)
+activate Client
+Client -> History : withoutRecord(record)
+History --> Client : remaining history
+create Updated
+Client -> Updated : new(..., remaining history)
+Client --> Command : updated
+deactivate Client
+Command -> Model : setPerson(client, updated)
+Command --> Logic : CommandResult(deletion message)
+deactivate Command
+note right of Logic : Saves the address book,\nas for any other command
+Logic -->[ : deletion message
+deactivate Logic
+@enduml

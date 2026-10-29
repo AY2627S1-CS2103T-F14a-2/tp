@@ -25,4 +25,5 @@ PerformanceCommand -up-|> Command
 DeletePerformanceCommand -up-|> Command
 PerformanceCommand ..> Person : withGymPerformance
 DeletePerformanceCommand ..> Person : withoutGymPerformance
+DeletePerformanceCommand ..> PerformanceHistory : find
 @enduml
