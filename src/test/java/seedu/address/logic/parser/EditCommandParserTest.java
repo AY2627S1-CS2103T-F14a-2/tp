@@ -176,6 +176,9 @@ public class EditCommandParserTest {
     public void parse_nameConnector_success() {
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withName("Raju s/o Kumar").build();
         assertParseSuccess(parser, "1 n/Raju s/o Kumar", new EditCommand(INDEX_FIRST_PERSON, descriptor));
+
+        descriptor = new EditPersonDescriptorBuilder().withName("Kumar a/l Rajan").build();
+        assertParseSuccess(parser, "1 n/Kumar a/l Rajan", new EditCommand(INDEX_FIRST_PERSON, descriptor));
     }
 
     @Test

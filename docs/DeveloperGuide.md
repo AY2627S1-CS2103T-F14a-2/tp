@@ -134,7 +134,7 @@ How the parsing works:
 * AB3's `ArgumentTokenizer` reads an unknown prefix such as ` x/1` as part of the previous value, so the session,
   measurement and performance parsers first call `ParserUtil#rejectUnsupportedPrefixes`, which reports any prefix-shaped word the
   command does not use as an invalid command format. `add` and `edit` call `ParserUtil#rejectUnsupportedClientPrefixes`
-  instead, which treats the name connectors `s/o` and `d/o` (as in `Raju s/o Kumar`) as part of a name.
+  instead, which treats the name connectors `s/o`, `d/o`, `a/l` and `a/p` (as in `Raju s/o Kumar`) as part of a name.
   `filter` does not check yet, so an unknown prefix there is reported as an invalid tag.
 
 ### Model component

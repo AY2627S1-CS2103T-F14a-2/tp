@@ -132,8 +132,9 @@ public class AddCommandParserTest {
 
     @Test
     public void parse_nameConnectors_success() {
-        // s/o and d/o are part of the name in any letter case, and also at the end of the name
-        for (String name : new String[] {"Raju s/o Kumar", "Priya D/O Raj", "Raju Kumar s/o"}) {
+        // s/o, d/o, a/l and a/p are part of the name in any letter case, and also at the end of the name
+        for (String name : new String[] {"Raju s/o Kumar", "Priya D/O Raj", "Raju Kumar s/o", "Kumar a/l Rajan",
+            "Devi A/P Muthu"}) {
             Person expected = new PersonBuilder().withName(name).withPhone("91234567").withoutEmail().withTags()
                     .build();
             assertParseSuccess(parser, " n/" + name + " p/91234567", new AddCommand(expected));
@@ -153,6 +154,7 @@ public class AddCommandParserTest {
         // a prefix from another command, and a word that only looks like a name connector
         assertParseFailure(parser, " n/Alice p/91234567 d/2026-09-12", expectedMessage);
         assertParseFailure(parser, " n/Raju s/on Kumar p/91234567", expectedMessage);
+        assertParseFailure(parser, " n/Kumar a/x Rajan p/91234567", expectedMessage);
     }
 
     @Test

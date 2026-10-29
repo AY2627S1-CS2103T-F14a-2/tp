@@ -122,8 +122,8 @@ Format: `add n/NAME p/PHONE [e/EMAIL] [t/TAG]...`
   are different names. Non-Latin scripts (for example, Chinese or Tamil letters) and emoji are not supported.
 * Names must not contain a space followed by a prefix used by the command, such as ` p/` or ` t/`, because that
   starts another field. Any other word ending in `/`, such as ` x/1` or ` d/2026-09-12`, is rejected with
-  `Invalid command format!` followed by the command usage. The exceptions are `s/o` and `d/o` (in any letter case),
-  which are accepted as part of a name, e.g. `Raju s/o Kumar`. For names containing `/`, use the client's index with
+  `Invalid command format!` followed by the command usage. The exceptions are `s/o`, `d/o`, `a/l` and `a/p` (in any
+  letter case), which are accepted as part of a name, e.g. `Raju s/o Kumar` or `Kumar a/l Rajan`. For names containing `/`, use the client's index with
   `session` and `cancelsession`, rather than their `n/NAME` forms.
 * `PHONE` must contain at least 3 digits and at most 50 characters after normalization. Digits, spaces,
   English letters `A–Z`/`a–z` (for labels), `+`, `-`, `(`, `)` and `.` are accepted; `/` is not.
