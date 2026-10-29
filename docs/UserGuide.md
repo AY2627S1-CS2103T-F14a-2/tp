@@ -95,7 +95,7 @@ latest measurement and performance, so that you can prepare for the session at a
 
 ### Viewing help: `help`
 
-Shows a message explaining how to access the help page.
+Opens a window with a link to the Spotter user guide.
 
 ![help message](images/helpMessage.png)
 
