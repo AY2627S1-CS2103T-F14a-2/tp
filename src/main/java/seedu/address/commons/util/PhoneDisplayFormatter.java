@@ -3,7 +3,7 @@ package seedu.address.commons.util;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Formats stored phone numbers for display. Only the displayed text changes; the stored value stays digits-only.
+ * Formats plain eight-digit phone numbers for display, preserving other stored formats.
  */
 public class PhoneDisplayFormatter {
 
@@ -18,7 +18,7 @@ public class PhoneDisplayFormatter {
      */
     public static String format(String phone) {
         requireNonNull(phone);
-        if (phone.length() != GROUPED_PHONE_LENGTH) {
+        if (phone.length() != GROUPED_PHONE_LENGTH || !phone.matches("[0-9]+")) {
             return phone;
         }
         return phone.substring(0, GROUP_SIZE) + " " + phone.substring(GROUP_SIZE);

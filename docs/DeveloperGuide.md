@@ -221,6 +221,30 @@ The path tests package the real resolver and logger into a small executable JAR 
 from unrelated folders. This verifies archive detection, special-character paths, existing-data preservation,
 relaunch behaviour and a blocked log file without changing the test JVM's working directory.
 
+### Client name and phone formats
+
+`Name` and `Phone` own validation and normalization so command input and JSON loading use the same rules.
+`ParserUtil` reports length-specific errors before constructing the value objects. Names are trainer-facing labels,
+not verified legal identities: the current scope accepts Latin-script letters (including accents), digits `0–9`
+and the punctuation listed in the User Guide, rather than claiming support for every language.
+
+`Name.normalize` first normalizes whitespace, then applies Unicode NFC. This gives composed and decomposed versions
+of the same accented name one stored representation and one length check. Name identity and full-name lookup ignore
+case and extra whitespace after normalization; search keywords do not yet fold equivalent accent encodings. Accents remain significant:
+`José Tan` and `Jose Tan` are different names. The 100-character limit uses Java string length after normalization,
+not a count of visually rendered glyphs. No transliteration or compatibility folding is performed.
+
+`Phone` requires at least three digits and permits English-letter labels and common punctuation within a
+50-character normalized value. Plain digits separated by spaces remain stored as digits only for compatibility
+with older files. Other accepted formatting is retained. This is a contact field, not a dialability validator.
+`getDigits` exposes the entire digit sequence; it does not infer country codes, extensions or individual numbers.
+
+**Trade-offs:** supporting common name formats avoids unnecessary rejection without redesigning command syntax.
+A space followed by a recognized prefix still starts a new field, and session commands reject slash-containing
+name identifiers. Those clients remain accessible through displayed indexes. Broader script support and literal
+prefix escaping require consistent parser, identity, search and storage rules, so they are deferred rather than
+partially implemented here. These limits do not establish that every user's naming needs are met.
+
 ### Upcoming sessions panel
 
 The right side of the window shows the clients with an upcoming session, soonest first, so that a trainer can
@@ -358,6 +382,27 @@ displayed index, exercise and date, but not the client's name or contact details
 rather than stored separately, so they cannot become stale after a replacement or deletion. Keeping the recording
 order means the record entered last is treated as the latest when several share a date.
 
+### Recording body measurements
+
+`measure INDEX d/DATE t/TYPE v/VALUE` records weight, body-fat percentage or waist circumference.
+`MeasureCommandParser` validates the displayed index, real non-future date, type and decimal value.
+`Measurement` enforces the type's range and at most two decimal places using `BigDecimal`.
+Future-date validation stays in the parser so saved records remain loadable after a clock change.
+
+`MeasureCommand` resolves the client through the displayed list and checks whether the date/type pair
+already exists. `Person#withMeasurement` returns a new client with that pair replaced, or a new record
+appended, preserving the client's other data. `Model#setPerson` refreshes the card and any open history
+panel. Counts and the latest measurement are derived from the records rather than stored separately.
+The command reports `Recorded` or `Updated`; `LogicManager` saves the result, restoring the previous
+records, filter and viewed client if saving fails.
+
+<puml src="diagrams/MeasureSequenceDiagram.puml" alt="Recording or replacing a body measurement" />
+
+The immutable copy keeps a failed change recoverable without a separate measurement cache. The same
+date/type pair identifies a record regardless of its value, so correcting a value does not increase the count.
+
+<!-- AI assistance: Helen used OpenAI Codex to document measurement recording and its sequence diagram for issue #187. -->
+
 ### Deleting body measurements
 
 `deletemeasure INDEX d/DATE t/TYPE` removes one measurement from the client at the displayed index.
@@ -374,8 +419,8 @@ by date and type. A missing record raises a `CommandException` before any state 
 `Person#withoutMeasurement` creates an immutable copy with that record removed, preserving all contact,
 session and performance data. `Model#setPerson` replaces the original client without changing the filter.
 The card derives its latest measurement and count from the updated list, including same-date type ties
-and the empty state. History consumers read `Person#getMeasurements()` from the updated client; a
-previously formatted history result is a snapshot and must be requested again after deletion.
+and the empty state. An open client-history panel receives the updated client and refreshes automatically;
+the trainer does not need to run `view` again after deletion.
 
 <puml src="diagrams/DeleteMeasureSequenceDiagram.puml" alt="Measurement deletion sequence" />
 
@@ -539,6 +584,14 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 _{more aspects and alternatives to be added}_
 
+### \[Proposed\] Broader client-name support
+
+A future enhancement is to support client names in additional scripts and provide an unambiguous way to enter
+literal command delimiters. The design should preserve original spellings while defining consistent Unicode
+normalization, duplicate detection and name lookup across add/edit, search, sessions and JSON storage.
+It must also retain compatibility with saved Latin-script names and provide tests for the newly supported scripts.
+This proposal does not change the supported input formats in v1.5 or promise a delivery date.
+
 ### \[Proposed\] Data archiving
 
 _{Explain here how the data archiving feature will be implemented}_
@@ -577,6 +630,11 @@ _{Explain here how the data archiving feature will be implemented}_
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
+The first table describes implemented behaviour. Deferred stories are retained separately below and are
+not promises about the current release.
+
+<!-- AI assistance: Helen used OpenAI Codex to align requirements and the glossary with implemented commands for issue #187. -->
+
 | Priority | As a … | I can … | So that … |
 |----------|--------|---------|-----------|
 | `* *` | potential user exploring the app | see the app pre-loaded with sample data | I can understand how it looks in use before entering real data |
@@ -597,24 +655,28 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *` | user | record a client's body measurements | I can track changes in their measurements over time |
 | `* * *` | user | record a client's gym performance | I can track changes in their performance over time |
 | `* *` | user | delete a wrongly recorded gym performance | a client's progress history stays accurate |
-| `* *` | user | add a note after a session | I can remember what we did when preparing for the next session |
 | `* *` | user | view a client's progress history | I can assess how their measurements and performance have changed over time |
-| `* *` | user | record a client's goal | I can plan their training with that goal in mind |
 | `* *` | user | edit or delete a progress entry | I can correct mistakes in recorded data |
-| `* *` | user | tag clients with labels such as rehab or weight-loss | I can group similar clients together |
+| `* *` | user | tag clients with labels such as rehab or weightloss | I can group similar clients together |
 | `* *` | user | filter clients by tag | I can focus on one group at a time |
-| `* *` | user | sort clients by name or next session | I can find the client I need more quickly |
+| `* *` | user | see clients automatically ordered by upcoming session and then name | I can prepare for the next appointment quickly |
+| `* * *` | user | have my data saved automatically and loaded when the app starts | I can resume my work without manually saving or re-entering records |
+| `* * *` | user | have my data stored in a human-editable local file | I can inspect its contents and copy it for backup or transfer between computers |
+| `* *` | expert user | edit the data file directly | I can make bulk changes quickly |
+
+**Deferred user stories (not implemented)**
+
+| Priority | As a … | I can … | So that … |
+|----------|--------|---------|-----------|
+| `* *` | user | add a note after a session | I can remember what we did when preparing for the next session |
+| `* *` | user | record a client's goal | I can plan their training with that goal in mind |
+| `* *` | user | choose the client-list sort order | I can arrange the list for my current task |
 | `* *` | user | find clients I have not seen in a while | I can follow up with them about booking another session |
 | `* *` | expert user | create shortcuts or aliases for frequent commands | I can save time on actions I repeat often |
 | `* *` | long-time user | archive or hide inactive clients | I can focus on active clients without deleting older records |
 | `* *` | user | restore an archived client | I can resume training someone who returns without re-entering their details |
-| `* * *` | user | have my data saved automatically and loaded when the app starts | I can resume my work without manually saving or re-entering records |
-| `* * *` | user | have my data stored in a human-editable local file | I can inspect its contents and copy it for backup or transfer between computers |
 | `* *` | user | export my client data | I can keep a separate backup in case my laptop fails |
 | `* *` | user | import client data from a file | I can move my data to a new computer |
-| `* *` | expert user | edit the data file directly | I can make bulk changes quickly |                           |
-
-*{More to be added}*
 
 ### Use cases
 
@@ -1039,6 +1101,10 @@ User Guide find section, UC02 and manual testing instructions. -->
 
 ### Non-Functional Requirements
 
+These are acceptance targets, not a claim that every target has been measured on every platform.
+For NFRs 2 and 3, record the dataset, exact reference-computer specification, JAR revision, timings and
+pass/fail results with the release test evidence. Functional tests alone do not establish performance.
+
 1. **Keyboard operation:** After launching Spotter, the trainer must be able to complete all core client-management, next-session and progress-recording workflows using the keyboard without requiring mouse interaction.
 
 2. **Capacity and responsiveness:** Spotter must support 50 clients, each with up to 1,000 body-measurement entries and 1,000 gym-performance entries. With this dataset, at least 95% of client-listing, client-search and record-update commands must display their results within 1 second on the documented reference computer.
@@ -1053,7 +1119,7 @@ User Guide find section, UC02 and manual testing instructions. -->
 
 7. **Human-editable storage:** Spotter must store client records in a documented, plain-text format that can be inspected and edited using a standard text editor while Spotter is closed.
 
-8. **Platform compatibility:** Spotter must launch and support all core workflows on mainstream operating systems with Java 25 installed, without requiring another Java version.
+8. **Platform compatibility:** Spotter must launch and support all core workflows on Windows, Linux and macOS with Java 25 installed, without requiring another Java version.
 
 9. **Portability:** Spotter must be distributed as an executable JAR that runs on a computer with Java 25 installed, without requiring an installer for Spotter.
 
@@ -1065,51 +1131,35 @@ User Guide find section, UC02 and manual testing instructions. -->
 
 * **Client**: A person whose contact details and training-related information are managed by the trainer in Spotter.
 
-* **Client record**: The information stored for a client, including their contact details and any associated session information, progress records, goals, notes and tags.
+* **Client record**: A client's contact details, optional next session, measurements, gym-performance records and tags.
 
 * **Session**: A training appointment between the trainer and a client.
 
-* **Next session**: The upcoming training appointment recorded for a client, identified by its date and time. Spotter records at most one next session per client.
-
-* **Body measurement**: A numerical measurement of a client's physical characteristics, such as body weight or body-fat percentage.
+* **Next session**: The single appointment stored for a client, identified by date and time. Past appointments remain stored but are not shown as upcoming; a new booking replaces the previous appointment.
 
 * **Body-measurement record**: A dated entry containing one body measurement for a client, such as body weight, body-fat percentage or waist circumference. A client has at most one record of each measurement type on each date.
 
-* **Gym-performance record**: A dated entry describing a client's performance in an exercise, such as the weight lifted or the number of repetitions completed.
+* **Gym-performance record**: A dated exercise result with a set count, one repetition count shared by all sets, and load in kilograms. The same exercise/date pair identifies a record.
 
 * **Progress record / Progress entry**: A body-measurement record or gym-performance record associated with a client. These terms refer to the same concept.
 
-* **Progress history**: A client's body-measurement and gym-performance records presented together in date order.
+* **Progress history**: The client's measurement and gym-performance sections in the history panel, each ordered newest first.
 
-* **Goal**: A training outcome that a client wants to achieve, such as improving strength or reducing body weight.
-
-* **Session note**: A textual description recorded by the trainer after a session to help them prepare for subsequent sessions.
-
-* **Tag**: A label attached to a client record to support grouping and filtering, such as `rehab` or `weight-loss`.
-
-* **Archived client**: A client whose record is retained but excluded from the normal active-client view and can subsequently be restored.
-
-* **Command alias**: An alternative name or shortcut for a command.
+* **Tag**: An alphanumeric label attached to a client for grouping and filtering, such as `rehab` or `weightloss`.
 
 * **Automatic data persistence**: Saving changes without requiring an explicit save command and loading saved data when Spotter starts.
 
-* **Local data file**: A file on the trainer's computer containing Spotter's saved records.
-
-* **Human-editable storage**: Storage in a documented plain-text format that can be inspected and edited using a standard text editor while Spotter is closed.
+* **Local data file**: The human-editable JSON file containing saved client records, stored inside the JAR folder or its subfolders.
 
 * **Sample data**: Fictional client records supplied to demonstrate Spotter's behaviour without using real client information.
 
-* **Core workflows**: Adding, listing, finding, editing and deleting clients; managing next sessions; recording, viewing, editing and deleting progress entries; managing goals, notes and tags; filtering and sorting clients; archiving and restoring clients; and managing local data, including saving, loading, importing and exporting.
+* **Core workflows**: Adding, listing, finding, editing and deleting clients; booking, replacing, cancelling and listing sessions; recording, replacing, viewing and deleting measurement/performance records; editing and filtering tags; and automatically saving/loading local data. These workflows use the commands listed in the User Guide, not the deferred stories above.
 
 * **Response time**: The elapsed time between submitting a command and Spotter displaying its result.
 
 * **Startup time**: The elapsed time between starting Spotter and it becoming ready to accept commands after loading saved records.
 
 * **Reference computer**: The baseline computer for verifying NFRs 2 and 3: a CPU with four physical cores and a 2.0 GHz base clock, 8 GB RAM, SSD storage, Windows 11 (64-bit) and JDK 25. Performance tests use this configuration with no other user applications running. The exact CPU and SSD models, JDK distribution and version, and operating-system version must be recorded alongside the test results.
-
-* **Offline operation**: Operation without an internet connection after downloading the release JAR, on a computer with Java 25 installed.
-
-* **Mainstream OS**: For Spotter, Windows, Linux or macOS.
 
 
 --------------------------------------------------------------------------------------------------------------------
@@ -1206,6 +1256,27 @@ Use disposable folders and fictional data. Put the freshly built `spotter.jar` i
    opens and loads the saved client. No fallback log is created in the launch folder. After exiting, remove the
    blocking directory and restore the backed-up logs before further testing.
 
+### Client name and phone formats
+
+Use a disposable dataset. Before index-based commands, run `list` and read the client's current displayed index;
+replace `INDEX` below with that number. Do not assume insertion order is the displayed order.
+
+1. Run `add n/Raju s/o Kumar p/+65 9123 4567` and
+   `add n/Mary-Jane O'Brien p/1234 5678 (HP) 1111-3333 (Office)`.<br>
+   Expected: Both clients are added and the formatted phone values are retained.
+1. Run `add n/José Tan p/91234567`, then try the same name encoded as `Jose` followed by U+0301 and ` Tan`.<br>
+   Expected: The second add is rejected as an existing client. Searching for the accented first name using either
+   encoding finds the client. `Jose` without an accent is not the same name.
+1. Run `add n/-Bob p/91234567`, `add n/王明 p/91234567` and `add n/Phone Probe p/12`.<br>
+   Expected: Validation feedback explains the supported name or phone characters/digit requirement; no client is added.
+1. For Raju, run `session INDEX d/2026-12-15 t/1900`, check the displayed list again, then run
+   `cancelsession INDEX` with his current index.<br>
+   Expected: Both commands succeed. The equivalent `n/Raju s/o Kumar` forms are rejected as documented, without
+   changing stored data; the index form is the supported alternative.
+1. Edit one test client's phone to `8743 8807`, close Spotter and restart it.<br>
+   Expected: The stored phone is `87438807` (displayed as `8743 8807`), the formatted phones of other clients are
+   unchanged, and the punctuation/accented names remain available. Remove the test clients when finished.
+
 ### Deleting a person
 
 1. Deleting a person while all persons are being shown
@@ -1232,13 +1303,16 @@ Repeat while replacing selected text, and check Undo/Redo before pressing Enter.
 
 Use fictional data in a disposable test folder. Start with a client without measurements,
 run `list` and substitute that client's displayed index for `1` below.
+Run `view 1` to keep that client's history open during the following checks. These September 2026 examples
+assume the computer date is later than 12 September 2026; card dates include the year when it differs from today.
 
 1. Enter `measure 1 d/2026-09-12 t/weight v/72.4`.<br>
    Expected: `Recorded measurement for NAME: weight = 72.4 kg on 2026-09-12.`
-   The card shows `Latest measurement: 12 Sep - weight 72.4 kg (1 record)`.
+   The card shows `Latest measurement: 12 Sep - weight 72.4 kg (1 record)` in 2026.
+   The open history panel shows the record without another `view` command.
 1. Enter `measure 1 d/2026-09-12 t/weight v/71.8`.<br>
    Expected: `Updated measurement for NAME: weight = 71.8 kg on 2026-09-12.`
-   The card value changes to 71.8 and the count stays at one.
+   The card and open history value change to 71.8 and their counts stay at one.
 1. Add `measure 1 d/2026-09-12 t/waist v/81`, then
    `measure 1 d/2026-09-11 t/bodyfat v/18.4`.<br>
    Expected: Both commands record new entries. The card still shows weight 71.8 kg, with three records.
@@ -1260,12 +1334,14 @@ run `list` and substitute that client's displayed index for `1` below.
 Use fictional data in a disposable test folder. Run `list`, choose a client, and substitute that client's
 displayed index for `1` below. Start with no measurements for that client and retain a session and a
 performance record to check that unrelated data survives deletion.
+Run `view 1` before the deletion checks so the open history panel can be checked alongside the card.
 
 1. Run `measure 1 d/2026-09-11 t/weight v/73`, `measure 1 d/2026-09-12 t/waist v/81`,
    and `measure 1 d/2026-09-12 t/weight v/72.4`.
    Expected: latest weight 72.4 kg with three records.
 2. Run `deletemeasure 1 d/2026-09-12 t/weight`.
-   Expected: a deletion message; the card shows waist 81 cm with two records.
+   Expected: a deletion message; the card shows waist 81 cm with two records. The open history panel
+   removes the weight entry and updates its count without another `view` command.
 3. Run `deletemeasure 1 d/2026-09-12 t/waist`.
    Expected: the card shows weight 73 kg on 11 Sep with one record.
 4. Restart Spotter, run `list` and locate the same client again.

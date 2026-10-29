@@ -22,10 +22,20 @@ import seedu.address.model.progress.PerformanceHistory;
  */
 public final class ClientHistoryFormatter {
 
-    // Also used by the client card, so that the card and view show the same placeholders.
+    // Also used by the client cards, so that the cards and the detail panel use the same labels and placeholders.
+    public static final String PHONE_LABEL = "Phone: ";
+    public static final String EMAIL_LABEL = "Email: ";
+    public static final String NEXT_SESSION_LABEL = "Next session: ";
     public static final String NO_EMAIL = "-";
     public static final String NO_SESSION = "- (none booked)";
-    static final String NO_TAGS = "-";
+    public static final String NO_TAGS = "-";
+
+    /**
+     * Orders measurements newest date first; same-date measurements follow the type order weight, body fat, waist.
+     * The first measurement in this order is the one the card shows as the latest.
+     */
+    public static final Comparator<Measurement> MEASUREMENTS_NEWEST_FIRST =
+            Comparator.comparing(Measurement::getDate).reversed().thenComparing(Measurement::getType);
     private static final String NO_RECORDS = "None recorded yet.";
 
     // Two spaces separate the date from the record so the columns stay readable.
@@ -42,17 +52,50 @@ public final class ClientHistoryFormatter {
     public static String formatDetails(Person person, LocalDateTime now) {
         requireNonNull(person);
         requireNonNull(now);
-        String email = person.getEmail().map(e -> e.value).orElse(NO_EMAIL);
-        // Matches the "Next session" row of the client card.
-        String session = person.getNextSession().map(s -> s.toDisplayString(now)).orElse(NO_SESSION);
         String tags = person.getTags().stream()
                 .map(tag -> tag.tagName)
                 .sorted()
                 .collect(Collectors.joining(", "));
-        return "Phone: " + PhoneDisplayFormatter.format(person.getPhone().value)
-                + "\nEmail: " + email
-                + "\nNext session: " + session
+        return PHONE_LABEL + PhoneDisplayFormatter.format(person.getPhone().value)
+                + "\n" + EMAIL_LABEL + formatEmail(person)
+                + "\n" + NEXT_SESSION_LABEL + formatNextSession(person, now)
                 + "\nTags: " + (tags.isEmpty() ? NO_TAGS : tags);
+    }
+
+    /**
+     * Returns the client's email, or {@link #NO_EMAIL} if they have none.
+     */
+    public static String formatEmail(Person person) {
+        requireNonNull(person);
+        return person.getEmail().map(email -> email.value).orElse(NO_EMAIL);
+    }
+
+    /**
+     * Returns the client's next session as shown on the card, or {@link #NO_SESSION} if none is booked.
+     *
+     * @param now The current time, used to decide whether the session has already passed.
+     */
+    public static String formatNextSession(Person person, LocalDateTime now) {
+        requireNonNull(person);
+        requireNonNull(now);
+        return person.getNextSession().map(session -> session.toDisplayString(now)).orElse(NO_SESSION);
+    }
+
+    /**
+     * Returns "1 record" or "N records".
+     */
+    public static String formatRecordCount(int count) {
+        assert count >= 0;
+        return count + (count == 1 ? " record" : " records");
+    }
+
+    /**
+     * Returns a measurement's type, value and unit, e.g. "weight 72.4 kg".
+     */
+    public static String formatMeasurementValue(Measurement measurement) {
+        requireNonNull(measurement);
+        return measurement.getType() + " " + measurement.getValue().toPlainString() + " "
+                + measurement.getType().getUnit();
     }
 
     /**
@@ -60,7 +103,7 @@ public final class ClientHistoryFormatter {
      */
     public static String formatSectionHeading(String title, int count) {
         requireNonNull(title);
-        return title + " · " + count + (count == 1 ? " record" : " records");
+        return title + " · " + formatRecordCount(count);
     }
 
     /**
@@ -73,10 +116,8 @@ public final class ClientHistoryFormatter {
             return NO_RECORDS;
         }
         List<String> lines = measurements.stream()
-                .sorted(Comparator.comparing(Measurement::getDate).reversed()
-                        .thenComparing(Measurement::getType))
-                .map(m -> m.getDate() + DATE_SEPARATOR + m.getType() + " " + m.getValue().toPlainString()
-                        + " " + m.getType().getUnit())
+                .sorted(MEASUREMENTS_NEWEST_FIRST)
+                .map(m -> m.getDate() + DATE_SEPARATOR + formatMeasurementValue(m))
                 .toList();
         return String.join("\n", lines);
     }

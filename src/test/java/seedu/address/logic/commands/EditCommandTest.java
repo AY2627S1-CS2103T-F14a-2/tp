@@ -19,8 +19,12 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
@@ -182,6 +186,78 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_phoneChangedToHiddenMatches_warnsInAddressBookOrder() {
+        Person original = new PersonBuilder().withName("Original Client").withPhone("81112222").build();
+        Person zoe = new PersonBuilder().withName("Zoe Tan").withPhone("+65 9123-4567 (HP)").build();
+        Person amy = new PersonBuilder().withName("Amy Tan").withPhone("(65) 9123.4567").build();
+        model = new ModelManager();
+        model.addPerson(zoe);
+        model.addPerson(original);
+        model.addPerson(amy);
+        model.updateFilteredPersonList(person -> person.equals(original));
+        Person edited = new PersonBuilder(original).withName("Renamed Client").withPhone("6591234567").build();
+        EditCommand command = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withName("Renamed Client").withPhone("6591234567").build());
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(original, edited);
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(edited))
+                + "\nWarning: Zoe Tan also has this phone number."
+                + "\nWarning: Amy Tan also has this phone number.";
+
+        assertCommandSuccess(command, model, expectedMessage, expectedModel);
+    }
+
+    @ParameterizedTest
+    @MethodSource("unchangedPhoneEdits")
+    public void execute_unchangedPhoneDigits_warnsOnlyAboutOtherClient(EditPersonDescriptor descriptor) {
+        Person original = new PersonBuilder().withName("Original Client").withPhone("91234567").build();
+        Person other = new PersonBuilder().withName("Other Client").withPhone("9123-4567 (HP)").build();
+        model = new ModelManager();
+        model.addPerson(original);
+        model.addPerson(other);
+        Person edited = new PersonBuilder(original)
+                .withName(descriptor.getName().orElse(original.getName()).fullName)
+                .withPhone(descriptor.getPhone().orElse(original.getPhone()).value)
+                .withEmail(descriptor.getEmail().orElseThrow().value).build();
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(original, edited);
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(edited))
+                + "\nWarning: Other Client also has this phone number.";
+
+        assertCommandSuccess(new EditCommand(INDEX_FIRST_PERSON, descriptor), model, expectedMessage, expectedModel);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "91234567, +65 9123 4567",
+        "91234567, 9123 4567 (HP) 6111-2222 (Office)",
+        "9123 4567 (HP) 6111-2222 (Office), 91234567"
+    })
+    public void execute_differentCompletePhoneDigits_successWithoutWarning(String otherPhone, String editedPhone) {
+        Person original = new PersonBuilder().withName("Original Client").withPhone("81112222").build();
+        Person other = new PersonBuilder().withName("Other Client").withPhone(otherPhone).build();
+        model = new ModelManager();
+        model.addPerson(original);
+        model.addPerson(other);
+        Person edited = new PersonBuilder(original).withPhone(editedPhone).build();
+        EditCommand command = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhone(editedPhone).build());
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(original, edited);
+
+        assertCommandSuccess(command, model,
+                String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(edited)), expectedModel);
+    }
+
+    private static Stream<EditPersonDescriptor> unchangedPhoneEdits() {
+        return Stream.of(
+                new EditPersonDescriptorBuilder().withEmail("changed@example.com").build(),
+                new EditPersonDescriptorBuilder().withEmail("changed@example.com").withName("Renamed Client").build(),
+                new EditPersonDescriptorBuilder().withEmail("changed@example.com").withName("ORIGINAL  client").build(),
+                new EditPersonDescriptorBuilder().withEmail("changed@example.com").withPhone("9123-4567").build());
+    }
+
+    @Test
     public void execute_duplicatePersonUnfilteredList_failure() {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(firstPerson).build();
@@ -255,7 +331,7 @@ public class EditCommandTest {
     }
 
     @Test
-    public void equals() {
+    public void equals_sameAndDifferentCommands_comparesValues() {
         final EditCommand standardCommand = new EditCommand(INDEX_FIRST_PERSON, DESC_AMY);
 
         // same values -> returns true
@@ -280,7 +356,7 @@ public class EditCommandTest {
     }
 
     @Test
-    public void toStringMethod() {
+    public void toString_validCommand_containsFields() {
         Index index = Index.fromOneBased(1);
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
         EditCommand editCommand = new EditCommand(index, editPersonDescriptor);

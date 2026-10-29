@@ -25,7 +25,7 @@ import seedu.address.testutil.PersonBuilder;
 
 public class JsonAdaptedPersonTest {
     private static final String INVALID_NAME = "R@chel";
-    private static final String INVALID_PHONE = "+651234";
+    private static final String INVALID_PHONE = "123/456";
     private static final String INVALID_EMAIL = "example.com";
     private static final String INVALID_TAG = "#friend";
 
@@ -102,6 +102,14 @@ public class JsonAdaptedPersonTest {
         JsonAdaptedPerson person = new JsonAdaptedPerson(INVALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_TAGS);
         String expectedMessage = Name.MESSAGE_CONSTRAINTS;
         assertThrows(IllegalValueException.class, expectedMessage, person::toModelType);
+    }
+
+    @Test
+    public void toModelType_decomposedAccentName_preservesCanonicalNameOnRoundTrip() throws Exception {
+        JsonAdaptedPerson stored = new JsonAdaptedPerson("Jose\u0301 Tan", VALID_PHONE, VALID_EMAIL, VALID_TAGS);
+        Person loaded = stored.toModelType();
+        assertEquals("Jos\u00e9 Tan", loaded.getName().fullName);
+        assertEquals(loaded, new JsonAdaptedPerson(loaded).toModelType());
     }
 
     @Test

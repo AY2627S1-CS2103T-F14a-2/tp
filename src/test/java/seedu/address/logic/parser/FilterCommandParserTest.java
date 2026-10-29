@@ -1,6 +1,5 @@
 package seedu.address.logic.parser;
 
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.logic.parser.FilterCommandParser.MESSAGE_EMPTY_TAG;
@@ -15,8 +14,7 @@ import seedu.address.model.person.TagContainsKeywordsPredicate;
 
 public class FilterCommandParserTest {
 
-    private static final String MESSAGE_INVALID_FORMAT =
-            String.format(MESSAGE_INVALID_COMMAND_FORMAT, FilterCommand.MESSAGE_USAGE);
+    private static final String MESSAGE_INVALID_FORMAT = FilterCommand.MESSAGE_INVALID_FORMAT;
 
     private final FilterCommandParser parser = new FilterCommandParser();
 
@@ -29,6 +27,36 @@ public class FilterCommandParserTest {
     public void parse_nonEmptyPreamble_throwsParseException() {
         assertParseFailure(parser, " rehab", MESSAGE_INVALID_FORMAT);
         assertParseFailure(parser, " rehab t/strength", MESSAGE_INVALID_FORMAT);
+    }
+
+    @Test
+    public void parse_errorMessages_exactWording() {
+        assertParseFailure(parser, " rehab", "Invalid command format!\nUse: filter t/TAG [t/MORE_TAGS]...\n"
+                + "Example: filter t/rehab t/strength");
+        assertParseFailure(parser, " t/", "Tags to filter by cannot be empty.\nUse: filter t/TAG [t/MORE_TAGS]...");
+        assertParseFailure(parser, " t/re-hab",
+                "Tags can contain only letters and digits, e.g. t/rehab.\nUse: filter t/TAG [t/MORE_TAGS]...");
+    }
+
+    @Test
+    public void parse_extraTextAfterTag_throwsInvalidTag() {
+        // the extra text becomes part of the tag, which then contains a space or a slash
+        assertParseFailure(parser, " t/rehab extra", MESSAGE_INVALID_TAG);
+        assertParseFailure(parser, " t/rehab x/foo", MESSAGE_INVALID_TAG);
+    }
+
+    @Test
+    public void parse_repeatedTagsAnyCase_keepsFirstSpelling() {
+        assertParseSuccess(parser, " t/rehab t/REHAB",
+                new FilterCommand(new TagContainsKeywordsPredicate(List.of("rehab"))));
+        assertParseSuccess(parser, " t/Knee t/rehab t/knee t/REHAB",
+                new FilterCommand(new TagContainsKeywordsPredicate(List.of("Knee", "rehab"))));
+    }
+
+    @Test
+    public void parse_threeTags_keepsOrder() {
+        assertParseSuccess(parser, " t/rehab t/knee t/strength",
+                new FilterCommand(new TagContainsKeywordsPredicate(List.of("rehab", "knee", "strength"))));
     }
 
     @Test

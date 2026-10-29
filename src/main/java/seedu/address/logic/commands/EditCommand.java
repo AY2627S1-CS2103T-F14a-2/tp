@@ -29,14 +29,14 @@ import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
 
 /**
- * Edits the details of an existing person in the address book.
+ * Edits the details of an existing client in Spotter.
  */
 public class EditCommand extends Command {
 
     public static final String COMMAND_WORD = "edit";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the person identified "
-            + "by the index number used in the displayed person list. "
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the client identified "
+            + "by the index number used in the displayed client list. "
             + "Existing values will be overwritten by the input values.\n"
             + "Parameters: INDEX (must be a positive integer) "
             + "[" + PREFIX_NAME + "NAME] "
@@ -49,7 +49,7 @@ public class EditCommand extends Command {
 
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited client: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
-    public static final String MESSAGE_DUPLICATE_PERSON = "This client already exists in Spotter.";
+    public static final String MESSAGE_DUPLICATE_PERSON = Messages.MESSAGE_DUPLICATE_CLIENT;
 
     private static final Logger logger = LogsCenter.getLogger(EditCommand.class);
 
@@ -57,8 +57,10 @@ public class EditCommand extends Command {
     private final EditPersonDescriptor editPersonDescriptor;
 
     /**
-     * @param index of the person in the filtered person list to edit
-     * @param editPersonDescriptor details to edit the person with
+     * Creates a command to edit a client in the displayed list.
+     *
+     * @param index of the client in the filtered client list to edit
+     * @param editPersonDescriptor details to edit the client with
      */
     public EditCommand(Index index, EditPersonDescriptor editPersonDescriptor) {
         requireNonNull(index);
@@ -87,7 +89,8 @@ public class EditCommand extends Command {
         model.setPerson(personToEdit, editedPerson);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
         logger.info("Edited client at index " + index.getOneBased());
-        return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
+        return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
+                + SharedPhoneWarning.forClient(model.getAddressBook(), editedPerson));
     }
 
     /**
@@ -136,8 +139,8 @@ public class EditCommand extends Command {
     }
 
     /**
-     * Stores the details to edit the person with. Each non-empty field value will replace the
-     * corresponding field value of the person.
+     * Stores the details to edit the client with. Each non-empty field value will replace the
+     * corresponding field value of the client.
      */
     public static class EditPersonDescriptor {
         private Name name;
@@ -149,7 +152,7 @@ public class EditCommand extends Command {
         public EditPersonDescriptor() {}
 
         /**
-         * Copy constructor.
+         * Creates a copy of the edit descriptor.
          * A defensive copy of {@code tags} is used internally.
          */
         public EditPersonDescriptor(EditPersonDescriptor toCopy) {
@@ -184,7 +187,7 @@ public class EditCommand extends Command {
         }
 
         /**
-         * Sets the email to replace the person's email with, cancelling any email removal.
+         * Sets the email to replace the client's email with, cancelling any email removal.
          */
         public void setEmail(Email email) {
             this.email = email;
@@ -196,7 +199,7 @@ public class EditCommand extends Command {
         }
 
         /**
-         * Marks the person's email for removal, discarding any replacement email.
+         * Marks the client's email for removal, discarding any replacement email.
          */
         public void removeEmail() {
             email = null;
