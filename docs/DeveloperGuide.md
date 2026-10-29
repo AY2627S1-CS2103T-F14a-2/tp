@@ -1765,3 +1765,25 @@ Use disposable folders and fictional data. Put the freshly built `spotter.jar` i
    Expected: The console reports that file logging is unavailable and console logging is being used. Spotter still
    opens and loads the saved client. No fallback log is created in the launch folder. After exiting, remove the
    blocking directory and restore the backed-up logs before further testing.
+
+--------------------------------------------------------------------------------------------------------------------
+
+## **Appendix: Planned Enhancements**
+
+Team size: 5
+
+These are known feature flaws in the current version of Spotter, with the fix we plan for each.
+
+<box type="warning" seamless>
+
+**Not yet implemented:** none of these fixes are in the current version, so Spotter still behaves as each item's
+"Currently" describes. The fixes are tracked in a separate issue and will be made in an upcoming pull request.
+When a fix is merged, its item will be removed from this list.
+</box>
+
+1. **Ask for confirmation before `clear` deletes all clients.**
+   Currently, `clear` immediately deletes every client together with their sessions and records, and there is no
+   way to undo it. We plan to make `clear` delete nothing and instead show
+   `This will delete all N clients and their records. Enter "clear confirm" to delete them.`
+   Entering `clear confirm` will then delete all clients and show the existing message
+   `All clients have been cleared.` `clear` followed by any other text will still be rejected.

@@ -542,7 +542,8 @@ Format: `clear`
 
 `clear` takes no parameters. Inputs such as `clear 1` or `clear all` are rejected without changing clients,
 their records, the current view or the saved data. To remove one client, use `delete INDEX`.
-`clear` currently deletes everything without a confirmation step; requiring confirmation is a future enhancement.
+`clear` currently deletes everything without a confirmation step. Asking for confirmation is a
+[planned enhancement](DeveloperGuide.html#appendix-planned-enhancements).
 
 ### Exiting the program: `exit`
 
