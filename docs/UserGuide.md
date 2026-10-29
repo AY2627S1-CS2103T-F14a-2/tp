@@ -130,6 +130,9 @@ Format: `add n/NAME p/PHONE [e/EMAIL] [t/TAG]...`
   `1234 5678 (HP) 1111-3333 (Office)` is accepted. Spotter does not check whether a number is dialable.
 * `EMAIL` is optional. A client without an email shows `-` in place of it.
   Entering `e/` without an email after it also adds the client without an email, as in `edit`.
+* `TAG` may contain only English letters (A–Z) and digits, with no spaces or hyphens, e.g. `t/rehab`.
+  Letter case matters, so `rehab` and `Rehab` are different tags. Leave out `t/` to add a client with no tags;
+  an empty `t/` is rejected. (In `edit`, an empty `t/` clears all tags.)
 * Duplicate clients: a name matching an existing client's, ignoring case and extra spaces, is rejected.
   For example, `john tan` is a duplicate of `John Tan`. A matching phone digit sequence instead gives
   `Warning: <other client's name> also has this phone number.` after the success message; the client is still saved.
