@@ -5,6 +5,7 @@ import static seedu.address.logic.commands.ClientHistoryFormatter.EMAIL_LABEL;
 import static seedu.address.logic.commands.ClientHistoryFormatter.MEASUREMENTS_NEWEST_FIRST;
 import static seedu.address.logic.commands.ClientHistoryFormatter.NEXT_SESSION_LABEL;
 import static seedu.address.logic.commands.ClientHistoryFormatter.PHONE_LABEL;
+import static seedu.address.logic.commands.ClientHistoryFormatter.TAGS_ALPHABETICALLY;
 import static seedu.address.logic.commands.ClientHistoryFormatter.formatEmail;
 import static seedu.address.logic.commands.ClientHistoryFormatter.formatMeasurementValue;
 import static seedu.address.logic.commands.ClientHistoryFormatter.formatNextSession;
@@ -13,7 +14,6 @@ import static seedu.address.logic.commands.ClientHistoryFormatter.formatRecordCo
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -85,7 +85,7 @@ public class PersonCard extends UiPart<Region> {
         LocalDate today = LocalDate.now();
         latestMeasurement.setText(formatLatestMeasurement(person.getMeasurements(), today));
         person.getTags().stream()
-                .sorted(Comparator.comparing(tag -> tag.tagName))
+                .sorted(TAGS_ALPHABETICALLY)
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
         // AI assistance: Gabriel used OpenAI Codex to remove empty tag-row spacing.
         tags.setVisible(!tags.getChildren().isEmpty());

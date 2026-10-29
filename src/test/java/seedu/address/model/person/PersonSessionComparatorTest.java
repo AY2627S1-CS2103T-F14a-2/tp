@@ -32,6 +32,21 @@ public class PersonSessionComparatorTest {
     }
 
     @Test
+    public void compare_accentedLatinNames_usesEnglishOrderWithinEachSessionGroup() {
+        LocalDateTime now = LocalDateTime.of(2026, 10, 12, 12, 0);
+        List<Person> clients = List.of(new PersonBuilder().withName("Zoe").build(),
+                new PersonBuilder().withName("Émile").build(), new PersonBuilder().withName("amy").build());
+        PersonSessionComparator comparator = new PersonSessionComparator(now);
+        List<String> expectedNames = List.of("amy", "Émile", "Zoe");
+        assertEquals(expectedNames, clients.stream().sorted(comparator).map(p -> p.getName().fullName).toList());
+        for (String booking : List.of("2026-10-12 13:00", "2026-10-12 11:00")) {
+            List<Person> booked = clients.stream()
+                    .map(p -> new PersonBuilder(p).withNextSession(booking).build()).toList();
+            assertEquals(expectedNames, booked.stream().sorted(comparator).map(p -> p.getName().fullName).toList());
+        }
+    }
+
+    @Test
     public void model_startupAndFilter_sortWithoutChangingStorageOrder() {
         Person zed = new PersonBuilder().withName("Zed").build();
         Person amy = new PersonBuilder().withName("amy").build();
