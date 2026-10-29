@@ -1803,3 +1803,9 @@ When a fix is merged, its item will be removed from this list.
    `Another client already has this name and phone number.` As `session n/NAME` and `cancelsession n/NAME` find a
    client by name, they will show `More than one client is named NAME. Use the client's index instead.` when two or
    more clients share that name. The exact rule may change when the fix is made.
+
+4. **Allow hyphens in tags.**
+   Currently, tags may contain only letters and digits, so `t/lower-back` is rejected with
+   `Tag names should be alphanumeric`. We plan to also allow single hyphens between letters or digits, so that
+   `t/lower-back` is accepted while `t/-back`, `t/lower-` and `t/lower--back` are still rejected, with the error
+   `Tags may contain only letters, digits and single hyphens between them, e.g. lower-back.`
