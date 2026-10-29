@@ -698,6 +698,10 @@ Back up any existing destination file before replacing it. Spotter does not sear
 
 Spotter data is saved automatically as a JSON file `[JAR file location]/data/spotter.json`. Advanced users are welcome to update data directly by editing that data file. Save it as UTF-8, with or without a byte-order mark (BOM).
 
+Email is optional. Omitting a client's `email` field, setting it to `null` or `""`, or using a whitespace-only
+string loads that client without an email. Other clients and training records are retained. A nonblank
+email must still satisfy the email rules; for example, `"not-an-email"` makes the file invalid.
+
 The future-date restriction for measurements and performances applies when entering `measure` and `performance`.
 Valid future-dated records already in the data file are retained without a warning, for example after a system
 clock change. Use `deletemeasure` or `deleteperformance` to remove such a record; both accept future dates.

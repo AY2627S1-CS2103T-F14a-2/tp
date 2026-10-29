@@ -185,6 +185,10 @@ stored directly as a `String`, rather than through a separate adapter. On loadin
 validated and converted into the corresponding client fields and records; older files without progress
 collections load with empty histories.
 
+For optional email, `JsonAdaptedPerson#toModelType` treats missing, null and whitespace-only values as absent,
+matching a blank CLI `e/` field. Nonblank values retain normal email validation. Loading and read-only commands
+leave the source file unchanged; a subsequent save uses the existing representation for an absent email.
+
 The `Storage` component,
 * can save both client data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
@@ -1719,6 +1723,15 @@ editing the file. Keep the backup until all tests are complete.
    1. Relaunch Spotter.<br>
       Expected: The recovery test client is present with phone number `92345678`, and no load warning appears.
       Enter `exit`.
+
+1. Loading a blank optional email
+
+   1. With Spotter closed, restore `data/spotter-backup.json` to `data/spotter.json`. Set Storage Test Client's
+      `email` value to `""`, keeping the JSON valid. Relaunch Spotter and enter `list`.<br>
+      Expected: All clients load without a warning. Storage Test Client shows `Email: -`; tags and training
+      records are retained. Startup and `list` leave the edited file unchanged.
+   1. Repeat with `null`, a whitespace-only string, and an omitted `email` property.<br>
+      Expected: The same result. A later successful data change and restart keep the email absent.
 
 1. Starting with a data file containing invalid values
 
