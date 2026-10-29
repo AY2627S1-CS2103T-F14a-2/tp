@@ -22,11 +22,15 @@ Spotter is a **desktop application for freelance personal trainers to manage the
 
 1. Copy the file to the folder you want to use as the _home folder_ for Spotter. The folder must be writable: a write-protected folder (such as a system folder) prevents Spotter from saving your data.
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar spotter.jar`. Double-clicking the JAR may not launch Spotter on some systems, so the terminal command is the most reliable way to start it.<br>
-   A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample client data.<br>
+1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar spotter.jar`.
+   Double-clicking the JAR may not launch Spotter on some systems, so the terminal command is the most reliable way
+   to start it.<br>
+   A GUI similar to the one below should appear in a few seconds. On first launch, Spotter starts with some sample
+   clients so that you can try the commands.<br>
    ![Ui](images/Ui.png)
 
-   The screenshot includes example bookings and progress records.
+   The screenshot shows Spotter with a few clients, their next sessions, measurements and performance records,
+   and one client's history opened with `view`.
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
@@ -148,21 +152,22 @@ Examples:
 
 ### Listing all clients: `list`
 
-Shows a list of all clients in Spotter, clearing any `find` or `filter` results.
+Shows a list of all clients in Spotter, clearing any `find`, `filter` or `sessions` results.
 
 Format: `list`
 
 * Type `list` with nothing after it. Extra spaces are fine, but any other text is rejected with:<br>
   `"list" does not take any parameters.`<br>
   `Example: list`
-* On success, Spotter shows `Listed N clients.` (or `Listed 1 client.` when you have exactly one client).
+* On success, Spotter shows `Listed N clients.` (or `Listed 1 client.` when you have exactly one client), and the
+  client list scrolls back to the 1st client.
 * If you have no clients, Spotter shows `You have no clients yet. Use "add" to add your first client.`
 * If a client's history is shown with [`view`](#viewing-a-client-s-history-view), the right side goes back to
   Upcoming sessions.
 
 <box type="tip" seamless>
 
-**Tip:** Index numbers change when the displayed list changes (e.g., after `find`, `filter`, `add`, or `delete`). Re-run `list` before using an index-based command such as `edit` or `delete`, so that the index refers to the client you expect.
+**Tip:** Index numbers change when the displayed list changes (e.g., after `find`, `filter`, `sessions`, `add`, or `delete`). Re-run `list` before using an index-based command such as `edit` or `delete`, so that the index refers to the client you expect.
 </box>
 
 ### Editing a client: `edit`
@@ -477,11 +482,15 @@ Format: `view INDEX`
 * Upcoming sessions comes back when you enter `list`, delete that client, or clear all data.
 * Measurements and performance have separate headings with record counts. Each section lists records with the
   newest date first, so the most recent ones are always at the top.
-  * Measurements on the same date are listed in the order weight, body fat, waist.
+  * Measurements on the same date are listed in the order `weight`, `bodyfat`, `waist`.
   * Performances on the same date are listed with the one recorded last first, so the first performance line
     always matches the card's `Latest performance`.
-* `Next session` shows the same text as the client's card.
+* `Next session` shows the same text as the client's card: `- (none booked)` if no session is booked, or
+  `- (none upcoming)` once the booked session has passed.
 * Tags are listed alphabetically. A client with no email or no tags shows `-`.
+* If the history is too long to fit, scroll inside the panel. Viewing a different client starts at the top.
+  Updates to the client you are viewing, such as a new record or a changed phone number, keep your scroll position,
+  but renaming the client returns to the top.
 
 Examples:
 * `list` followed by `view 2` shows the history of the 2nd client in Spotter.
