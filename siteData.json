@@ -54,6 +54,7 @@
         "implementation": "Implementation",
         "application-file-locations": "Application file locations",
         "client-name-and-phone-formats": "Client name and phone formats",
+        "duplicate-detection": "Duplicate detection",
         "upcoming-sessions-panel": "Upcoming sessions panel",
         "view-client-history": "View client history",
         "recording-and-deleting-gym-performances": "Recording and deleting gym performances",
@@ -166,7 +167,7 @@
     },
     {
       "src": "index.md",
-      "title": "",
+      "title": "Spotter",
       "headings": {
         "spotter": "Spotter"
       },
