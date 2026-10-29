@@ -1795,3 +1795,11 @@ When a fix is merged, its item will be removed from this list.
    `Displayed indices have changed. Check the client list before your next index-based command.`
    to the success message of `session` and `edit` whenever the command moves the client to a different position
    in the displayed list, as `cancelsession` already does. The exact wording may change when the fix is made.
+
+3. **Allow different clients with the same name.**
+   Currently, two clients are treated as duplicates if their names match, ignoring case and extra spaces, so two
+   different clients named `Wei Ming Tan` with different phone numbers cannot both be added. We plan to treat
+   clients as duplicates only if both their name and their phone number match, and to change the error to
+   `Another client already has this name and phone number.` As `session n/NAME` and `cancelsession n/NAME` find a
+   client by name, they will show `More than one client is named NAME. Use the client's index instead.` when two or
+   more clients share that name. The exact rule may change when the fix is made.
