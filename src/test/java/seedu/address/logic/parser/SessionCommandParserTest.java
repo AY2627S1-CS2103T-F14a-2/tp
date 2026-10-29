@@ -96,6 +96,18 @@ public class SessionCommandParserTest {
 
     // @@author
     @Test
+    public void parse_midnightAndSingleDigitHours_storesMinutePrecision() {
+        for (String time : List.of("000", "0000", "0:00", "00:00")) {
+            assertParseSuccess(parser, " 1 d/" + date + " t/" + time,
+                    new SessionCommand(Index.fromOneBased(1), new NextSession(date + " 00:00")));
+        }
+        for (String time : List.of("905", "0905", "9:05", "09:05")) {
+            assertParseSuccess(parser, " n/Sarah Lim d/" + date + " t/" + time,
+                    new SessionCommand("Sarah Lim", new NextSession(date + " 09:05")));
+        }
+    }
+
+    @Test
     public void parseDateAndTime_boundaries_success() throws Exception {
         assertEquals(LocalDate.now(), ParserUtil.parseCalendarDate(" " + LocalDate.now() + " "));
         assertEquals(LocalDate.of(9999, 12, 31), ParserUtil.parseCalendarDate("9999-12-31"));
