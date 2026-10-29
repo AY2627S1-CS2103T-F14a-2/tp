@@ -167,6 +167,9 @@ public class MainAppTest {
         assertInitPrefsReturnsDefaultPrefs("{ \"guiSettings\": null }");
     }
 
+    /**
+     * Writes {@code content} as the preferences file, then checks that Spotter falls back to the default preferences.
+     */
     private void assertInitPrefsReturnsDefaultPrefs(String content) throws Exception {
         Path prefsFile = temporaryFolder.resolve("preferences.json");
         Files.writeString(prefsFile, content);
