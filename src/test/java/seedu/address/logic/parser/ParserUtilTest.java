@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
+import seedu.address.logic.commands.SessionCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
@@ -182,6 +183,12 @@ public class ParserUtilTest {
     @Test
     public void parseName_invalidValue_throwsParseException() {
         assertThrows(ParseException.class, () -> ParserUtil.parseName(INVALID_NAME));
+    }
+
+    @Test
+    public void parseName_empty_throwsEmptyNameMessage() {
+        assertThrows(ParseException.class, SessionCommand.MESSAGE_EMPTY_NAME, () -> ParserUtil.parseName(""));
+        assertThrows(ParseException.class, SessionCommand.MESSAGE_EMPTY_NAME, () -> ParserUtil.parseName("   "));
     }
 
     @Test
