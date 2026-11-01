@@ -792,6 +792,10 @@ Names containing command prefixes preceded by a space cannot be entered literall
 Slash-containing names are accepted by `add` and `edit`, but session booking/cancellation must use the displayed
 client index. Phone labels support English letters only, and accepted numbers are not checked for dialability.
 
+Each prefix must have a space before it. Because names may contain `/`, a one-word name typed straight into
+the next prefix is saved as part of the name: `edit 1 n/Johnp/123` renames the client to `Johnp/123`.
+Check the name in the success message, and correct it with `edit` if needed.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## Restoring the window

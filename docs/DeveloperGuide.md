@@ -650,7 +650,9 @@ A future enhancement is to support client names in additional scripts and provid
 literal command delimiters. The design should preserve original spellings while defining consistent Unicode
 normalization, duplicate detection and name lookup across add/edit, search, sessions and JSON storage.
 It must also retain compatibility with saved Latin-script names and provide tests for the newly supported scripts.
-This proposal does not change the supported input formats in v1.5 or promise a delivery date.
+A related enhancement is to warn, after saving, when a name contains a prefix of that command with no space
+before it, such as `edit 1 n/Johnp/123`. It should warn rather than reject, because valid names such as `Tan/Lim`
+look the same. Neither enhancement is implemented in v1.6, and this proposal does not promise a delivery date.
 
 ### \[Proposed\] Latest measurement summary
 
