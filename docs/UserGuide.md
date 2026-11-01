@@ -142,6 +142,8 @@ Format: `add n/NAME p/PHONE [e/EMAIL] [t/TAG]...`
   For example, `john tan` is a duplicate of `John Tan`. A matching phone digit sequence instead gives
   `Warning: <other client's name> also has this phone number.` after the success message; the client is still saved.
   Every matching client is checked, even if hidden by a search or filter, with one warning per match.
+* Two different clients cannot share a name, because `session n/NAME` and `cancelsession n/NAME` find clients by
+  name. Add a distinguishing word or number to one of them, e.g. `John Tan Bedok` or `John Tan 2`.
 * Duplicate detection does not catch typos, nicknames, or a different name order with a different phone.
   Phone comparison ignores formatting and labels but compares **all digits**: numbers with and without a country
   code are different, and a field containing several numbers does not match another field sharing only one.
