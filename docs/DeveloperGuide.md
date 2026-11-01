@@ -253,7 +253,7 @@ case and extra whitespace after normalization, and `find` normalizes its keyword
 not a count of visually rendered glyphs. No transliteration or compatibility folding is performed.
 
 `Phone` requires at least three digits and permits English-letter labels and common punctuation within a
-50-character normalized value. Plain digits separated by spaces remain stored as digits only for compatibility
+100-character normalized value. Plain digits separated by spaces remain stored as digits only for compatibility
 with older files. Other accepted formatting is retained. This is a contact field, not a dialability validator.
 `getDigits` exposes the entire digit sequence; it does not infer country codes, extensions or individual numbers.
 
