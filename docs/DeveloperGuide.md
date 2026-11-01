@@ -652,7 +652,7 @@ normalization, duplicate detection and name lookup across add/edit, search, sess
 It must also retain compatibility with saved Latin-script names and provide tests for the newly supported scripts.
 A related enhancement is to warn, after saving, when a name contains a prefix of that command with no space
 before it, such as `edit 1 n/Johnp/123`. It should warn rather than reject, because valid names such as `Tan/Lim`
-look the same. Neither enhancement is implemented in v1.6, and this proposal does not promise a delivery date.
+look the same. Both enhancements are planned for a release after v1.6.
 
 ### \[Proposed\] Latest measurement summary
 
