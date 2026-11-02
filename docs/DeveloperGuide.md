@@ -13,8 +13,8 @@
 
 ## **Acknowledgements**
 
-Helen used OpenAI Codex for retained past-session timestamps in client details, regression tests,
-and related guide updates for issue #255.
+Helen used OpenAI Codex to fix history scrolling after a viewed client is renamed, retain past-session
+timestamps in client details, and add the regression tests and guide updates for issues #254 and #255.
 
 * Spotter is based on [AddressBook-Level3](https://se-education.org/addressbook-level3/) (AB3), the sample project
   of the [SE-EDU initiative](https://se-education.org).
@@ -410,8 +410,10 @@ Design notes:
   client card. `MainWindow` also redraws the panel after every successful command, so a session that passes
   while the panel is open is marked as past with its retained timestamp. Cards continue to use
   `- (none upcoming)` for expired bookings.
-* **Scroll position:** when the viewed client changes to a different client (by `Person#isSamePerson`), the
-  panel scrolls back to the top. A replacement of the same client, e.g. a new record, keeps the scroll position.
+* **Scroll position:** when an explicit selection opens a different client, the panel scrolls back to the top.
+  A replacement of the same client, including a rename or a new record, keeps the scroll position.
+  `ModelManager#setViewedPerson` signals a changed explicit selection through null;
+  `ModelManager#setPerson` updates the open client directly.
 * **Ordering:** both histories are listed newest first. Measurements on the same date follow the type order
   weight, body fat, waist. Performance records on the same date are listed most recently recorded first, so the
   first line always matches the client card's "Latest performance".
