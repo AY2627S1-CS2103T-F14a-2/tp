@@ -133,7 +133,7 @@ public class ErrorRecoveryGuidanceTest {
         String message = assertThrows(CommandException.class, () -> new AddressBookParser()
                 .parseCommand("add n/FICTIONAL  ALPHA p/99998888").execute(model)).getMessage();
         assertTrue(message.contains("already has this name"), message);
-        assertTrue(message.contains("ignoring letter case and extra spaces"), message);
+        assertTrue(message.contains("ignoring letter case, extra spaces and straight/curly apostrophe style"), message);
         assertTrue(message.contains("find NAME"), message);
         assertEquals(1, model.getAddressBook().getPersonList().size());
     }

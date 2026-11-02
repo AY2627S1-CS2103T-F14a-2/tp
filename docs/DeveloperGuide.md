@@ -13,8 +13,9 @@
 
 ## **Acknowledgements**
 
-Helen used OpenAI Codex to fix history scrolling after a viewed client is renamed, retain past-session
-timestamps in client details, and add the regression tests and guide updates for issues #254 and #255.
+Helen used OpenAI Codex to fix history scrolling after renaming, retain past-session timestamps in client
+details, and support apostrophe-tolerant lookup and duplicate guards, with regression tests, legacy-data
+compatibility tests and guide updates for issues #254, #255 and #256.
 
 * Spotter is based on [AddressBook-Level3](https://se-education.org/addressbook-level3/) (AB3), the sample project
   of the [SE-EDU initiative](https://se-education.org).
@@ -274,8 +275,8 @@ partially implemented here. These limits do not establish that every user's nami
 Spotter identifies a client by name, not by phone or email. `Person#isSamePerson` delegates to
 `Name#isSameName`, which compares names after Unicode NFC normalization, ignoring letter case and collapsing
 repeated whitespace, so `john tan` and `John  Tan` are the same client. `UniquePersonList#contains` uses
-`isSamePerson`, and `add` reaches it through `Model#hasPerson`; `edit` performs the same check only when the
-edited name differs from the original.
+`isSamePerson` for stored identity. Command-level duplicate checks use `Model#hasEquivalentName` to also
+ignore apostrophe style; `edit` excludes the original client and checks only when the name changes.
 
 Duplicate detection is therefore name-only: two clients cannot share a name, even when their phone numbers and
 emails differ. Because phone numbers are not unique in the real world, `add` and `edit` instead append a
@@ -291,6 +292,12 @@ future work; until then, the User Guide tells trainers to add a distinguishing w
 <puml src="diagrams/DuplicateDetectionClassDiagram.puml" width="520" />
 
 <img class="diagram-preview-fallback" src="images/diagrams/DuplicateDetectionClassDiagram.png" width="520" alt="Duplicate detection class diagram" />
+
+Client-name command lookup treats straight and curly apostrophes as equivalent. Add and rename
+checks prevent new equivalent duplicates, while stored identity is unchanged so older separate
+variants still load. Booking and cancellation prefer an exact apostrophe spelling; if no exact
+spelling exists, they accept one equivalent match and reject several matches with index guidance.
+Existing variants can still be edited by index without renaming. Search matches either style.
 
 ### Upcoming sessions panel
 
@@ -1487,7 +1494,7 @@ Start from the sample data.
 1. Enter `add n/Marcus Tan p/88776655`.<br>
    Expected: `New client added: Marcus Tan; Phone: 8877 6655`. His card shows `Email: -`.
 1. Enter `add n/sarah  lim p/99998888`.<br>
-   Expected: `Another client already has this name. Names are compared ignoring letter case and extra spaces. Use "find NAME" to check the existing client.`
+   Expected: `Another client already has this name. Names are compared ignoring letter case, extra spaces and straight/curly apostrophe style. Use "find NAME" to check the existing client.`
 1. Enter `add n/Kim Lee p/12`, then `add n/Kim Lee`.<br>
    Expected: An error explaining the phone-number rules, then `Invalid command format!` followed by the `add`
    usage. No client is added.
@@ -1512,7 +1519,7 @@ Continue from the previous section.
 1. Enter `find sarah`, then `edit 1 e/` again.<br>
    Expected: `No changes made: Sarah Lim already has these details.` The list still shows only Sarah.
 1. Enter `find sarah`, then `edit 1` and `edit 1 n/Marcus Tan`.<br>
-   Expected: `At least one field to edit must be provided.`, then `Another client already has this name. Names are compared ignoring letter case and extra spaces. Use "find NAME" to check the existing client.`
+   Expected: `At least one field to edit must be provided.`, then `Another client already has this name. Names are compared ignoring letter case, extra spaces and straight/curly apostrophe style. Use "find NAME" to check the existing client.`
    Sarah's details are unchanged.
 
 ### Client name and phone formats

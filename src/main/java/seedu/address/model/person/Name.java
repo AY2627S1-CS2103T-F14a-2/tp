@@ -69,6 +69,12 @@ public class Name {
                 && fullName.equalsIgnoreCase(normalize(candidate));
     }
 
+    /** Compares lookup spellings without changing stored identity, so older duplicate records still load. */
+    public boolean matchesIgnoringApostropheStyle(String candidate) {
+        return candidate != null && fullName.replace('’', '\'')
+                .equalsIgnoreCase(normalize(candidate).replace('’', '\''));
+    }
+
     /**
      * Returns a canonical spelling for storage, validation and name-based lookup.
      * NFC unifies equivalent accent encodings without removing accents or transliterating scripts.

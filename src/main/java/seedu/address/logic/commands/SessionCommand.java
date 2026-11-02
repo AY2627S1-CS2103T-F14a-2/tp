@@ -28,6 +28,8 @@ public class SessionCommand extends Command {
     public static final String MESSAGE_INVALID_FORMAT = Messages.getInvalidFormatMessage(MESSAGE_USAGE);
     public static final String MESSAGE_INVALID_INDEX = Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
     public static final String MESSAGE_NO_SUCH_NAME = "No client with that name exists in Spotter.";
+    public static final String MESSAGE_AMBIGUOUS_NAME =
+            "More than one client matches that name. Use the displayed client index.";
     public static final String MESSAGE_EMPTY_NAME = "Name cannot be empty.";
     public static final String MESSAGE_NAME_SLASH = "Names containing '/' cannot be used for session name lookup."
             + " Use the client's displayed index with session or cancelsession instead.";
@@ -128,9 +130,18 @@ public class SessionCommand extends Command {
             }
             return model.getFilteredPersonList().get(index.getZeroBased());
         }
-        return model.getAddressBook().getPersonList().stream()
+        List<Person> exactMatches = model.getAddressBook().getPersonList().stream()
                 .filter(person -> person.getName().matches(name))
-                .findFirst().orElseThrow(() -> new CommandException(MESSAGE_NO_SUCH_NAME));
+                .toList();
+        if (!exactMatches.isEmpty()) {
+            return exactMatches.getFirst();
+        }
+        List<Person> matches = model.getAddressBook().getPersonList().stream()
+                .filter(person -> person.getName().matchesIgnoringApostropheStyle(name)).toList();
+        if (matches.size() > 1) {
+            throw new CommandException(MESSAGE_AMBIGUOUS_NAME);
+        }
+        return matches.stream().findFirst().orElseThrow(() -> new CommandException(MESSAGE_NO_SUCH_NAME));
     }
 
     /**

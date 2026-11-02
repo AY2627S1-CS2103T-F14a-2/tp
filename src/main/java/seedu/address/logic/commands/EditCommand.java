@@ -87,7 +87,8 @@ public class EditCommand extends Command {
             return new CommandResult(String.format(MESSAGE_NOT_CHANGED, personToEdit.getName()));
         }
 
-        if (!personToEdit.isSamePerson(editedPerson) && model.hasPerson(editedPerson)) {
+        if (!personToEdit.getName().equals(editedPerson.getName())
+                && model.hasEquivalentName(editedPerson, personToEdit)) {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
         }
 

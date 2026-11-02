@@ -43,6 +43,13 @@ public interface Model {
      */
     boolean hasPerson(Person person);
 
+    /** Checks command-level name equivalence, excluding the client being edited when supplied. */
+    default boolean hasEquivalentName(Person person, Person excluded) {
+        return getAddressBook().getPersonList().stream()
+                .filter(existing -> excluded == null || !existing.isSamePerson(excluded))
+                .anyMatch(existing -> existing.getName().matchesIgnoringApostropheStyle(person.getName().fullName));
+    }
+
     /**
      * Deletes the given person.
      * The person must exist in the address book.

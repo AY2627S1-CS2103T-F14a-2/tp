@@ -125,6 +125,15 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void test_unicodeCaseAndApostropheStyles_matchTogether() {
+        Person curly = new PersonBuilder().withName("İpek O’Brien").build();
+        assertTrue(new NameContainsKeywordsPredicate(List.of("ipek o'brien")).test(curly));
+
+        Person straight = new PersonBuilder().withName("ipek O'Brien").build();
+        assertTrue(new NameContainsKeywordsPredicate(List.of("İPEK O’BRIEN")).test(straight));
+    }
+
+    @Test
     public void test_punctuationIsLiteralAndLongerKeywordDoesNotMatch() {
         Person person = new PersonBuilder().withName("A. Tan").build();
         assertTrue(new NameContainsKeywordsPredicate(List.of("a.")).test(person));

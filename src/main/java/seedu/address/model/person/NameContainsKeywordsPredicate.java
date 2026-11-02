@@ -23,13 +23,13 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
     public NameContainsKeywordsPredicate(List<String> keywords) {
         this.keywords = keywords;
         this.normalizedKeywords = keywords.stream()
-                .map(Name::normalize)
+                .map(keyword -> Name.normalize(keyword).replace('’', '\''))
                 .toList();
     }
 
     @Override
     public boolean test(Person person) {
-        String name = person.getName().fullName;
+        String name = person.getName().fullName.replace('’', '\'');
         // Use full-name lookup's Unicode case rules without discarding accents or treating punctuation as regex.
         return normalizedKeywords.stream().anyMatch(keyword ->
                 IntStream.rangeClosed(0, name.length() - keyword.length())
