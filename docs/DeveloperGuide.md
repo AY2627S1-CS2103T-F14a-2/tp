@@ -1503,6 +1503,8 @@ Continue from the previous section.
    After a successful edit, the list shows all clients again, so Sarah is no longer at index 1.
 1. Enter `find sarah`, then `edit 1 e/`.<br>
    Expected: `Edited client: Sarah Lim; Phone: 9876 5432`, followed by the same index note. Her card shows `Email: -`.
+1. Enter `find sarah`, then `edit 1 e/` again.<br>
+   Expected: `No changes made: Sarah Lim already has these details.` The list still shows only Sarah.
 1. Enter `find sarah`, then `edit 1` and `edit 1 n/Marcus Tan`.<br>
    Expected: `At least one field to edit must be provided.`, then `Another client already has this name. Names are compared ignoring letter case and extra spaces. Use "find NAME" to check the existing client.`
    Sarah's details are unchanged.
