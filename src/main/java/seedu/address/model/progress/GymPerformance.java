@@ -158,7 +158,7 @@ public class GymPerformance {
     }
 
     /**
-     * Returns true if both records have the same date, exercise, sets, repetitions and load.
+     * Returns true if both records have the same date, exact exercise spelling, sets, repetitions and load.
      * This defines a stronger notion of equality between two gym-performance records.
      */
     @Override
@@ -173,7 +173,7 @@ public class GymPerformance {
         }
 
         return date.equals(otherPerformance.date)
-                && exerciseName.equals(otherPerformance.exerciseName)
+                && exerciseName.value.equals(otherPerformance.exerciseName.value)
                 && sets == otherPerformance.sets
                 && reps == otherPerformance.reps
                 && load.equals(otherPerformance.load);
@@ -181,7 +181,7 @@ public class GymPerformance {
 
     @Override
     public int hashCode() {
-        return Objects.hash(date, exerciseName, sets, reps, load);
+        return Objects.hash(date, exerciseName.value, sets, reps, load);
     }
 
     @Override

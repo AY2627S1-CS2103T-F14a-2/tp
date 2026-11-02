@@ -255,8 +255,11 @@ case and extra whitespace after normalization, and `find` normalizes its keyword
 `José Tan` and `Jose Tan` are different names. The 100-character limit uses Java string length after normalization,
 not a count of visually rendered glyphs. No transliteration or compatibility folding is performed.
 
+Substring search uses Unicode case-insensitive comparison, as full-name lookup does, instead of lowercasing
+whole strings. This lets `ipek` match `İpek` without treating `Jose` and `José` as the same spelling.
+
 `Phone` requires at least three digits and permits English-letter labels and common punctuation within a
-50-character normalized value. Plain digits separated by spaces remain stored as digits only for compatibility
+100-character normalized value. Plain digits separated by spaces remain stored as digits only for compatibility
 with older files. Other accepted formatting is retained. This is a contact field, not a dialability validator.
 `getDigits` exposes the entire digit sequence; it does not infer country codes, extensions or individual numbers.
 
@@ -283,7 +286,7 @@ their phone never warns about themselves.
 The two checks are deliberately separate: a name clash blocks the command, because `session n/NAME` and
 `cancelsession n/NAME` find a client by name, while a shared phone only warns, leaving the trainer to decide
 whether the entry is a genuine duplicate. Warning instead of blocking when two clients share a name is left as
-future work.
+future work; until then, the User Guide tells trainers to add a distinguishing word or number to one name.
 
 <puml src="diagrams/DuplicateDetectionClassDiagram.puml" width="520" />
 
@@ -399,7 +402,6 @@ instead, so the panel follows the client without any command knowing about the p
 <img class="diagram-preview-fallback" src="images/diagrams/ViewedClientSyncSequenceDiagram.png" alt="How the detail panel follows the viewed client after `measure`" />
 
 In the same way, `Model#deletePerson` and `Model#setAddressBook` (used by `clear confirm`) stop viewing a client that
-
 no longer exists, and `ListCommand` stops viewing any client. The Upcoming sessions panel then shows again.
 If saving fails, `LogicManager` restores the viewed client together with the client data and the filter, so
 the panel matches the restored data.
@@ -476,6 +478,10 @@ finds the record through `PerformanceHistory#find` and calls `Person#withoutGymP
 `CommandException` before any state changes. Either way, the command replaces the client through `Model#setPerson`,
 and `LogicManager` saves the client data.
 
+Record identity stays case-insensitive through `GymPerformance#isSameEntry`, while `GymPerformance#equals`
+compares the exact stored exercise spelling. A capitalization-only or apostrophe-style replacement therefore
+counts as a data change and is saved, even when the training numbers stay the same.
+
 The sequence diagram below shows a successful `deleteperformance` command. Saving, and restoring the previous state
 if saving fails, is the same as for `deletemeasure`.
 
@@ -483,8 +489,10 @@ if saving fails, is the same as for `deletemeasure`.
 
 <img class="diagram-preview-fallback" src="images/diagrams/DeletePerformanceSequenceDiagram.png" alt="Interactions for the `deleteperformance 1 d/2026-09-18 e/Bench Press` command" />
 
-Both commands log rejected indices, missing records and successful changes at `INFO` level. The log records the
-displayed index, exercise and date, but not the client's name or contact details.
+Both commands write their own diagnostic messages at `INFO` level, recording the displayed index, exercise
+and date rather than the client's name or contact details. This applies only to those command-specific messages:
+`LogicManager` also logs raw commands, and `MainWindow` logs result feedback. The complete application log can
+therefore contain client names and contact details. Check and redact such details before sharing a log.
 
 **Design choice:** The client card's latest performance and record count are derived from `PerformanceHistory`
 rather than stored separately, so they cannot become stale after a replacement or deletion. Keeping the recording
@@ -659,7 +667,9 @@ A future enhancement is to support client names in additional scripts and provid
 literal command delimiters. The design should preserve original spellings while defining consistent Unicode
 normalization, duplicate detection and name lookup across add/edit, search, sessions and JSON storage.
 It must also retain compatibility with saved Latin-script names and provide tests for the newly supported scripts.
-This proposal does not change the supported input formats in v1.5 or promise a delivery date.
+A related enhancement is to warn, after saving, when a name contains a prefix of that command with no space
+before it, such as `edit 1 n/Johnp/123`. It should warn rather than reject, because valid names such as `Tan/Lim`
+look the same. We acknowledge both limitations and plan to address them as future enhancements after v1.6.
 
 ### \[Proposed\] Latest measurement summary
 
@@ -864,6 +874,12 @@ not promises about the current release.
 
       Use case ends.
 
+* 4a. Another client has the same phone number as the edited client, ignoring formatting.
+
+    * 4a1. Spotter updates the client and warns the trainer which client shares the number.
+
+      Use case ends.
+
 **Use case: UC04 - Delete a client**
 
 **MSS**
@@ -1063,6 +1079,16 @@ not promises about the current release.
 
       If matching clients are found, use case resumes at step 3; otherwise, the trainer retries the search or the use case ends.
 
+* 1b. Trainer knows the client's full name.
+
+    * 1b1. Trainer requests to schedule the next session for the client by name, with the session's date and time.
+      Spotter looks for the client among all clients, even those hidden by a search or filter. Names containing `/`
+      cannot be given this way.
+
+    * 1b2. If no client has that name, Spotter shows an error message and the use case resumes at step 1.
+
+      Otherwise, use case resumes at step 4.
+
 * 2a. The list is empty.
 
   Use case ends.
@@ -1123,6 +1149,16 @@ not promises about the current release.
     * 1a1. Trainer finds the client (UC02).
 
       If matching clients are found, use case resumes at step 3; otherwise, the trainer retries the search or the use case ends.
+
+* 1b. Trainer knows the client's full name.
+
+    * 1b1. Trainer requests to cancel the next session of the client by name.
+      Spotter looks for the client among all clients, even those hidden by a search or filter. Names containing `/`
+      cannot be given this way.
+
+    * 1b2. If no client has that name, Spotter shows an error message and the use case resumes at step 1.
+
+      Otherwise, use case resumes at step 4.
 
 * 2a. The list is empty.
 
@@ -1454,7 +1490,7 @@ Start from the sample data.
 1. Enter `add n/Marcus Tan p/88776655`.<br>
    Expected: `New client added: Marcus Tan; Phone: 8877 6655`. His card shows `Email: -`.
 1. Enter `add n/sarah  lim p/99998888`.<br>
-   Expected: `Another client already has this name. Names are compared ignoring letter case and extra spaces. Use "find NAME" to check the existing client.`
+   Expected: `Another client already has this name. Names are compared ignoring letter case, extra spaces and straight/curly apostrophe style. Use "find NAME" to check the existing client.`
 1. Enter `add n/Kim Lee p/12`, then `add n/Kim Lee`.<br>
    Expected: An error explaining the phone-number rules, then `Invalid command format!` followed by the `add`
    usage. No client is added.
@@ -1471,12 +1507,13 @@ Start from the sample data.
 Continue from the previous section.
 
 1. Enter `find sarah`, then `edit 1 p/9876 5432 t/`.<br>
-   Expected: `Edited client: Sarah Lim; Phone: 9876 5432; Email: sarah@example.com`. Her `rehab` tag is removed.
-   After a successful edit, the list shows all clients again.
+   Expected: `Edited client: Sarah Lim; Phone: 9876 5432; Email: sarah@example.com`, followed by
+   `The client list order has changed; check the index numbers before your next command.` Her `rehab` tag is removed.
+   After a successful edit, the list shows all clients again, so Sarah is no longer at index 1.
 1. Enter `find sarah`, then `edit 1 e/`.<br>
-   Expected: `Edited client: Sarah Lim; Phone: 9876 5432`. Her card shows `Email: -`.
+   Expected: `Edited client: Sarah Lim; Phone: 9876 5432`, followed by the same index note. Her card shows `Email: -`.
 1. Enter `find sarah`, then `edit 1` and `edit 1 n/Marcus Tan`.<br>
-   Expected: `At least one field to edit must be provided.`, then `Another client already has this name. Names are compared ignoring letter case and extra spaces. Use "find NAME" to check the existing client.`
+   Expected: `At least one field to edit must be provided.`, then `Another client already has this name. Names are compared ignoring letter case, extra spaces and straight/curly apostrophe style. Use "find NAME" to check the existing client.`
    Sarah's details are unchanged.
 
 ### Client name and phone formats
@@ -1492,6 +1529,9 @@ replace `INDEX` below with that number. Do not assume insertion order is the dis
    decomposed encoding. `Jose` without an accent is not the same name, and `find Jose` does not find it.
 1. Run `add n/-Alex p/91234567`, `add n/王明 p/91234567` and `add n/Phone Probe p/12`.<br>
    Expected: Validation feedback explains the supported name or phone characters/digit requirement; no client is added.
+1. Run `add n/İpek Tan p/93456789`, then `find ipek` and `find İPEK`.<br>
+   Expected: Both searches find `İpek Tan`, following the same case-insensitive rules as full-name session lookup.
+   Run `list` before continuing with index-based commands.
 1. For Raju, run `session INDEX d/2026-12-15 t/1900`, check the displayed list again, then run
    `cancelsession INDEX` with his current index.<br>
    Expected: Both commands succeed. The equivalent `n/Raju s/o Kumar` forms are rejected as documented, without
@@ -1499,6 +1539,14 @@ replace `INDEX` below with that number. Do not assume insertion order is the dis
 1. Edit one test client's phone to `8743 8807`, close Spotter and restart it.<br>
    Expected: The stored phone is `87438807` (displayed as `8743 8807`), the formatted phones of other clients are
    unchanged, and the punctuation/accented names remain available. Remove the test clients when finished.
+
+### Email addresses with apostrophes
+
+Use an empty disposable dataset. Add `add n/Email Apostrophe Probe p/91234567 e/mary.o'brien@example.com`, then
+`find Email Apostrophe Probe` and `edit 1 e/mary.o'brien+training@example.com`. Exit and restart Spotter,
+then find that client again. Expected: The email remains exactly `mary.o'brien+training@example.com`.
+Trying `edit 1 e/mary@o'brien.com` is rejected without changing the saved email; apostrophes are not valid
+in a domain name. Remove the fictional client after the test.
 
 ### Finding and filtering clients
 
@@ -1599,8 +1647,8 @@ replace `DATE` in every command below, and `TODAY` with today's date. Add unique
    Enter `find SessionCancelAda` again, then `performance 1 d/TODAY e/Squat s/3 r/5 w/100`.
    Re-enter `sessions d/DATE` and note Ada's current index `INDEX` before continuing.
 1. Enter `cancelsession INDEX` for Ada.<br>
-   Expected: `Cancelled session on DATE 09:00 for SessionCancelAda. Displayed indices have changed. Check the client
-   list before your next index-based command.` (with tomorrow's date). Ada disappears from the date view; Zoe remains.
+   Expected: `Cancelled session on DATE 09:00 for SessionCancelAda.`, then `The client list order has changed; check
+   the index numbers before your next command.` (with tomorrow's date). Ada disappears from the date view; Zoe remains.
    Enter `list` and locate Ada. The card shows `Next session: - (none booked)` while both progress rows remain populated.
    Close and restart Spotter. Ada remains unbooked and the contact/progress data are unchanged.
 1. Enter `find SessionCancelAda`, then try `cancelsession 1`.<br>
@@ -1745,6 +1793,8 @@ run `list` and substitute that client's displayed index for `1` below. `NAME` is
    1. Enter `performance 1 d/2026-09-18 e/Bench Press s/3 r/8 w/60`.<br>
       Expected: `Recorded performance for NAME: Bench Press, 3 sets of 8 reps at 60 kg on 2026-09-18.`
       The card shows `Latest performance: 18 Sep - Bench Press, 3 sets of 8 reps at 60 kg (1 record)`.
+   1. Repeat that command with `e/bench press`, keeping the date and all numbers unchanged. Exit and relaunch Spotter.<br>
+      Expected: The card and `view 1` still show `bench press` with one record; the changed spelling was saved.
    1. Enter `performance 1 d/2026-09-15 e/Squat s/3 r/5 w/100`.<br>
       Expected: A new record is added. The card still shows the 18 Sep bench press, now with `(2 records)`.
    1. Enter `performance 1 d/2026-09-18 e/bench press s/4 r/6 w/62.5`.<br>
