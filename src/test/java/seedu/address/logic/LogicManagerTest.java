@@ -27,6 +27,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.ClearCommand;
@@ -146,6 +148,27 @@ public class LogicManagerTest {
         Path dataFile = temporaryFolder.resolve("addressBook.json");
         logic.execute(ADD_AMY_COMMAND);
         assertTrue(Files.exists(dataFile));
+    }
+
+    @ParameterizedTest
+    @CsvSource(value = {"bench press|Bench Press", "Farmer's Walk|Farmer’s Walk"}, delimiter = '|')
+    public void execute_performanceSpellingOnlyChange_survivesReload(String original, String replacement)
+            throws Exception {
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        logic.execute(ADD_AMY_COMMAND);
+        logic.execute("performance 1 d/2026-09-18 e/" + original + " s/3 r/8 w/60");
+        logic.execute("view 1");
+
+        CommandResult result = logic.execute("performance 1 d/2026-09-18 e/" + replacement + " s/3 r/8 w/60");
+
+        assertTrue(result.getFeedbackToUser().startsWith("Updated performance for "));
+        assertEquals(replacement, model.getViewedPerson().getValue().getGymPerformances().getFirst()
+                .getExerciseName().value);
+        ReadOnlyAddressBook reloaded = new JsonAddressBookStorage(dataFile).readAddressBook().orElseThrow();
+        Person saved = reloaded.getPersonList().getFirst();
+        assertEquals(1, saved.getGymPerformances().size());
+        assertEquals(replacement, saved.getGymPerformances().getFirst().getExerciseName().value);
+        assertEquals(model.getAddressBook(), new AddressBook(reloaded));
     }
 
     @Test

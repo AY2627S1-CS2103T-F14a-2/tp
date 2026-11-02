@@ -406,6 +406,7 @@ Format: `performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`
 * If the client already has a record for the same exercise on the same date, the new sets, repetitions and load
   replace the old record. Spotter keeps one result per exercise per client per day, so you can correct a mistake
   by recording it again.
+  The newly entered exercise spelling is saved too, even if only its capitalization or apostrophe style changes.
 * A record stores one summary: the number of sets, the repetitions per set and the load, e.g. 3 sets of 8 reps at
   60 kg. `REPS` must be a whole number, so Spotter cannot record sets with different repetitions (e.g. 10, 8 and 6
   reps), timed exercises (e.g. a 60-second plank) or distances (e.g. a 5 km run). Inputs such as `r/60s` or
