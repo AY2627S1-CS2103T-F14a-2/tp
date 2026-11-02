@@ -66,15 +66,16 @@ public class ClientHistoryFormatterTest {
     }
 
     @Test
-    public void formatDetails_pastSession_matchesCardText() {
+    public void formatDetails_pastSession_showsStoredTimestamp() {
         Person person = new PersonBuilder().withName("Bea Lim").withPhone("911").withoutEmail()
                 .withNextSession("2026-10-01 09:00").build();
 
         String expected = "Phone: 911\n"
                 + "Email: -\n"
-                + "Next session: - (none upcoming)\n"
+                + "Next session: 2026-10-01 09:00 (past)\n"
                 + "Tags: -";
         assertEquals(expected, ClientHistoryFormatter.formatDetails(person, NOW));
+        assertEquals("- (none upcoming)", ClientHistoryFormatter.formatNextSession(person, NOW));
     }
 
     @Test
