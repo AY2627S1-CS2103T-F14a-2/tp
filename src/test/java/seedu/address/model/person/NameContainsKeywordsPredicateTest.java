@@ -113,6 +113,26 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void test_dottedLatinI_matchesFullNameLookupCaseRules() {
+        Person person = new PersonBuilder().withName("İpek Tan").build();
+        assertTrue(person.getName().matches("ipek tan"));
+        for (String keyword : List.of("ipek", "İPEK", "ipe", "PEK")) {
+            assertTrue(new NameContainsKeywordsPredicate(List.of(keyword)).test(person), keyword);
+        }
+
+        Person lowercase = new PersonBuilder().withName("ipek Tan").build();
+        assertTrue(new NameContainsKeywordsPredicate(List.of("İPEK")).test(lowercase));
+    }
+
+    @Test
+    public void test_punctuationIsLiteralAndLongerKeywordDoesNotMatch() {
+        Person person = new PersonBuilder().withName("A. Tan").build();
+        assertTrue(new NameContainsKeywordsPredicate(List.of("a.")).test(person));
+        assertFalse(new NameContainsKeywordsPredicate(List.of("a?")).test(person));
+        assertFalse(new NameContainsKeywordsPredicate(List.of("A. Tan Extra")).test(person));
+    }
+
+    @Test
     public void test_keywordMatchesOnlyOtherFields_returnsFalse() {
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("123", "email", "friend"));
         assertFalse(predicate.test(new PersonBuilder().withName("Hans Gruber").withPhone("12345")
