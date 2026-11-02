@@ -808,7 +808,7 @@ You do not need to delete `preferences.json` after disconnecting a monitor.
 ## Known issues
 
 1. **Unrecognized prefixes in `filter` are not reported**: text such as `x/1` that uses a prefix Spotter doesn't support is treated as part of the tag before it. For example, `filter t/rehab x/1` reports an invalid tag. The remedy is to remove the unsupported prefix. The other commands that take prefixes already report such a prefix as an invalid command format.
-2. **Warnings when launching from a terminal**: on some Java setups, such as JDKs that bundle JavaFX (e.g. Zulu FX), `java -jar spotter.jar` prints `WARNING` lines about a restricted method and enabling native access. These come from JavaFX loading its native libraries. They are harmless, and Spotter works normally.
+2. **Warnings when launching from a terminal**: with Java 25, `java -jar spotter.jar` prints several warning lines on every launch, before and after the window opens. They include `Unsupported JavaFX configuration: classes were loaded from 'unnamed module ...'`, lines about a restricted method in `java.lang.System` and enabling native access, and lines about a terminally deprecated method in `sun.misc.Unsafe`. These come from the JavaFX library bundled in the JAR. They are harmless, and Spotter works normally.
 
 --------------------------------------------------------------------------------------------------------------------
 
