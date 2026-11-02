@@ -1859,7 +1859,8 @@ editing the file. Keep the backup until all tests are complete.
       load warning as for a corrupted file.
    1. Enter `list`, then `exit`.<br>
       Expected: The data file still contains phone number `12`. Other invalid values, such as an email without
-      `@`, a measurement outside its range, or two measurements of the same type on the same date, behave the same.
+      `@`, a measurement outside its range, a measurement value in scientific notation such as `"7.24E1"`, or two
+      measurements of the same type on the same date, behave the same.
       Exception: a measurement or performance dated in the future is not invalid. Spotter loads it normally,
       because future dates are only rejected when a record is entered with a command.
 
