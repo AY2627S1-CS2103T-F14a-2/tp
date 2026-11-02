@@ -45,6 +45,20 @@ public class MeasurementStorageTest {
     }
 
     @Test
+    public void load_scientificNotationValue_rejectsFileWithoutChangingIt() throws Exception {
+        Person client = new PersonBuilder().build();
+        Path file = temporaryFolder.resolve("scientific-value.json");
+        JsonAdaptedMeasurement record = new JsonAdaptedMeasurement("2026-09-12", "weight", "7.24E1");
+        JsonAdaptedPerson adapted = new JsonAdaptedPerson(client.getName().fullName, client.getPhone().value,
+                client.getEmail().map(email -> email.value).orElse(null), List.of(), null, List.of(record));
+        String json = JsonUtil.toJsonString(new JsonSerializableAddressBook(List.of(adapted)));
+        Files.writeString(file, json);
+
+        assertThrows(DataLoadingException.class, () -> new JsonAddressBookStorage(file).readAddressBook());
+        assertEquals(json, Files.readString(file));
+    }
+
+    @Test
     public void saveAndReload_multipleRecords_preservesMeasurements() throws Exception {
         Person client = new PersonBuilder().withMeasurements(
                 new Measurement(LocalDate.of(2026, 9, 12), MeasurementType.WEIGHT, new BigDecimal("72.4")),
@@ -92,7 +106,11 @@ public class MeasurementStorageTest {
                 new JsonAdaptedMeasurement("2026-09-12", "height", "72"),
                 new JsonAdaptedMeasurement("2026-09-12", "weight", "NaN"),
                 new JsonAdaptedMeasurement("2026-09-12", "weight", "501"),
-                new JsonAdaptedMeasurement("2026-09-12", "weight", "72.123"))) {
+                new JsonAdaptedMeasurement("2026-09-12", "weight", "72.123"),
+                // scientific notation, which measure also rejects
+                new JsonAdaptedMeasurement("2026-09-12", "weight", "7.24E1"),
+                new JsonAdaptedMeasurement("2026-09-12", "weight", "1e2"),
+                new JsonAdaptedMeasurement("2026-09-12", "bodyfat", "1.84E+1"))) {
             assertThrows(IllegalValueException.class, record::toModelType);
         }
     }
