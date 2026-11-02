@@ -64,9 +64,7 @@ public final class ClientHistoryFormatter {
                 .collect(Collectors.joining(", "));
         return PHONE_LABEL + PhoneDisplayFormatter.format(person.getPhone().value)
                 + "\n" + EMAIL_LABEL + formatEmail(person)
-                + "\n" + NEXT_SESSION_LABEL + person.getNextSession()
-                        .filter(session -> session.value.isBefore(now))
-                        .map(session -> session + " (past)").orElseGet(() -> formatNextSession(person, now))
+                + "\n" + NEXT_SESSION_LABEL + formatViewedNextSession(person, now)
                 + "\nTags: " + (tags.isEmpty() ? NO_TAGS : tags);
     }
 
@@ -87,6 +85,12 @@ public final class ClientHistoryFormatter {
         requireNonNull(person);
         requireNonNull(now);
         return person.getNextSession().map(session -> session.toDisplayString(now)).orElse(NO_SESSION);
+    }
+
+    /** Keeps the stored timestamp visible for past sessions in the detail panel. */
+    private static String formatViewedNextSession(Person person, LocalDateTime now) {
+        return person.getNextSession().filter(session -> session.value.isBefore(now))
+                .map(session -> session + " (past)").orElseGet(() -> formatNextSession(person, now));
     }
 
     /**
