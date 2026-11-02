@@ -390,7 +390,6 @@ instead, so the panel follows the client without any command knowing about the p
 <img class="diagram-preview-fallback" src="images/diagrams/ViewedClientSyncSequenceDiagram.png" alt="How the detail panel follows the viewed client after `measure`" />
 
 In the same way, `Model#deletePerson` and `Model#setAddressBook` (used by `clear confirm`) stop viewing a client that
-
 no longer exists, and `ListCommand` stops viewing any client. The Upcoming sessions panel then shows again.
 If saving fails, `LogicManager` restores the viewed client together with the client data and the filter, so
 the panel matches the restored data.
