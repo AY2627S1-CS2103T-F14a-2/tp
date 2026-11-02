@@ -202,6 +202,20 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_apostropheEmail_addEditAndReloadPreserveLiteralAddress() throws Exception {
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        logic.execute("add n/Mary O'Brien p/91234567 e/mary.o'brien@example.com");
+        ReadOnlyAddressBook added = new JsonAddressBookStorage(dataFile).readAddressBook().orElseThrow();
+        assertEquals("mary.o'brien@example.com", added.getPersonList().getFirst().getEmail().orElseThrow().value);
+
+        logic.execute("edit 1 e/mary.o'brien+training@example.com");
+        ReadOnlyAddressBook edited = new JsonAddressBookStorage(dataFile).readAddressBook().orElseThrow();
+        assertEquals("mary.o'brien+training@example.com",
+                edited.getPersonList().getFirst().getEmail().orElseThrow().value);
+        assertEquals(model.getAddressBook(), new AddressBook(edited));
+    }
+
+    @Test
     public void execute_viewCommand_doesNotSaveDataFile() throws Exception {
         model.addPerson(ALICE);
         Path dataFile = temporaryFolder.resolve("addressBook.json");
