@@ -1,8 +1,8 @@
 package seedu.address.model.person;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 
 import seedu.address.commons.util.ToStringBuilder;
 
@@ -15,22 +15,25 @@ import seedu.address.commons.util.ToStringBuilder;
  */
 public class NameContainsKeywordsPredicate implements Predicate<Person> {
     private final List<String> keywords;
-    private final List<String> lowercaseKeywords;
+    private final List<String> normalizedKeywords;
 
     /**
      * Constructs a predicate that matches names containing any of the given keywords.
      */
     public NameContainsKeywordsPredicate(List<String> keywords) {
         this.keywords = keywords;
-        this.lowercaseKeywords = keywords.stream()
-                .map(keyword -> Name.normalize(keyword).toLowerCase(Locale.ROOT))
+        this.normalizedKeywords = keywords.stream()
+                .map(Name::normalize)
                 .toList();
     }
 
     @Override
     public boolean test(Person person) {
-        String lowercaseName = person.getName().fullName.toLowerCase(Locale.ROOT);
-        return lowercaseKeywords.stream().anyMatch(lowercaseName::contains);
+        String name = person.getName().fullName;
+        // Use full-name lookup's Unicode case rules without discarding accents or treating punctuation as regex.
+        return normalizedKeywords.stream().anyMatch(keyword ->
+                IntStream.rangeClosed(0, name.length() - keyword.length())
+                        .anyMatch(start -> name.regionMatches(true, start, keyword, 0, keyword.length())));
     }
 
     @Override
