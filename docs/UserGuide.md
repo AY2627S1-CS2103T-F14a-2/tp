@@ -132,6 +132,8 @@ Format: `add n/NAME p/PHONE [e/EMAIL] [t/TAG]...`
   `1234 5678 (HP) 1111-3333 (Office)` is accepted. Spotter does not check whether a number is dialable.
 * `EMAIL` is optional. A client without an email shows `-` in place of it.
   Entering `e/` without an email after it also adds the client without an email, as in `edit`.
+  Straight apostrophes are allowed inside the local part, e.g. `mary.o'brien@example.com`; the address is stored
+  unchanged. Typographic curly apostrophes (`’`) are not accepted as email characters.
 * `TAG` must be 1–50 characters: English letters `A–Z`/`a–z` and digits `0–9`, optionally separated by
   single hyphens, e.g. `lower-back` or `level-2`. Leading/trailing hyphens, repeated hyphens, spaces and
   other symbols are rejected. Outer whitespace is trimmed.

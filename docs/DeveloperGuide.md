@@ -1529,6 +1529,14 @@ replace `INDEX` below with that number. Do not assume insertion order is the dis
    Expected: The stored phone is `87438807` (displayed as `8743 8807`), the formatted phones of other clients are
    unchanged, and the punctuation/accented names remain available. Remove the test clients when finished.
 
+### Email addresses with apostrophes
+
+Use an empty disposable dataset. Add `add n/Email Apostrophe Probe p/91234567 e/mary.o'brien@example.com`, then
+`find Email Apostrophe Probe` and `edit 1 e/mary.o'brien+training@example.com`. Exit and restart Spotter,
+then find that client again. Expected: The email remains exactly `mary.o'brien+training@example.com`.
+Trying `edit 1 e/mary@o'brien.com` is rejected without changing the saved email; apostrophes are not valid
+in a domain name. Remove the fictional client after the test.
+
 ### Finding and filtering clients
 
 Use a separate disposable test dataset. Run `clear confirm`, then add these fictional training clients:
