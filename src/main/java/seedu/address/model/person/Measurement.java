@@ -14,6 +14,8 @@ import java.util.Objects;
 public final class Measurement {
     public static final String MESSAGE_FUTURE_DATE = "The measurement date cannot be in the future.";
     public static final String MESSAGE_PRECISION = "Measurement values may have at most two decimal places.";
+    // A plain decimal, shared by commands and the data file; BigDecimal alone would also accept e.g. 7.24E1.
+    public static final String VALUE_REGEX = "[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)";
 
     private final LocalDate date;
     private final MeasurementType type;

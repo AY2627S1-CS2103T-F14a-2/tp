@@ -755,6 +755,9 @@ Email is optional. Omitting a client's `email` field, setting it to `null` or `"
 string loads that client without an email. Other clients and training records are retained. A nonblank
 email must still satisfy the email rules; for example, `"not-an-email"` makes the file invalid.
 
+Measurement values in the file follow the same number rules as `measure`: a plain decimal such as `"72.4"`.
+Scientific notation, such as `"7.24E1"`, makes the file invalid.
+
 The future-date restriction for measurements and performances applies when entering `measure` and `performance`.
 Valid future-dated records already in the data file are retained without a warning, for example after a system
 clock change. Use `deletemeasure` or `deleteperformance` to remove such a record; both accept future dates.
