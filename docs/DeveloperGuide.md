@@ -410,7 +410,8 @@ Design notes:
   client card. `MainWindow` also redraws the panel after every successful command, so a session that passes
   while the panel is open is shown the same way as on the card.
 * **Scroll position:** when an explicit selection opens a different client, the
-  panel scrolls back to the top. A replacement of the same client, including a rename or a new record, keeps the scroll position.
+  panel scrolls back to the top. A replacement of the same client, including a rename or a new record,
+  keeps the scroll position.
   `ModelManager#setViewedPerson` signals a changed explicit selection through null;
   `ModelManager#setPerson` updates the open client directly.
 * **Ordering:** both histories are listed newest first. Measurements on the same date follow the type order
