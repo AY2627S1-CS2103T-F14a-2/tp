@@ -27,7 +27,7 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '25'
-          java-package: jdk+fx
+          java-package: jdk
 
       - name: Build and check with Gradle on Linux
         if: runner.os == 'Linux'
@@ -35,6 +35,8 @@ jobs:
 
       - name: Build and check with Gradle
         if: runner.os != 'Linux'
+        env:
+          JAVA_TOOL_OPTIONS: ${{ runner.os == 'macOS' && '-Dprism.order=sw' || '' }}
         run: ./gradlew check coverage --info
 
       - name: Show macOS crash diagnostics
