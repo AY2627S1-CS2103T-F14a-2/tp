@@ -125,7 +125,7 @@ Format: `add n/NAME p/PHONE [e/EMAIL] [t/TAG]...`
   `Invalid command format!` followed by the command usage. The exceptions are `s/o`, `d/o`, `a/l` and `a/p` (in any
   letter case), which are accepted as part of a name, e.g. `Raju s/o Kumar` or `Kumar a/l Rajan`. For names containing `/`, use the client's index with
   `session` and `cancelsession`, rather than their `n/NAME` forms.
-* `PHONE` must contain at least 3 digits and at most 50 characters after normalization. Digits, spaces,
+* `PHONE` must contain at least 3 digits and at most 100 characters after normalization. Digits, spaces,
   English letters `A–Z`/`a–z` (for labels), `+`, `-`, `(`, `)` and `.` are accepted; `/` is not.
   Plain digits and spaces are stored as digits only: `9927 2758` becomes `99272758`. Otherwise, punctuation and
   labels are kept, outer spaces are removed and repeated spaces are merged. For example,
