@@ -480,8 +480,10 @@ if saving fails, is the same as for `deletemeasure`.
 
 <img class="diagram-preview-fallback" src="images/diagrams/DeletePerformanceSequenceDiagram.png" alt="Interactions for the `deleteperformance 1 d/2026-09-18 e/Bench Press` command" />
 
-Both commands log rejected indices, missing records and successful changes at `INFO` level. The log records the
-displayed index, exercise and date, but not the client's name or contact details.
+Both commands write their own diagnostic messages at `INFO` level, recording the displayed index, exercise
+and date rather than the client's name or contact details. This applies only to those command-specific messages:
+`LogicManager` also logs raw commands, and `MainWindow` logs result feedback. The complete application log can
+therefore contain client names and contact details. Check and redact such details before sharing a log.
 
 **Design choice:** The client card's latest performance and record count are derived from `PerformanceHistory`
 rather than stored separately, so they cannot become stale after a replacement or deletion. Keeping the recording
