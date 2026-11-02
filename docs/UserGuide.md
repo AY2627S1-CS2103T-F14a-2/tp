@@ -788,11 +788,16 @@ already on the new computer). Then launch Spotter on the new computer. Your clie
 Client names are labels for the trainer's own records; Spotter does not verify legal names or require a legal-name
 match. The current Latin-script and punctuation support is a bounded design choice, not support for every language.
 A supported preferred spelling can be used if suitable for the trainer and client; otherwise that name cannot yet
-be recorded in its original script. Broader language support is a planned enhancement, not a current feature.
+be recorded in its original script. We acknowledge this limitation and plan broader language support as a
+future enhancement after v1.6.
 
 Names containing command prefixes preceded by a space cannot be entered literally through those commands.
 Slash-containing names are accepted by `add` and `edit`, but session booking/cancellation must use the displayed
 client index. Phone labels support English letters only, and accepted numbers are not checked for dialability.
+
+Each prefix must have a space before it. Because names may contain `/`, a one-word name typed straight into
+the next prefix is saved as part of the name: `edit 1 n/Johnp/123` renames the client to `Johnp/123`.
+Check the name in the success message, and correct it with `edit` if needed.
 
 --------------------------------------------------------------------------------------------------------------------
 
