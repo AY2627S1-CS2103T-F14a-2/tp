@@ -10,13 +10,13 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 public class Phone {
 
 
-    public static final int MAX_LENGTH = 50;
+    public static final int MAX_LENGTH = 100;
 
     public static final String MESSAGE_CONSTRAINTS =
             "Phone numbers must contain at least 3 digits and only digits, spaces, letters A-Z, "
                     + "plus signs, hyphens, brackets and full stops.";
     public static final String MESSAGE_LENGTH_CONSTRAINTS =
-            "Phone numbers should be at most " + MAX_LENGTH + " characters long";
+            "Phone numbers should be at most " + MAX_LENGTH + " characters long.";
     public static final String VALIDATION_REGEX =
             "(?=(?:[^0-9]*[0-9]){3})[0-9A-Za-z +().-]{1," + MAX_LENGTH + "}";
     public final String value;
