@@ -27,14 +27,15 @@ public class PhoneTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"911", "93121534", "1242938420331234", "+65 9123 4567", "9123-4567",
-        "1234 5678 (HP) 1111-3333 (Office)", "123.456 ext 7"})
+        "1234 5678 (HP) 1111-3333 (Office)", "123.456 ext 7",
+        "+65 9123 4567 (HP) 6123 4567 (Office) 8123 4567 (Home)"})
     public void constructor_validPhone_preservesFormat(String phone) {
         assertTrue(Phone.isValidPhone(phone));
         assertEquals(phone, new Phone(phone).value);
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {49, 50, 51})
+    @ValueSource(ints = {99, 100, 101})
     public void isValidPhone_lengthBoundary_enforcesCharacterLimit(int length) {
         String phone = "123" + "a".repeat(length - 3);
         assertEquals(length <= Phone.MAX_LENGTH, Phone.isValidPhone(phone));
@@ -47,7 +48,7 @@ public class PhoneTest {
         assertEquals("+65 9312 1534 (HP)", new Phone("  +65  9312  1534 (HP)  ").value);
         assertEquals(new Phone("93121534"), new Phone("9312 1534"));
         assertEquals(new Phone("93121534").hashCode(), new Phone("9312 1534").hashCode());
-        assertFalse(Phone.isTooLong(" " + "1".repeat(50) + " "));
+        assertFalse(Phone.isTooLong(" " + "1".repeat(Phone.MAX_LENGTH) + " "));
     }
 
     @Test

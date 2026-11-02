@@ -27,6 +27,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.ClearCommand;
@@ -148,6 +150,27 @@ public class LogicManagerTest {
         assertTrue(Files.exists(dataFile));
     }
 
+    @ParameterizedTest
+    @CsvSource(value = {"bench press|Bench Press", "Farmer's Walk|Farmer’s Walk"}, delimiter = '|')
+    public void execute_performanceSpellingOnlyChange_survivesReload(String original, String replacement)
+            throws Exception {
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        logic.execute(ADD_AMY_COMMAND);
+        logic.execute("performance 1 d/2026-09-18 e/" + original + " s/3 r/8 w/60");
+        logic.execute("view 1");
+
+        CommandResult result = logic.execute("performance 1 d/2026-09-18 e/" + replacement + " s/3 r/8 w/60");
+
+        assertTrue(result.getFeedbackToUser().startsWith("Updated performance for "));
+        assertEquals(replacement, model.getViewedPerson().getValue().getGymPerformances().getFirst()
+                .getExerciseName().value);
+        ReadOnlyAddressBook reloaded = new JsonAddressBookStorage(dataFile).readAddressBook().orElseThrow();
+        Person saved = reloaded.getPersonList().getFirst();
+        assertEquals(1, saved.getGymPerformances().size());
+        assertEquals(replacement, saved.getGymPerformances().getFirst().getExerciseName().value);
+        assertEquals(model.getAddressBook(), new AddressBook(reloaded));
+    }
+
     @Test
     public void execute_readOnlyDataFolder_reportsSaveFailureAndKeepsDataFile() throws Exception {
         // Windows ignores the read-only attribute on folders, so this needs POSIX permissions.
@@ -199,6 +222,20 @@ public class LogicManagerTest {
         Path dataFile = temporaryFolder.resolve("addressBook.json");
         logic.execute(ListCommand.COMMAND_WORD);
         assertFalse(Files.exists(dataFile));
+    }
+
+    @Test
+    public void execute_apostropheEmail_addEditAndReloadPreserveLiteralAddress() throws Exception {
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        logic.execute("add n/Mary O'Brien p/91234567 e/mary.o'brien@example.com");
+        ReadOnlyAddressBook added = new JsonAddressBookStorage(dataFile).readAddressBook().orElseThrow();
+        assertEquals("mary.o'brien@example.com", added.getPersonList().getFirst().getEmail().orElseThrow().value);
+
+        logic.execute("edit 1 e/mary.o'brien+training@example.com");
+        ReadOnlyAddressBook edited = new JsonAddressBookStorage(dataFile).readAddressBook().orElseThrow();
+        assertEquals("mary.o'brien+training@example.com",
+                edited.getPersonList().getFirst().getEmail().orElseThrow().value);
+        assertEquals(model.getAddressBook(), new AddressBook(edited));
     }
 
     @Test

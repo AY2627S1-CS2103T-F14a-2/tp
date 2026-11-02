@@ -204,7 +204,14 @@ public class GymPerformanceTest {
     @Test
     public void hashCode_equalRecords_sameHashCode() {
         assertEquals(benchPress.hashCode(),
-                new GymPerformance(DATE, new ExerciseName("bench press"), 3, 8, new Load("60.00")).hashCode());
+                new GymPerformance(DATE, new ExerciseName("Bench Press"), 3, 8, new Load("60.00")).hashCode());
+    }
+
+    @Test
+    public void equals_caseOnlySpellingChange_differsButIdentifiesSameEntry() {
+        GymPerformance lowerCase = new GymPerformance(DATE, new ExerciseName("bench press"), 3, 8, LOAD);
+        assertFalse(benchPress.equals(lowerCase));
+        assertTrue(benchPress.isSameEntry(lowerCase));
     }
 
     @Test
