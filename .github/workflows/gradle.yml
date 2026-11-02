@@ -35,7 +35,14 @@ jobs:
 
       - name: Build and check with Gradle
         if: runner.os != 'Linux'
-        run: ./gradlew check coverage
+        run: ./gradlew check coverage --info
+
+      - name: Show macOS crash diagnostics
+        if: failure() && runner.os == 'macOS'
+        run: |
+          find build/test-results/test -type f -name '*.xml' -exec tail -n 100 {} \; 2>/dev/null || true
+          find . -name 'hs_err_pid*.log' -exec cat {} \;
+          find "$HOME/Library/Logs/DiagnosticReports" -maxdepth 1 -type f -iname '*java*' -exec cat {} \; 2>/dev/null || true
 
       - name: Upload coverage reports to Codecov
         if: runner.os == 'Linux'
