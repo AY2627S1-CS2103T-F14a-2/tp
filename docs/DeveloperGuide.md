@@ -13,6 +13,9 @@
 
 ## **Acknowledgements**
 
+Helen used OpenAI Codex to fix history scrolling after a viewed client is renamed and to add the
+regression tests and developer guidance for issue #254.
+
 * Spotter is based on [AddressBook-Level3](https://se-education.org/addressbook-level3/) (AB3), the sample project
   of the [SE-EDU initiative](https://se-education.org).
 * Spotter uses [JavaFX](https://openjfx.io/) for its GUI, [Jackson](https://github.com/FasterXML/jackson) to read
@@ -404,8 +407,10 @@ Design notes:
 * **"Now" at drawing time:** whether the next session has passed is decided when the panel is drawn, as on the
   client card. `MainWindow` also redraws the panel after every successful command, so a session that passes
   while the panel is open is shown the same way as on the card.
-* **Scroll position:** when the viewed client changes to a different client (by `Person#isSamePerson`), the
-  panel scrolls back to the top. A replacement of the same client, e.g. a new record, keeps the scroll position.
+* **Scroll position:** when an explicit selection opens a different client, the
+  panel scrolls back to the top. A replacement of the same client, including a rename or a new record, keeps the scroll position.
+  `ModelManager#setViewedPerson` signals a changed explicit selection through null;
+  `ModelManager#setPerson` updates the open client directly.
 * **Ordering:** both histories are listed newest first. Measurements on the same date follow the type order
   weight, body fat, waist. Performance records on the same date are listed most recently recorded first, so the
   first line always matches the client card's "Latest performance".
