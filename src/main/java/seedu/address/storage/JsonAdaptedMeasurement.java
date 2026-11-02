@@ -46,6 +46,8 @@ class JsonAdaptedMeasurement {
             throw new IllegalValueException("Measurement date, type and value must be present.");
         }
         try {
+            checkArgument(value.matches(Measurement.VALUE_REGEX),
+                    "Measurement value must be a plain decimal number.");
             checkArgument(date.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}") && !date.startsWith("0000"),
                     "Measurement date must use yyyy-MM-dd format with a year from 0001 to 9999.");
             return new Measurement(LocalDate.parse(date), MeasurementType.valueOf(type.toUpperCase(Locale.ROOT)),

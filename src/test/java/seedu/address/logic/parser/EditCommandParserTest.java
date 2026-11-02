@@ -245,6 +245,14 @@ public class EditCommandParserTest {
 
         // email prefix followed by whitespace only
         assertParseSuccess(parser, targetIndex.getOneBased() + EMAIL_EMPTY + "   ", expectedCommand);
+        assertParseSuccess(parser, targetIndex.getOneBased() + EMAIL_EMPTY + "\t", expectedCommand);
+
+        // Unicode whitespace that trim() keeps, e.g. pasted text, is still blank, as in add
+        assertParseSuccess(parser, targetIndex.getOneBased() + EMAIL_EMPTY + "\u2003", expectedCommand);
+
+        // a non-blank invalid email is still rejected
+        assertParseFailure(parser, targetIndex.getOneBased() + EMAIL_EMPTY + "not-an-email",
+                Email.MESSAGE_CONSTRAINTS);
 
         // email removal together with another field
         expectedCommand = new EditCommand(targetIndex,

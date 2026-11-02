@@ -173,6 +173,8 @@ public class AddCommandParserTest {
                 new AddCommand(expectedPersonNoEmail));
         assertParseSuccess(parser, NAME_DESC_AMY + PHONE_DESC_AMY + " " + PREFIX_EMAIL + "   ",
                 new AddCommand(expectedPersonNoEmail));
+        assertParseSuccess(parser, NAME_DESC_AMY + PHONE_DESC_AMY + " " + PREFIX_EMAIL + "\u2003",
+                new AddCommand(expectedPersonNoEmail));
     }
 
     @Test
