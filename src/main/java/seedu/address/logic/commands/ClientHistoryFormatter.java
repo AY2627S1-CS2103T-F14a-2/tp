@@ -64,7 +64,9 @@ public final class ClientHistoryFormatter {
                 .collect(Collectors.joining(", "));
         return PHONE_LABEL + PhoneDisplayFormatter.format(person.getPhone().value)
                 + "\n" + EMAIL_LABEL + formatEmail(person)
-                + "\n" + NEXT_SESSION_LABEL + formatNextSession(person, now)
+                + "\n" + NEXT_SESSION_LABEL + person.getNextSession()
+                        .filter(session -> session.value.isBefore(now))
+                        .map(session -> session + " (past)").orElseGet(() -> formatNextSession(person, now))
                 + "\nTags: " + (tags.isEmpty() ? NO_TAGS : tags);
     }
 

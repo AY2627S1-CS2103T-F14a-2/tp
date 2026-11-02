@@ -13,6 +13,9 @@
 
 ## **Acknowledgements**
 
+Helen used OpenAI Codex for retained past-session timestamps in client details, regression tests,
+and related guide updates for issue #255.
+
 * Spotter is based on [AddressBook-Level3](https://se-education.org/addressbook-level3/) (AB3), the sample project
   of the [SE-EDU initiative](https://se-education.org).
 * Spotter uses [JavaFX](https://openjfx.io/) for its GUI, [Jackson](https://github.com/FasterXML/jackson) to read
@@ -403,7 +406,8 @@ Design notes:
   counts and a newest-first hint, and the client card uses the same placeholders for a missing email or session.
 * **"Now" at drawing time:** whether the next session has passed is decided when the panel is drawn, as on the
   client card. `MainWindow` also redraws the panel after every successful command, so a session that passes
-  while the panel is open is shown the same way as on the card.
+  while the panel is open is marked as past with its retained timestamp. Cards continue to use
+  `- (none upcoming)` for expired bookings.
 * **Scroll position:** when the viewed client changes to a different client (by `Person#isSamePerson`), the
   panel scrolls back to the top. A replacement of the same client, e.g. a new record, keeps the scroll position.
 * **Ordering:** both histories are listed newest first. Measurements on the same date follow the type order
