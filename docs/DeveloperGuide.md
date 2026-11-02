@@ -467,6 +467,10 @@ finds the record through `PerformanceHistory#find` and calls `Person#withoutGymP
 `CommandException` before any state changes. Either way, the command replaces the client through `Model#setPerson`,
 and `LogicManager` saves the client data.
 
+Record identity stays case-insensitive through `GymPerformance#isSameEntry`, while `GymPerformance#equals`
+compares the exact stored exercise spelling. A capitalization-only or apostrophe-style replacement therefore
+counts as a data change and is saved, even when the training numbers stay the same.
+
 The sequence diagram below shows a successful `deleteperformance` command. Saving, and restoring the previous state
 if saving fails, is the same as for `deletemeasure`.
 
@@ -1736,6 +1740,8 @@ run `list` and substitute that client's displayed index for `1` below. `NAME` is
    1. Enter `performance 1 d/2026-09-18 e/Bench Press s/3 r/8 w/60`.<br>
       Expected: `Recorded performance for NAME: Bench Press, 3 sets of 8 reps at 60 kg on 2026-09-18.`
       The card shows `Latest performance: 18 Sep - Bench Press, 3 sets of 8 reps at 60 kg (1 record)`.
+   1. Repeat that command with `e/bench press`, keeping the date and all numbers unchanged. Exit and relaunch Spotter.<br>
+      Expected: The card and `view 1` still show `bench press` with one record; the changed spelling was saved.
    1. Enter `performance 1 d/2026-09-15 e/Squat s/3 r/5 w/100`.<br>
       Expected: A new record is added. The card still shows the 18 Sep bench press, now with `(2 records)`.
    1. Enter `performance 1 d/2026-09-18 e/bench press s/4 r/6 w/62.5`.<br>
