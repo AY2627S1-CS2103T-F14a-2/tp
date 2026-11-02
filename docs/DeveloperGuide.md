@@ -1509,6 +1509,8 @@ Continue from the previous section.
    After a successful edit, the list shows all clients again, so Sarah is no longer at index 1.
 1. Enter `find sarah`, then `edit 1 e/`.<br>
    Expected: `Edited client: Sarah Lim; Phone: 9876 5432`, followed by the same index note. Her card shows `Email: -`.
+1. Enter `find sarah`, then `edit 1 e/` again.<br>
+   Expected: `No changes made: Sarah Lim already has these details.` The list still shows only Sarah.
 1. Enter `find sarah`, then `edit 1` and `edit 1 n/Marcus Tan`.<br>
    Expected: `At least one field to edit must be provided.`, then `Another client already has this name. Names are compared ignoring letter case and extra spaces. Use "find NAME" to check the existing client.`
    Sarah's details are unchanged.
@@ -1915,7 +1917,8 @@ editing the file. Keep the backup until all tests are complete.
       load warning as for a corrupted file.
    1. Enter `list`, then `exit`.<br>
       Expected: The data file still contains phone number `12`. Other invalid values, such as an email without
-      `@`, a measurement outside its range, or two measurements of the same type on the same date, behave the same.
+      `@`, a measurement outside its range, a measurement value in scientific notation such as `"7.24E1"`, or two
+      measurements of the same type on the same date, behave the same.
       Exception: a measurement or performance dated in the future is not invalid. Spotter loads it normally,
       because future dates are only rejected when a record is entered with a command.
 

@@ -159,14 +159,63 @@ public class EditCommandTest {
     }
 
     @Test
-    public void execute_noFieldSpecifiedUnfilteredList_success() {
+    public void execute_noFieldSpecifiedUnfilteredList_reportsNoChange() {
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptor());
-        Person editedPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_NOT_CHANGED, firstPerson.getName());
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_sameValuesFilteredList_reportsNoChangeAndKeepsFilter() {
+        showPersonAtIndex(model, INDEX_SECOND_PERSON);
+        Person shownPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhone(shownPerson.getPhone().value).build());
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_NOT_CHANGED, shownPerson.getName());
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        showPersonAtIndex(expectedModel, INDEX_SECOND_PERSON);
+
+        // The filter is kept because nothing changed, so no displayed index has moved.
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_removeAbsentEmailAndTags_reportsNoChange() {
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person plainPerson = new PersonBuilder(firstPerson).withoutEmail().withTags().build();
+        model.setPerson(firstPerson, plainPerson);
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withoutEmail().withTags().build());
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_NOT_CHANGED, plainPerson.getName());
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_tagSpellingChanged_editsClient() {
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person taggedPerson = new PersonBuilder(firstPerson).withTags("rehab").build();
+        model.setPerson(firstPerson, taggedPerson);
+        Person editedPerson = new PersonBuilder(taggedPerson).withTags("Rehab").build();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withTags("Rehab").build());
 
         String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(taggedPerson, editedPerson);
 
+        // Tag identity ignores case, but a changed spelling is still a change to save.
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
     }
 

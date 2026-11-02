@@ -49,6 +49,7 @@ public class EditCommand extends Command {
 
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited client: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
+    public static final String MESSAGE_NOT_CHANGED = "No changes made: %1$s already has these details.";
     public static final String MESSAGE_DUPLICATE_PERSON = Messages.MESSAGE_DUPLICATE_CLIENT;
 
     private static final Logger logger = LogsCenter.getLogger(EditCommand.class);
@@ -81,6 +82,10 @@ public class EditCommand extends Command {
 
         Person personToEdit = lastShownList.get(index.getZeroBased());
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
+        if (editedPerson.equals(personToEdit)) {
+            // Nothing to save, so the displayed list and its indexes are left as they are.
+            return new CommandResult(String.format(MESSAGE_NOT_CHANGED, personToEdit.getName()));
+        }
 
         if (!personToEdit.isSamePerson(editedPerson) && model.hasPerson(editedPerson)) {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);

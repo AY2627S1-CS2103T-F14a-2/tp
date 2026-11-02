@@ -43,7 +43,7 @@ public class MeasureCommandParser implements Parser<MeasureCommand> {
                     Measurement.MESSAGE_FUTURE_DATE);
             MeasurementType type = parseType(arguments.getValue(PREFIX_MEASUREMENT_TYPE).orElseThrow());
             String value = arguments.getValue(PREFIX_MEASUREMENT_VALUE).orElseThrow().trim();
-            if (!value.matches("[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)")) {
+            if (!value.matches(Measurement.VALUE_REGEX)) {
                 throw new ParseException(MESSAGE_NON_NUMERIC);
             }
             return new MeasureCommand(index, new Measurement(date, type, new BigDecimal(value)));
