@@ -24,6 +24,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.FlowPane;
 import javafx.stage.Stage;
 import seedu.address.logic.commands.ClientHistoryFormatter;
+import seedu.address.model.ModelManager;
 import seedu.address.model.person.Measurement;
 import seedu.address.model.person.MeasurementType;
 import seedu.address.model.person.Person;
@@ -80,7 +81,10 @@ public class ClientDetailPanelTest {
     public void viewedPersonChanged_differentClient_scrollsToTop(FxRobot robot) {
         robot.interact(() -> viewedPerson.set(ALICE));
         robot.interact(() -> panel.setVvalue(1));
-        robot.interact(() -> viewedPerson.set(BENSON));
+        robot.interact(() -> {
+            viewedPerson.set(null); // Explicit selection signal from ModelManager.
+            viewedPerson.set(BENSON);
+        });
 
         assertEquals(0, panel.getVvalue());
     }
@@ -106,6 +110,22 @@ public class ClientDetailPanelTest {
         assertEquals("2026-10-20  weight 72.4 kg", labelText("#measurements"));
         assertEquals("Performance · 1 record", labelText("#performanceHeading"));
         assertEquals("2026-09-18  Bench Press, 3 sets of 8 reps at 60 kg", labelText("#performances"));
+    }
+
+    @Test
+    public void viewedClientRenamed_keepsScrollPosition(FxRobot robot) {
+        robot.interact(() -> {
+            ModelManager model = new ModelManager();
+            model.addPerson(ALICE);
+            model.setViewedPerson(ALICE);
+            ScrollPane history = new ClientDetailPanel(model.getViewedPerson()).getRoot();
+            history.setVvalue(1);
+            model.setPerson(ALICE, new PersonBuilder(ALICE).withName("Alice Smith").build());
+            assertEquals(1, history.getVvalue());
+            model.addPerson(BENSON);
+            model.setViewedPerson(BENSON);
+            assertEquals(0, history.getVvalue());
+        });
     }
 
     private String labelText(String selector) {

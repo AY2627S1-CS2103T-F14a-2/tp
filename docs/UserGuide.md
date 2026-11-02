@@ -210,6 +210,9 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [t/TAG]... `
   If this, or a new name, changes which client any previously shown index refers to, the message adds
   `The client list order has changed; check the index numbers before your next command.`
   A phone-only edit in the full list keeps every index, so no note is shown.
+* If the client already has every value you entered, for example `edit 3 e/` for a client without an email,
+  Spotter shows `No changes made: NAME already has these details.` Nothing is saved, and the displayed list
+  stays as it was.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st client to be `91234567` and `johndoe@example.com` respectively.
@@ -505,8 +508,9 @@ Format: `view INDEX`
   * Measurements on the same date are listed in the order `weight`, `bodyfat`, `waist`.
   * Performances on the same date are listed with the one recorded last first, so the first performance line
     always matches the card's `Latest performance`.
-* `Next session` shows the same text as the client's card: `- (none booked)` if no session is booked, or
-  `- (none upcoming)` once the booked session has passed.
+* `Next session` shows the booking status: `- (none booked)` if no session is booked, or
+  the stored `YYYY-MM-DD HH:mm (past)` once the booked session has passed.
+  Client cards still show `- (none upcoming)`; use `view INDEX` to read a retained booking's time.
 * Tags are listed alphabetically. A client with no email or no tags shows `-`.
 * If the history is too long to fit, scroll inside the panel. Viewing a different client starts at the top.
   Updates to the client you are viewing, such as a new record or a changed phone number, keep your scroll position,
