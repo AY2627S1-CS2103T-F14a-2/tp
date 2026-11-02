@@ -390,7 +390,6 @@ instead, so the panel follows the client without any command knowing about the p
 <img class="diagram-preview-fallback" src="images/diagrams/ViewedClientSyncSequenceDiagram.png" alt="How the detail panel follows the viewed client after `measure`" />
 
 In the same way, `Model#deletePerson` and `Model#setAddressBook` (used by `clear confirm`) stop viewing a client that
-
 no longer exists, and `ListCommand` stops viewing any client. The Upcoming sessions panel then shows again.
 If saving fails, `LogicManager` restores the viewed client together with the client data and the filter, so
 the panel matches the restored data.
@@ -855,6 +854,12 @@ not promises about the current release.
 
       Use case ends.
 
+* 4a. Another client has the same phone number as the edited client, ignoring formatting.
+
+    * 4a1. Spotter updates the client and warns the trainer which client shares the number.
+
+      Use case ends.
+
 **Use case: UC04 - Delete a client**
 
 **MSS**
@@ -1054,6 +1059,16 @@ not promises about the current release.
 
       If matching clients are found, use case resumes at step 3; otherwise, the trainer retries the search or the use case ends.
 
+* 1b. Trainer knows the client's full name.
+
+    * 1b1. Trainer requests to schedule the next session for the client by name, with the session's date and time.
+      Spotter looks for the client among all clients, even those hidden by a search or filter. Names containing `/`
+      cannot be given this way.
+
+    * 1b2. If no client has that name, Spotter shows an error message and the use case resumes at step 1.
+
+      Otherwise, use case resumes at step 4.
+
 * 2a. The list is empty.
 
   Use case ends.
@@ -1114,6 +1129,16 @@ not promises about the current release.
     * 1a1. Trainer finds the client (UC02).
 
       If matching clients are found, use case resumes at step 3; otherwise, the trainer retries the search or the use case ends.
+
+* 1b. Trainer knows the client's full name.
+
+    * 1b1. Trainer requests to cancel the next session of the client by name.
+      Spotter looks for the client among all clients, even those hidden by a search or filter. Names containing `/`
+      cannot be given this way.
+
+    * 1b2. If no client has that name, Spotter shows an error message and the use case resumes at step 1.
+
+      Otherwise, use case resumes at step 4.
 
 * 2a. The list is empty.
 
