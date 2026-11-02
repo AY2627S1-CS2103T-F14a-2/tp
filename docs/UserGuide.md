@@ -206,6 +206,9 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [t/TAG]... `
   If this, or a new name, changes which client any previously shown index refers to, the message adds
   `The client list order has changed; check the index numbers before your next command.`
   A phone-only edit in the full list keeps every index, so no note is shown.
+* If the client already has every value you entered, for example `edit 3 e/` for a client without an email,
+  Spotter shows `No changes made: NAME already has these details.` Nothing is saved, and the displayed list
+  stays as it was.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st client to be `91234567` and `johndoe@example.com` respectively.
