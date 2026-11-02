@@ -508,8 +508,9 @@ Format: `view INDEX`
   * Measurements on the same date are listed in the order `weight`, `bodyfat`, `waist`.
   * Performances on the same date are listed with the one recorded last first, so the first performance line
     always matches the card's `Latest performance`.
-* `Next session` shows the same text as the client's card: `- (none booked)` if no session is booked, or
-  `- (none upcoming)` once the booked session has passed.
+* `Next session` shows the booking status: `- (none booked)` if no session is booked, or
+  the stored `YYYY-MM-DD HH:mm (past)` once the booked session has passed.
+  Client cards still show `- (none upcoming)`; use `view INDEX` to read a retained booking's time.
 * Tags are listed alphabetically. A client with no email or no tags shows `-`.
 * If the history is too long to fit, scroll inside the panel. Viewing a different client starts at the top.
   Updates to the client you are viewing, such as a new record or a changed phone number, keep your scroll position,

@@ -43,7 +43,7 @@ public class ClientDetailPanel extends UiPart<ScrollPane> {
         this.viewedPerson = viewedPerson;
         viewedPerson.addListener((observable, oldPerson, newPerson) -> {
             // A different client opens at the top; an update to the same client keeps its scroll position.
-            if (newPerson != null && !newPerson.isSamePerson(oldPerson)) {
+            if (newPerson != null && oldPerson == null) {
                 getRoot().setVvalue(0);
             }
             refresh();

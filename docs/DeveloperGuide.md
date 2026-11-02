@@ -13,8 +13,9 @@
 
 ## **Acknowledgements**
 
-Helen used OpenAI Codex for apostrophe-tolerant client lookup and duplicate guards, legacy-data
-compatibility tests, and related guide updates for issue #256.
+Helen used OpenAI Codex to fix history scrolling after renaming, retain past-session timestamps in client
+details, and support apostrophe-tolerant lookup and duplicate guards, with regression tests, legacy-data
+compatibility tests and guide updates for issues #254, #255 and #256.
 
 * Spotter is based on [AddressBook-Level3](https://se-education.org/addressbook-level3/) (AB3), the sample project
   of the [SE-EDU initiative](https://se-education.org).
@@ -414,9 +415,12 @@ Design notes:
   counts and a newest-first hint, and the client card uses the same placeholders for a missing email or session.
 * **"Now" at drawing time:** whether the next session has passed is decided when the panel is drawn, as on the
   client card. `MainWindow` also redraws the panel after every successful command, so a session that passes
-  while the panel is open is shown the same way as on the card.
-* **Scroll position:** when the viewed client changes to a different client (by `Person#isSamePerson`), the
-  panel scrolls back to the top. A replacement of the same client, e.g. a new record, keeps the scroll position.
+  while the panel is open is marked as past with its retained timestamp. Cards continue to use
+  `- (none upcoming)` for expired bookings.
+* **Scroll position:** when an explicit selection opens a different client, the panel scrolls back to the top.
+  A replacement of the same client, including a rename or a new record, keeps the scroll position.
+  `ModelManager#setViewedPerson` signals a changed explicit selection through null;
+  `ModelManager#setPerson` updates the open client directly.
 * **Ordering:** both histories are listed newest first. Measurements on the same date follow the type order
   weight, body fat, waist. Performance records on the same date are listed most recently recorded first, so the
   first line always matches the client card's "Latest performance".
