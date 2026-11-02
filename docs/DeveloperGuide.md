@@ -13,9 +13,6 @@
 
 ## **Acknowledgements**
 
-Helen used OpenAI Codex for apostrophe-tolerant client lookup and duplicate guards, legacy-data
-compatibility tests, and related guide updates for issue #256.
-
 * Spotter is based on [AddressBook-Level3](https://se-education.org/addressbook-level3/) (AB3), the sample project
   of the [SE-EDU initiative](https://se-education.org).
 * Spotter uses [JavaFX](https://openjfx.io/) for its GUI, [Jackson](https://github.com/FasterXML/jackson) to read
@@ -268,11 +265,14 @@ partially implemented here. These limits do not establish that every user's nami
 
 ### Duplicate detection
 
+Helen used OpenAI Codex for apostrophe-tolerant client lookup and duplicate guards, legacy-data
+compatibility tests, and related guide updates for issue #256.
+
 Spotter identifies a client by name, not by phone or email. `Person#isSamePerson` delegates to
 `Name#isSameName`, which compares names after Unicode NFC normalization, ignoring letter case and collapsing
 repeated whitespace, so `john tan` and `John  Tan` are the same client. `UniquePersonList#contains` uses
-`isSamePerson`, and `add` reaches it through `Model#hasPerson`; `edit` performs the same check only when the
-edited name differs from the original.
+`isSamePerson` for stored identity. Command-level duplicate checks use `Model#hasEquivalentName` to also
+ignore apostrophe style; `edit` excludes the original client and checks only when the name changes.
 
 Duplicate detection is therefore name-only: two clients cannot share a name, even when their phone numbers and
 emails differ. Because phone numbers are not unique in the real world, `add` and `edit` instead append a
@@ -1454,7 +1454,7 @@ Start from the sample data.
 1. Enter `add n/Marcus Tan p/88776655`.<br>
    Expected: `New client added: Marcus Tan; Phone: 8877 6655`. His card shows `Email: -`.
 1. Enter `add n/sarah  lim p/99998888`.<br>
-   Expected: `Another client already has this name. Names are compared ignoring letter case and extra spaces. Use "find NAME" to check the existing client.`
+   Expected: `Another client already has this name. Names are compared ignoring letter case, extra spaces and straight/curly apostrophe style. Use "find NAME" to check the existing client.`
 1. Enter `add n/Kim Lee p/12`, then `add n/Kim Lee`.<br>
    Expected: An error explaining the phone-number rules, then `Invalid command format!` followed by the `add`
    usage. No client is added.
@@ -1476,7 +1476,7 @@ Continue from the previous section.
 1. Enter `find sarah`, then `edit 1 e/`.<br>
    Expected: `Edited client: Sarah Lim; Phone: 9876 5432`. Her card shows `Email: -`.
 1. Enter `find sarah`, then `edit 1` and `edit 1 n/Marcus Tan`.<br>
-   Expected: `At least one field to edit must be provided.`, then `Another client already has this name. Names are compared ignoring letter case and extra spaces. Use "find NAME" to check the existing client.`
+   Expected: `At least one field to edit must be provided.`, then `Another client already has this name. Names are compared ignoring letter case, extra spaces and straight/curly apostrophe style. Use "find NAME" to check the existing client.`
    Sarah's details are unchanged.
 
 ### Client name and phone formats

@@ -57,7 +57,9 @@ public class ClientApostropheTest {
     public void ambiguousLegacyVariants_requireIndexWithoutChangingData() throws Exception {
         model.addPerson(new PersonBuilder().withName("A'B'C").build());
         model.addPerson(new PersonBuilder().withName("A’B’C").build());
-        assertThrows(CommandException.class, () -> execute("session n/A'B’C d/2026-12-15 t/0900"));
+        CommandException exception = assertThrows(CommandException.class, () ->
+                execute("session n/A'B’C d/2026-12-15 t/0900"));
+        assertEquals(SessionCommand.MESSAGE_AMBIGUOUS_NAME, exception.getMessage());
         assertTrue(model.getAddressBook().getPersonList().stream().allMatch(p -> p.getNextSession().isEmpty()));
     }
 
