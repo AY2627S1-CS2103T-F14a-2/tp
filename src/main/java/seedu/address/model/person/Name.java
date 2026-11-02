@@ -20,7 +20,7 @@ public class Name {
             "Names must start with a Latin letter or digit and contain only Latin letters, accents, digits, "
                     + "spaces, apostrophes, hyphens, full stops and slashes.";
     public static final String MESSAGE_LENGTH_CONSTRAINTS =
-            "Names should be at most " + MAX_LENGTH + " characters long";
+            "Names should be at most " + MAX_LENGTH + " characters long.";
 
     // Combining accents support Latin names whose accents have no precomposed Unicode form.
     public static final String VALIDATION_REGEX = "[\\p{IsLatin}0-9][\\p{IsLatin}\\p{M}0-9 '’./-]*";

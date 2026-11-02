@@ -36,6 +36,9 @@ Command --> MeasureParser
 deactivate Command
 MeasureParser --> Parser : c
 deactivate MeasureParser
+'Hidden arrow to position the destroy marker below the end of the activation bar.
+MeasureParser -[hidden]-> Parser
+destroy MeasureParser
 Parser --> Logic : c
 deactivate Parser
 note right of Logic : Keeps a copy of the address book,\nfilter and viewed client
@@ -77,8 +80,9 @@ Model --> Logic : addressBook
 deactivate Model
 Logic -> Storage : saveAddressBook(addressBook)
 activate Storage
+Storage --> Logic
+deactivate Storage
 break IOException
-Storage --> Logic : IOException
 Logic -> Model : setAddressBook(copy)
 activate Model
 Model --> Logic
@@ -93,8 +97,6 @@ Model --> Logic
 deactivate Model
 [<-- Logic : CommandException(save failure)
 end
-Storage --> Logic
-deactivate Storage
 end
 [<-- Logic : result
 deactivate Logic
