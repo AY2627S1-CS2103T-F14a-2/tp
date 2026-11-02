@@ -218,6 +218,9 @@ public class ParserUtil {
     public static Name parseName(String name) throws ParseException {
         requireNonNull(name);
         String trimmedName = name.trim();
+        if (trimmedName.isEmpty()) {
+            throw new ParseException(SessionCommand.MESSAGE_EMPTY_NAME);
+        }
         if (!Name.isValidName(trimmedName)) {
             throw new ParseException(Name.isTooLong(trimmedName)
                     ? Name.MESSAGE_LENGTH_CONSTRAINTS : Name.MESSAGE_CONSTRAINTS);

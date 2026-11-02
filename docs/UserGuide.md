@@ -125,13 +125,15 @@ Format: `add n/NAME p/PHONE [e/EMAIL] [t/TAG]...`
   `Invalid command format!` followed by the command usage. The exceptions are `s/o`, `d/o`, `a/l` and `a/p` (in any
   letter case), which are accepted as part of a name, e.g. `Raju s/o Kumar` or `Kumar a/l Rajan`. For names containing `/`, use the client's index with
   `session` and `cancelsession`, rather than their `n/NAME` forms.
-* `PHONE` must contain at least 3 digits and at most 50 characters after normalization. Digits, spaces,
+* `PHONE` must contain at least 3 digits and at most 100 characters after normalization. Digits, spaces,
   English letters `A–Z`/`a–z` (for labels), `+`, `-`, `(`, `)` and `.` are accepted; `/` is not.
   Plain digits and spaces are stored as digits only: `9927 2758` becomes `99272758`. Otherwise, punctuation and
   labels are kept, outer spaces are removed and repeated spaces are merged. For example,
   `1234 5678 (HP) 1111-3333 (Office)` is accepted. Spotter does not check whether a number is dialable.
 * `EMAIL` is optional. A client without an email shows `-` in place of it.
   Entering `e/` without an email after it also adds the client without an email, as in `edit`.
+  Straight apostrophes are allowed inside the local part, e.g. `mary.o'brien@example.com`; the address is stored
+  unchanged. Typographic curly apostrophes (`’`) are not accepted as email characters.
 * `TAG` must be 1–50 characters: English letters `A–Z`/`a–z` and digits `0–9`, optionally separated by
   single hyphens, e.g. `lower-back` or `level-2`. Leading/trailing hyphens, repeated hyphens, spaces and
   other symbols are rejected. Outer whitespace is trimmed.
@@ -142,6 +144,8 @@ Format: `add n/NAME p/PHONE [e/EMAIL] [t/TAG]...`
   For example, `john tan` is a duplicate of `John Tan`. A matching phone digit sequence instead gives
   `Warning: <other client's name> also has this phone number.` after the success message; the client is still saved.
   Every matching client is checked, even if hidden by a search or filter, with one warning per match.
+* Two different clients cannot share a name, because `session n/NAME` and `cancelsession n/NAME` find clients by
+  name. Add a distinguishing word or number to one of them, e.g. `John Tan Bedok` or `John Tan 2`.
 * Duplicate detection does not catch typos, nicknames, or a different name order with a different phone.
   Phone comparison ignores formatting and labels but compares **all digits**: numbers with and without a country
   code are different, and a field containing several numbers does not match another field sharing only one.
@@ -218,7 +222,7 @@ Finds clients whose names contain any of the given keywords.
 
 Format: `find KEYWORD [MORE_KEYWORDS]`
 
-* The search is case-insensitive; for example, `hans` matches `Hans`.
+* The search is case-insensitive; for example, `hans` matches `Hans`, and `ipek` matches `İpek`.
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
 * The search considers only names.
 * Equivalent accent encodings match each other, so a keyword typed as an `e` plus a combining mark finds a name
@@ -404,6 +408,7 @@ Format: `performance INDEX d/DATE e/EXERCISE s/SETS r/REPS w/LOAD`
 * If the client already has a record for the same exercise on the same date, the new sets, repetitions and load
   replace the old record. Spotter keeps one result per exercise per client per day, so you can correct a mistake
   by recording it again.
+  The newly entered exercise spelling is saved too, even if only its capitalization or apostrophe style changes.
 * A record stores one summary: the number of sets, the repetitions per set and the load, e.g. 3 sets of 8 reps at
   60 kg. `REPS` must be a whole number, so Spotter cannot record sets with different repetitions (e.g. 10, 8 and 6
   reps), timed exercises (e.g. a 60-second plank) or distances (e.g. a 5 km run). Inputs such as `r/60s` or
@@ -787,11 +792,16 @@ already on the new computer). Then launch Spotter on the new computer. Your clie
 Client names are labels for the trainer's own records; Spotter does not verify legal names or require a legal-name
 match. The current Latin-script and punctuation support is a bounded design choice, not support for every language.
 A supported preferred spelling can be used if suitable for the trainer and client; otherwise that name cannot yet
-be recorded in its original script. Broader language support is a planned enhancement, not a current feature.
+be recorded in its original script. We acknowledge this limitation and plan broader language support as a
+future enhancement after v1.6.
 
 Names containing command prefixes preceded by a space cannot be entered literally through those commands.
 Slash-containing names are accepted by `add` and `edit`, but session booking/cancellation must use the displayed
 client index. Phone labels support English letters only, and accepted numbers are not checked for dialability.
+
+Each prefix must have a space before it. Because names may contain `/`, a one-word name typed straight into
+the next prefix is saved as part of the name: `edit 1 n/Johnp/123` renames the client to `Johnp/123`.
+Check the name in the success message, and correct it with `edit` if needed.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -809,7 +819,7 @@ You do not need to delete `preferences.json` after disconnecting a monitor.
 ## Known issues
 
 1. **Unrecognized prefixes in `filter` are not reported**: text such as `x/1` that uses a prefix Spotter doesn't support is treated as part of the tag before it. For example, `filter t/rehab x/1` reports an invalid tag. The remedy is to remove the unsupported prefix. The other commands that take prefixes already report such a prefix as an invalid command format.
-2. **Warnings when launching from a terminal**: on some Java setups, such as JDKs that bundle JavaFX (e.g. Zulu FX), `java -jar spotter.jar` prints `WARNING` lines about a restricted method and enabling native access. These come from JavaFX loading its native libraries. They are harmless, and Spotter works normally.
+2. **Warnings when launching from a terminal**: with Java 25, `java -jar spotter.jar` prints several warning lines on every launch, before and after the window opens. They include `Unsupported JavaFX configuration: classes were loaded from 'unnamed module ...'`, lines about a restricted method in `java.lang.System` and enabling native access, and lines about a terminally deprecated method in `sun.misc.Unsafe`. These come from the JavaFX library bundled in the JAR. They are harmless, and Spotter works normally.
 
 --------------------------------------------------------------------------------------------------------------------
 

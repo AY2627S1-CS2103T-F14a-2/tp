@@ -75,6 +75,15 @@ public class EmailTest {
     }
 
     @Test
+    public void isValidEmail_internalApostrophe_acceptsLiteralAddress() {
+        assertTrue(Email.isValidEmail("mary.o'brien@example.com"));
+        assertTrue(Email.isValidEmail("o'brien+training@example.com"));
+        assertFalse(Email.isValidEmail("mary.o’brien@example.com"));
+        assertFalse(Email.isValidEmail("mary@o'brien.com"));
+        assertFalse(Email.isValidEmail("mary.o'brien@@example.com"));
+    }
+
+    @Test
     public void isValidEmail_malformedDomainLabels_rejectsInvalidEndpointsAndEmptyLabels() {
         for (String email : new String[] {"a@b.-cd", "a@b.cd-", "a@b.c", "a@b..cd", "a@b.c_d",
             "a@b.-", "a@b.c-"}) {

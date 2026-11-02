@@ -34,6 +34,9 @@ Command --> DeleteParser
 deactivate Command
 DeleteParser --> Parser : d
 deactivate DeleteParser
+'Hidden arrow to position the destroy marker below the end of the activation bar.
+DeleteParser -[hidden]-> Parser
+destroy DeleteParser
 Parser --> Logic : d
 deactivate Parser
 Logic -> Command : execute(m)
