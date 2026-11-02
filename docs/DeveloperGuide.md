@@ -13,6 +13,9 @@
 
 ## **Acknowledgements**
 
+Helen used OpenAI Codex for apostrophe-tolerant client lookup and duplicate guards, legacy-data
+compatibility tests, and related guide updates for issue #256.
+
 * Spotter is based on [AddressBook-Level3](https://se-education.org/addressbook-level3/) (AB3), the sample project
   of the [SE-EDU initiative](https://se-education.org).
 * Spotter uses [JavaFX](https://openjfx.io/) for its GUI, [Jackson](https://github.com/FasterXML/jackson) to read
@@ -285,6 +288,12 @@ future work.
 <puml src="diagrams/DuplicateDetectionClassDiagram.puml" width="520" />
 
 <img class="diagram-preview-fallback" src="images/diagrams/DuplicateDetectionClassDiagram.png" width="520" alt="Duplicate detection class diagram" />
+
+Client-name command lookup treats straight and curly apostrophes as equivalent. Add and rename
+checks prevent new equivalent duplicates, while stored identity is unchanged so older separate
+variants still load. Booking and cancellation prefer an exact apostrophe spelling; if no exact
+spelling exists, they accept one equivalent match and reject several matches with index guidance.
+Existing variants can still be edited by index without renaming. Search matches either style.
 
 ### Upcoming sessions panel
 

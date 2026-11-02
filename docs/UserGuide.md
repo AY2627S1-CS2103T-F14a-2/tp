@@ -710,6 +710,11 @@ Multiple matches | `Listed 3 clients with sessions on 2026-12-15.`
 One match | `Listed 1 client with a session on 2026-12-15.`
 No matches (empty panel) | `No sessions recorded on 2026-12-15.`
 
+Client-name lookups and new-client duplicate checks ignore straight versus curly apostrophes.
+Existing records with both spellings are preserved. For those records, full-name lookup prefers
+an exact apostrophe spelling; an ambiguous alternative is rejected with guidance to use an index.
+Name searches match either apostrophe style. Existing variants can be edited by index without renaming.
+
 ### Saving the data
 
 Spotter saves your data automatically to `[JAR file location]/data/spotter.json` after each command that changes it. You do not need to save manually.

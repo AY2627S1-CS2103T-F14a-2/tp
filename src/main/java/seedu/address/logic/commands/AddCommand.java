@@ -53,7 +53,8 @@ public class AddCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        if (model.hasPerson(toAdd)) {
+        if (model.hasPerson(toAdd) || model.getAddressBook().getPersonList().stream()
+                .anyMatch(person -> person.getName().matchesIgnoringApostropheStyle(toAdd.getName().fullName))) {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
         }
 

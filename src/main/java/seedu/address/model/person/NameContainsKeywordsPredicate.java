@@ -23,13 +23,13 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
     public NameContainsKeywordsPredicate(List<String> keywords) {
         this.keywords = keywords;
         this.lowercaseKeywords = keywords.stream()
-                .map(keyword -> Name.normalize(keyword).toLowerCase(Locale.ROOT))
+                .map(keyword -> Name.normalize(keyword).replace('’', '\'').toLowerCase(Locale.ROOT))
                 .toList();
     }
 
     @Override
     public boolean test(Person person) {
-        String lowercaseName = person.getName().fullName.toLowerCase(Locale.ROOT);
+        String lowercaseName = person.getName().fullName.replace('’', '\'').toLowerCase(Locale.ROOT);
         return lowercaseKeywords.stream().anyMatch(lowercaseName::contains);
     }
 

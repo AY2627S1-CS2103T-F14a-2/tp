@@ -128,9 +128,18 @@ public class SessionCommand extends Command {
             }
             return model.getFilteredPersonList().get(index.getZeroBased());
         }
-        return model.getAddressBook().getPersonList().stream()
+        List<Person> exactMatches = model.getAddressBook().getPersonList().stream()
                 .filter(person -> person.getName().matches(name))
-                .findFirst().orElseThrow(() -> new CommandException(MESSAGE_NO_SUCH_NAME));
+                .toList();
+        if (!exactMatches.isEmpty()) {
+            return exactMatches.getFirst();
+        }
+        List<Person> matches = model.getAddressBook().getPersonList().stream()
+                .filter(person -> person.getName().matchesIgnoringApostropheStyle(name)).toList();
+        if (matches.size() > 1) {
+            throw new CommandException("More than one client matches that name. Use the displayed client index.");
+        }
+        return matches.stream().findFirst().orElseThrow(() -> new CommandException(MESSAGE_NO_SUCH_NAME));
     }
 
     /**
