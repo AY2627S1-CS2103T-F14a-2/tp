@@ -252,6 +252,9 @@ case and extra whitespace after normalization, and `find` normalizes its keyword
 `José Tan` and `Jose Tan` are different names. The 100-character limit uses Java string length after normalization,
 not a count of visually rendered glyphs. No transliteration or compatibility folding is performed.
 
+Substring search uses Unicode case-insensitive comparison, as full-name lookup does, instead of lowercasing
+whole strings. This lets `ipek` match `İpek` without treating `Jose` and `José` as the same spelling.
+
 `Phone` requires at least three digits and permits English-letter labels and common punctuation within a
 100-character normalized value. Plain digits separated by spaces remain stored as digits only for compatibility
 with older files. Other accepted formatting is retained. This is a contact field, not a dialability validator.
@@ -1511,6 +1514,9 @@ replace `INDEX` below with that number. Do not assume insertion order is the dis
    decomposed encoding. `Jose` without an accent is not the same name, and `find Jose` does not find it.
 1. Run `add n/-Alex p/91234567`, `add n/王明 p/91234567` and `add n/Phone Probe p/12`.<br>
    Expected: Validation feedback explains the supported name or phone characters/digit requirement; no client is added.
+1. Run `add n/İpek Tan p/93456789`, then `find ipek` and `find İPEK`.<br>
+   Expected: Both searches find `İpek Tan`, following the same case-insensitive rules as full-name session lookup.
+   Run `list` before continuing with index-based commands.
 1. For Raju, run `session INDEX d/2026-12-15 t/1900`, check the displayed list again, then run
    `cancelsession INDEX` with his current index.<br>
    Expected: Both commands succeed. The equivalent `n/Raju s/o Kumar` forms are rejected as documented, without
