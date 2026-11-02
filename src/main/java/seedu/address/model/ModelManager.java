@@ -178,6 +178,10 @@ public class ModelManager implements Model {
         assert person == null || addressBook.getPersonList().contains(person)
                 : "The viewed client must exist in the address book";
         logger.fine(person == null ? "Clearing the viewed client" : "Viewing a client");
+        // Explicit selection resets scrolling; setPerson updates the open history without this signal.
+        if (person != null && !person.equals(viewedPerson.get())) {
+            viewedPerson.set(null);
+        }
         viewedPerson.set(person);
     }
 
