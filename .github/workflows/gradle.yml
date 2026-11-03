@@ -7,7 +7,7 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        platform: [ubuntu-latest, macos-26-intel, windows-latest]
+        platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
 
     steps:
@@ -27,8 +27,7 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '25'
-          # The macOS 26 runner needs the current JavaFX native toolkit.
-          java-package: ${{ runner.os == 'macOS' && 'jdk+fx' || 'jdk' }}
+          java-package: jdk+fx
 
       - name: Build and check with Gradle on Linux
         if: runner.os == 'Linux'
@@ -36,17 +35,7 @@ jobs:
 
       - name: Build and check with Gradle
         if: runner.os != 'Linux'
-        env:
-          # Avoid the virtual Mac's Metal crash and allow TestFX's parameter cleanup.
-          JAVA_TOOL_OPTIONS: ${{ runner.os == 'macOS' && '-Dprism.order=sw --add-exports=javafx.graphics/com.sun.javafx.application=ALL-UNNAMED --add-opens=javafx.graphics/com.sun.javafx.application=ALL-UNNAMED' || '' }}
-        run: ./gradlew check coverage --info
-
-      - name: Show macOS crash diagnostics
-        if: failure() && runner.os == 'macOS'
-        run: |
-          find build/test-results/test -type f -name '*.xml' -exec tail -n 100 {} \; 2>/dev/null || true
-          find . -name 'hs_err_pid*.log' -exec cat {} \;
-          find "$HOME/Library/Logs/DiagnosticReports" -maxdepth 1 -type f -iname '*java*' -exec cat {} \; 2>/dev/null || true
+        run: ./gradlew check coverage
 
       - name: Upload coverage reports to Codecov
         if: runner.os == 'Linux'
