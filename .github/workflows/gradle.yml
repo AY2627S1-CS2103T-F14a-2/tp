@@ -27,7 +27,8 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '25'
-          java-package: jdk
+          # The macOS 26 runner needs the current JavaFX native toolkit.
+          java-package: ${{ runner.os == 'macOS' && 'jdk+fx' || 'jdk' }}
 
       - name: Build and check with Gradle on Linux
         if: runner.os == 'Linux'
@@ -36,7 +37,8 @@ jobs:
       - name: Build and check with Gradle
         if: runner.os != 'Linux'
         env:
-          JAVA_TOOL_OPTIONS: ${{ runner.os == 'macOS' && '-Dprism.order=sw' || '' }}
+          # Avoid the virtual Mac's Metal crash and allow TestFX's parameter cleanup.
+          JAVA_TOOL_OPTIONS: ${{ runner.os == 'macOS' && '-Dprism.order=sw --add-exports=javafx.graphics/com.sun.javafx.application=ALL-UNNAMED --add-opens=javafx.graphics/com.sun.javafx.application=ALL-UNNAMED' || '' }}
         run: ./gradlew check coverage --info
 
       - name: Show macOS crash diagnostics
